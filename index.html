@@ -3,431 +3,582 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MYMAINMAN - SerwisMaster Pro</title>
+  <title>SerwisMaster Pro - System Serwisowy</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-    body { background: #eaedf1; color: #2d3748; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #0b1329; color: #f8fafc; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-    /* GÓRNY PASEK MYMAINMAN */
-    header { background: #374151; color: #fff; height: 50px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1f2937; }
-    .brand-box { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1.15rem; color: #fff; }
-    .brand-icon { background: #f59e0b; color: #111; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.8rem; }
-    
-    .nav-tabs { display: flex; gap: 20px; height: 100%; align-items: center; }
-    .tab-btn { background: transparent; color: #cbd5e1; border: none; font-weight: 700; font-size: 0.88rem; cursor: pointer; padding: 6px 4px; border-bottom: 3px solid transparent; transition: 0.15s; }
-    .tab-btn:hover { color: #fff; }
-    .tab-btn.active { color: #fff; border-bottom-color: #fbbf24; }
+    header { background: #1e293b; padding: 0 16px; height: 48px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; }
+    .brand { font-weight: 800; font-size: 1.15rem; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+    .nav-tabs { display: flex; gap: 6px; height: 100%; align-items: center; }
+    .tab-btn { background: transparent; color: #94a3b8; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.82rem; display: flex; align-items: center; gap: 5px; }
+    .tab-btn:hover { color: #fff; background: #334155; }
+    .tab-btn.active { background: #0284c7; color: #fff; }
 
-    .header-user { font-size: 0.8rem; color: #9ca3af; display: flex; align-items: center; gap: 10px; }
-
-    .view-container { display: flex; flex: 1; height: calc(100vh - 50px); overflow: hidden; }
-    .sidebar { width: 330px; background: #fff; border-right: 1px solid #d1d5db; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
-    .content { flex: 1; background: #f3f4f6; overflow-y: auto; padding: 18px; }
-
-    .btn { background: #0284c7; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; }
+    .btn { background: #0284c7; color: #fff; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; }
     .btn:hover { opacity: 0.9; }
     .btn-green { background: #10b981; }
-    .btn-amber { background: #f59e0b; color: #000; }
-    .btn-del { background: #ef4444; }
-    .btn-gray { background: #6b7280; }
+    .btn-amber { background: #d97706; }
     .btn-purple { background: #8b5cf6; }
+    .btn-del { background: #ef4444; }
+    .btn-gray { background: #475569; }
 
-    /* DASHBOARD MYMAINMAN */
-    .dash-grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: 16px; max-width: 1350px; margin: 0 auto; width: 100%; }
-    .dash-box { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 14px; }
-    .dash-box-title { font-size: 0.85rem; font-weight: 700; color: #4b5563; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-
-    .pie-chart-mock { width: 160px; height: 160px; border-radius: 50%; background: conic-gradient(#10b981 0% 12%, #f59e0b 12% 98%, #ef4444 98% 100%); margin: 10px auto; position: relative; display: flex; align-items: center; justify-content: center; }
-    .pie-chart-inner { width: 80px; height: 80px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; color: #374151; }
-
-    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 14px; }
-    .kpi-tile { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px; padding: 10px; text-align: center; }
-    .kpi-tile-lbl { font-size: 0.7rem; color: #6b7280; font-weight: 600; text-transform: uppercase; }
-    .kpi-tile-val { font-size: 1.15rem; font-weight: 800; margin-top: 4px; }
-
-    /* AKORDEONY ZLECEŃ KW (ACTIVE ORDERS) */
-    .kw-group-accordion { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px; margin-bottom: 8px; overflow: hidden; }
-    .kw-group-header { padding: 10px 14px; font-weight: 700; font-size: 0.88rem; color: #374151; background: #f3f4f6; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-    .kw-group-header:hover { background: #e5e7eb; }
-    .kw-days-list { padding: 4px 8px; display: none; background: #fff; border-top: 1px solid #e5e7eb; }
-    .kw-day-row { padding: 8px 10px; border-bottom: 1px solid #f3f4f6; font-size: 0.82rem; cursor: pointer; }
-    .kw-day-row:hover { background: #f9fafb; }
-    .kw-day-header-line { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
-    .kw-task-subitem { background: #f8fafc; border-left: 3px solid #f59e0b; padding: 6px 10px; border-radius: 3px; margin-top: 6px; display: flex; justify-content: space-between; align-items: center; }
-
-    /* CHECKLISTA MYMAINMAN (PASKI ZADAŃ I IKONY) */
-    .chk-order-header { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 18px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
-    .module-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
-    .module-card-head { background: #f8fafc; padding: 10px 14px; font-weight: 700; font-size: 0.9rem; color: #1e293b; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-    .task-row { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; background: #fff; transition: 0.1s; }
-    .task-row:hover { background: #fafafa; }
-    .task-row.done { background: #f0fdf4; }
-    .task-row-title { font-size: 0.88rem; font-weight: 600; color: #1e293b; margin-bottom: 8px; cursor: pointer; }
-    .task-row.done .task-row-title { color: #166534; }
+    .view-container { display: flex; flex: 1; width: 100%; height: calc(100vh - 48px); overflow: hidden; }
+    .sidebar { width: 340px; background: #111c33; border-right: 1px solid #1e2e4a; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .content { flex: 1; padding: 18px; overflow-y: auto; }
     
-    .task-toolbar { display: flex; align-items: center; gap: 16px; font-size: 0.88rem; color: #64748b; }
-    .tool-icon { cursor: pointer; transition: 0.15s; display: inline-flex; align-items: center; gap: 4px; }
-    .tool-icon:hover { color: #0284c7; transform: scale(1.1); }
-    .badge-count { background: #ef4444; color: #fff; font-size: 0.68rem; padding: 1px 5px; border-radius: 10px; font-weight: bold; }
+    .card { background: #16243d; border: 1px solid #23385d; padding: 10px; border-radius: 6px; cursor: pointer; position: relative; }
+    .card:hover { border-color: #38bdf8; }
+    .card.act { border-color: #38bdf8; background: #1b2e50; }
+    .card.is-done { border-left: 4px solid #10b981; opacity: 0.85; }
+    .card.is-active { border-left: 4px solid #38bdf8; }
+    .card.is-travel-to { border-left: 4px solid #3b82f6; }
+    .card.is-travel-back { border-left: 4px solid #a855f7; }
+    .card.is-support { border-left: 4px solid #f59e0b; }
+    .card-del-btn { position: absolute; top: 6px; right: 6px; background: #ef4444; color: #fff; border: none; width: 20px; height: 20px; border-radius: 3px; cursor: pointer; font-weight: bold; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; }
 
-    /* OKNO AKTUALIZACJI ZLECENIA I CZASU (UPDATE ENTRY) */
-    .entry-modal-field { margin-bottom: 12px; }
-    .entry-modal-field label { font-size: 0.78rem; font-weight: 700; color: #64748b; display: block; margin-bottom: 3px; }
-    .entry-modal-field input, .entry-modal-field select, .entry-modal-field textarea { width: 100%; padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem; background: #fff; color: #1e293b; }
+    .box { background: #152238; border: 1px solid #23385d; border-radius: 6px; padding: 16px; margin-bottom: 14px; }
+    .box h3 { color: #38bdf8; font-size: 0.95rem; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    input, select, textarea { width: 100%; background: #0c1527; border: 1px solid #283e66; color: #fff; padding: 7px 10px; border-radius: 4px; margin-top: 4px; font-size: 0.88rem; }
+    input:disabled, select:disabled, textarea:disabled { background: #1e293b; color: #94a3b8; cursor: not-allowed; border-color: #334155; }
+    textarea { height: 75px; resize: vertical; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+
+    .badge-status { font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 3px; display: inline-block; }
+    .badge-status.active { background: #0284c7; color: #fff; }
+    .badge-status.done { background: #047857; color: #ecfdf5; }
     
-    .timesheet-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; margin-top: 10px; }
-    .timesheet-card-entered { background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 10px 14px; font-size: 0.8rem; margin-top: 8px; border-left: 4px solid #10b981; }
+    .badge-type { font-size: 0.7rem; font-weight: 600; padding: 2px 6px; border-radius: 3px; margin-left: 4px; }
+    .badge-type.service { background: #1e3a8a; color: #93c5fd; }
+    .badge-type.travel-to { background: #1d4ed8; color: #bfdbfe; }
+    .badge-type.travel-back { background: #6b21a8; color: #f3e8ff; }
+    .badge-type.support { background: #78350f; color: #fde68a; }
 
-    /* PODGLĄD PDF WYDRUK */
-    .pdf-sheet { background: #fff; color: #000; padding: 40px; max-width: 820px; margin: 0 auto; font-size: 0.85rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-    .pdf-sheet h2 { border-bottom: 2px solid #f59e0b; padding-bottom: 6px; font-size: 1.25rem; margin-bottom: 14px; }
+    /* CHECKLISTY */
+    .chk-mod-container { background: #131e33; border: 1px solid #25395c; border-radius: 6px; margin-bottom: 14px; overflow: hidden; }
+    .chk-mod-header { background: #1b2a47; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #25395c; }
+    .chk-mod-title { font-weight: 700; font-size: 0.92rem; color: #38bdf8; }
+    .chk-mod-list { padding: 8px; display: flex; flex-direction: column; gap: 6px; background: #0d172a; }
 
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none; justify-content: center; align-items: center; z-index: 1000; overflow-y: auto; padding: 16px; }
-    .modal-window { background: #fff; border-radius: 6px; padding: 20px; width: 100%; max-width: 680px; box-shadow: 0 10px 25px rgba(0,0,0,0.25); max-height: 92vh; display: flex; flex-direction: column; color: #1e293b; }
-    .modal-scrollable { overflow-y: auto; flex: 1; padding-right: 4px; }
+    .task-card-row { background: #16243d; border: 1px solid #23385d; border-radius: 4px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: flex-start; transition: 0.15s; }
+    .task-card-row:hover { border-color: #38bdf8; background: #1a2c4b; }
+    .task-card-row.done { background: #0b2e25; border-color: #10b981; }
+    .task-left-box { flex: 1; margin-right: 14px; }
+    .task-main-text { font-size: 0.88rem; font-weight: 600; color: #f8fafc; line-height: 1.35; cursor: pointer; }
+    .task-card-row.done .task-main-text { color: #ecfdf5; font-weight: 600; }
+    
+    .task-sub-toolbar { display: flex; align-items: center; gap: 12px; margin-top: 6px; font-size: 0.85rem; }
+    .sub-icon { cursor: pointer; transition: transform 0.15s; display: inline-flex; align-items: center; gap: 4px; }
+    .sub-icon:hover { transform: scale(1.15); color: #38bdf8; }
+    .badge-counter { font-size: 0.68rem; background: #ef4444; color: #fff; padding: 1px 5px; border-radius: 10px; font-weight: bold; }
+
+    .problem-snippet { margin-top: 8px; background: #1c263d; border-left: 3px solid #ef4444; padding: 8px 10px; border-radius: 4px; font-size: 0.82rem; }
+    .prob-item-row { padding: 5px 0; border-bottom: 1px solid #223758; display: flex; justify-content: space-between; align-items: center; }
+    .prob-item-row:last-child { border-bottom: none; }
+    .prob-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; display: inline-block; margin-right: 6px; }
+    .prob-parts-tag { display: inline-block; background: #283955; color: #fbbf24; padding: 2px 6px; border-radius: 3px; font-size: 0.75rem; margin-top: 3px; margin-right: 4px; }
+
+    .status-badge { font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; }
+    .status-badge.ok { background: #047857; color: #ecfdf5; border-color: #10b981; }
+    .status-badge.open { background: #243550; color: #fbbf24; border-color: #f59e0b; }
+
+    .progress-wrap { background: #0c1527; border: 1px solid #283e66; border-radius: 6px; height: 16px; width: 100%; overflow: hidden; margin: 10px 0; }
+    .progress-bar { background: #10b981; height: 100%; width: 0%; transition: width 0.3s ease; }
+
+    /* KATALOG GODZIN & CZASU PRACY */
+    .hours-summary-bar { background: #101e38; border: 2px solid #0284c7; border-radius: 6px; padding: 14px 18px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .hours-kpi-item { display: flex; flex-direction: column; }
+    .hours-kpi-lbl { font-size: 0.75rem; color: #94a3b8; font-weight: bold; }
+    .hours-kpi-val { font-size: 1.5rem; font-weight: 800; margin-top: 2px; }
+
+    .table-custom { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+    .table-custom th, .table-custom td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #23385d; }
+    .table-custom th { color: #94a3b8; }
+
+    .pdf-preview-sheet { background: #ffffff; color: #000000; padding: 36px 42px; border-radius: 4px; max-width: 820px; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.6); font-family: "Segoe UI", Arial, sans-serif; }
+    .pdf-preview-sheet h2 { color: #0f172a; border-bottom: 2px solid #0284c7; padding-bottom: 6px; font-size: 1.3rem; margin-bottom: 12px; }
+    .pdf-meta-table { width: 100%; margin-bottom: 16px; border-collapse: collapse; }
+    .pdf-meta-table td { padding: 4px 6px; font-size: 0.85rem; vertical-align: top; }
+    .pdf-sec-title { font-weight: bold; background: #e2e8f0; padding: 6px 8px; font-size: 0.9rem; margin-top: 14px; margin-bottom: 6px; border-left: 4px solid #0284c7; }
+    .pdf-item-row { font-size: 0.82rem; padding: 5px 8px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; }
+    .pdf-prob-box { background: #fffbeb; border: 1px solid #fef3c7; padding: 6px 10px; border-radius: 3px; font-size: 0.8rem; margin: 4px 0; color: #92400e; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.78); display: none; justify-content: center; align-items: center; z-index: 1000; overflow-y: auto; padding: 16px; }
+    .modal-window { background: #16243d; border: 1px solid #284069; border-radius: 8px; padding: 18px; width: 100%; max-width: 680px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); max-height: 90vh; display: flex; flex-direction: column; }
+    .modal-scrollable { overflow-y: auto; flex: 1; margin-top: 10px; padding-right: 4px; }
+    .module-builder-row { background: #0e172a; border: 1px solid #233658; border-radius: 4px; padding: 10px; margin-bottom: 10px; }
 
     @media print {
-      header, .no-print, button { display: none !important; }
-      body, .content, .view-container { background: #fff !important; color: #000 !important; height: auto !important; overflow: visible !important; }
-      .pdf-sheet { box-shadow: none !important; padding: 0 !important; width: 100% !important; }
+      header, .sidebar, .nav-tabs, .no-print, button, input[type="file"] { display: none !important; }
+      body, .content, .view-container { background: #fff !important; color: #000 !important; height: auto !important; overflow: visible !important; padding: 0 !important; }
+      .pdf-preview-sheet { box-shadow: none !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
     }
   </style>
 </head>
 <body>
 
-  <!-- 1. NAGŁÓWEK MYMAINMAN -->
   <header class="no-print">
-    <div class="brand-box">
-      <div class="brand-icon">M</div>
-      <span>MYMAINMAN</span>
-      <span style="font-size:0.75rem; color:#9ca3af; font-weight:normal; margin-left:6px;">| KFF Fulda</span>
-    </div>
-    
+    <div class="brand">⚙️ SerwisMaster Pro</div>
     <div class="nav-tabs">
-      <button class="tab-btn active" id="btnTabDash" onclick="switchTab('dash')">Dashboard</button>
-      <button class="tab-btn" id="btnTabOrders" onclick="switchTab('orders')">Orders</button>
-      <button class="tab-btn" id="btnTabPlanner" onclick="switchTab('planner')">Planner (KW)</button>
-      <button class="tab-btn" id="btnTabData" onclick="switchTab('data')">Data</button>
+      <button class="tab-btn active" id="btnTabOrders" onclick="switchTab('orders')">📋 Zlecenia</button>
+      <button class="tab-btn" id="btnTabHours" onclick="switchTab('hours')">⏱️ Godziny & Czas Pracy (Diety)</button>
+      <button class="tab-btn" id="btnTabData" onclick="switchTab('data')">📂 Katalog Danych</button>
+      <button class="tab-btn" id="btnTabDash" onclick="switchTab('dash')">📊 Usterki & Restarbeit</button>
+      <button class="tab-btn" id="btnTabParts" onclick="switchTab('parts')">📦 Magazyn</button>
     </div>
-
-    <div class="header-user">
-      <span>Welcome, <b>az01 (Arkadiusz Zimochod)</b></span>
-      <button class="btn btn-amber" style="padding:4px 8px; font-size:0.75rem;" onclick="openOrderDispatchModal()">+ New Order</button>
+    <div style="display:flex; gap:6px;">
+      <button class="btn btn-purple" onclick="openOrderDispatchModal()">+ Wystaw zlecenie</button>
     </div>
   </header>
 
-  <!-- ==================== 1. DASHBOARD MYMAINMAN ==================== -->
-  <div id="viewDash" class="view-container" style="overflow-y:auto; padding:20px;">
-    <div class="dash-grid">
-      <!-- LEWA KOLUMNA: WYKRES KOŁOWY I STATYSTYKI -->
-      <div>
-        <div class="dash-box">
-          <div class="dash-box-title">
-            <span>Information: All checklists</span>
-            <span style="font-size:0.75rem; color:#6b7280;">Number of respective todos</span>
-          </div>
-
-          <div class="pie-chart-mock">
-            <div class="pie-chart-inner">1318</div>
-          </div>
-
-          <div class="kpi-row">
-            <div class="kpi-tile">
-              <div class="kpi-tile-lbl">All right:</div>
-              <div class="kpi-tile-val" style="color:#10b981;" id="kpiAllRight">72 / 1318</div>
-            </div>
-            <div class="kpi-tile">
-              <div class="kpi-tile-lbl">Urgent / Overdue:</div>
-              <div class="kpi-tile-val" style="color:#ef4444;" id="kpiUrgent">0 / 1318</div>
-            </div>
-            <div class="kpi-tile">
-              <div class="kpi-tile-lbl">Remaining work:</div>
-              <div class="kpi-tile-val" style="color:#f59e0b;" id="kpiRemaining">11 / 1318</div>
-            </div>
-            <div class="kpi-tile">
-              <div class="kpi-tile-lbl">Overdue:</div>
-              <div class="kpi-tile-val" style="color:#6b7280;" id="kpiOverdue">1235 / 1318</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="dash-box">
-          <div class="dash-box-title">
-            <span>Checklist Filter Overview</span>
-            <span style="font-size:0.72rem; color:#9ca3af;">Legend: RW=Remaining work | OB=Observation | OV=Overdue | OK=All right</span>
-          </div>
-          <table style="width:100%; border-collapse:collapse; font-size:0.78rem;">
-            <tr style="background:#f3f4f6; color:#4b5563; text-align:left;">
-              <th style="padding:6px;">Maszyna / Linia</th><th>RW</th><th>OB</th><th>OV</th><th>OK</th><th>U</th>
-            </tr>
-            <tr style="border-bottom:1px solid #f3f4f6;">
-              <td style="padding:6px;"><b>Schubert Pickerlinie MA005382 (FTB)</b></td>
-              <td style="color:#f59e0b; font-weight:bold;">11</td><td>0</td><td>1235</td><td style="color:#10b981; font-weight:bold;">72</td><td>0</td>
-            </tr>
-            <tr>
-              <td style="padding:6px;"><b>Schubert Pickerlinie MA005433 (FTC)</b></td>
-              <td>0</td><td>0</td><td>420</td><td style="color:#10b981; font-weight:bold;">45</td><td>0</td>
-            </tr>
-          </table>
-        </div>
-      </div>
-
-      <!-- PRAWA KOLUMNA: ACTIVE ORDERS (AKORDEON TYGODNI KW I RAPORTÓW) -->
-      <div>
-        <div class="dash-box">
-          <div class="dash-box-title">
-            <span>Active orders (KW Planer):</span>
-            <span style="font-size:0.75rem; color:#f59e0b; font-weight:bold;">Wartungsarbeiten & Spesen</span>
-          </div>
-          
-          <div id="activeOrdersAccordionList">
-            <!-- Tutaj generują się akordeony KW 39, KW 41, KW 42, KW 45 dokładnie jak na filmie -->
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==================== 2. ORDERS (WIDOK ZLECEŃ I CHECKLIST) ==================== -->
-  <div id="viewOrders" class="view-container" style="display:none;">
+  <!-- ==================== 1. WIDOK: ZLECENIA ==================== -->
+  <div id="viewOrders" class="view-container">
     <div class="sidebar no-print">
-      <div style="font-size:0.8rem; font-weight:700; color:#374151; margin-bottom:6px;">Active checklist orders:</div>
-      <div id="ordersSidebarList"></div>
-    </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <span style="font-size:0.75rem; color:#94a3b8; font-weight:700;">FILTR ZLECEŃ:</span>
+        <select id="orderStatusFilter" onchange="filterOrdersList()" style="width:auto; padding:2px 6px; font-size:0.75rem; margin-top:0;">
+          <option value="all">Wszystkie</option>
+          <option value="active" selected>Tylko Aktywne</option>
+          <option value="done">Tylko Zakończone</option>
+        </select>
+      </div>
+      <input type="text" id="orderSearchInput" placeholder="🔍 Szukaj zlecenia..." oninput="filterOrdersList()" style="margin-bottom:8px; padding:5px 8px; font-size:0.8rem;">
+      
+      <div style="display:flex; gap:4px; margin-bottom:8px;">
+        <button class="btn btn-amber" style="flex:1; padding:4px; font-size:0.72rem;" onclick="openSpecialDispatchModal('travel-to')">🚗 Wyjazd do klienta</button>
+        <button class="btn" style="flex:1; padding:4px; font-size:0.72rem; background:#8b5cf6;" onclick="openSpecialDispatchModal('travel-back')">🏠 Powrót</button>
+      </div>
+      <button class="btn" style="background:#b45309; padding:4px; font-size:0.72rem; width:100%; margin-bottom:8px;" onclick="openSpecialDispatchModal('support')">⚡ Wsparcie produkcji (Standby)</button>
 
+      <div id="ordersSidebar"></div>
+    </div>
+    
     <div class="content">
-      <div id="orderEmptyMsg" style="text-align:center; margin-top:140px; color:#9ca3af;">
-        <h3>Wybierz zlecenie z listy po lewej stronie, aby otworzyć checklistę</h3>
+      <div id="orderEmptyState" style="text-align:center; margin-top:120px; color:#94a3b8;">
+        <h2>Wybierz zlecenie z listy po lewej lub kliknij „+ Wystaw zlecenie”</h2>
       </div>
 
-      <div id="activeOrderContent" style="display:none; max-width:1050px; margin:0 auto;">
-        <div class="chk-order-header">
-          <div>
-            <div style="font-size:0.75rem; color:#6b7280; font-weight:600;">ORDER BREADCRUMB:</div>
-            <h2 style="font-size:1.15rem; color:#1e293b;" id="chkOrderMachineTitle">260922 Pickerlinie MA005433 (FTC)</h2>
-            <div style="font-size:0.78rem; color:#0284c7; margin-top:2px;" id="chkOrderClientSub">Klient: KFF Fulda &bull; Technik: Arkadiusz Zimochod</div>
+      <div id="activeOrderView" style="display:none; max-width:980px; margin:0 auto;">
+        
+        <!-- NAGŁÓWEK STANU I BLOKADA HASŁEM -->
+        <div style="background:#131f38; border:1px solid #23385d; border-radius:6px; padding:12px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span id="aoStatusBadge" class="badge-status active">W TOKU</span>
+            <span id="aoTypeBadge" class="badge-type service">SERWIS</span>
+            <b id="aoHeaderOrderNum" style="font-size:1.05rem; color:#fff;">AUF-2026-001</b>
+            <span id="aoLockNotice" style="font-size:0.75rem; color:#ef4444; font-weight:bold; display:none;">🔒 ZAMKNIĘTE (BLOKADA EDYCJI)</span>
           </div>
-          <div style="display:flex; gap:8px;">
-            <button class="btn btn-purple" onclick="openPdfModal()">📄 PDF Preview / Print</button>
-            <button class="btn btn-green" id="btnToggleFinishOrder" onclick="toggleFinishOrder()">✓ Zakończ zlecenie</button>
+          <div class="no-print" style="display:flex; gap:8px;">
+            <button class="btn btn-purple" onclick="openPdfPreviewModal()">📄 Podgląd PDF / Druk</button>
+            <button class="btn btn-green" id="btnToggleOrderDone" onclick="handleToggleOrderStatusClick()">✓ Zakończ zlecenie</button>
           </div>
         </div>
 
-        <!-- KONTENER NA MODUŁY (F3_301, Magazin Formatplatte...) -->
-        <div id="chkModulesContainer"></div>
+        <!-- DANE GŁÓWNE -->
+        <div class="box">
+          <div class="grid-3">
+            <div><label>Klient / Zakład</label><input id="aoClientName" readonly style="color:#38bdf8; font-weight:bold;"></div>
+            <div><label>Maszyna / Zakres</label><input id="aoMachineName" readonly style="color:#fff; font-weight:bold;"></div>
+            <div><label>Data realizacji</label><input type="date" id="aoOrderDate" onchange="onOrderDateChanged(this.value)"></div>
+          </div>
+          <div class="grid" style="margin-top:8px;">
+            <div><label>Tytuł / Numer Zlecenia</label><input id="aoOrderTitle" oninput="updateActiveOrderField('title', this.value)"></div>
+            <div><label>Technik prowadzący</label><input id="aoTechnician" oninput="updateActiveOrderField('technician', this.value)"></div>
+          </div>
+        </div>
+
+        <!-- UWAGI DLA TRASY / WSPARCIA -->
+        <div class="box" id="specialNotesBox">
+          <h3 id="notesBoxTitle">Przebieg prac / Opis trasy / Notatki</h3>
+          <textarea id="aoSpecialNotes" style="height:80px;" placeholder="Wpisz uwagi, trasę wyjazdu/powrotu lub przebieg wsparcia..." oninput="updateActiveOrderField('specialNotes', this.value)"></textarea>
+        </div>
+
+        <!-- LISTA KONTROLNA -->
+        <div id="serviceChecklistSection">
+          <div class="box">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <h3 style="margin:0;">Protokół Punktów Kontrolnych</h3>
+              <span style="font-size:0.75rem; color:#f59e0b; font-weight:600;">🔒 Lista stała (brak dodawania modułów w zleceniu)</span>
+            </div>
+            <div style="margin-top:10px;">
+              <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                <span>Postęp realizacji punktów kontrolnych:</span>
+                <b id="aoProgressTxt" style="color:#38bdf8;">0%</b>
+              </div>
+              <div class="progress-wrap"><div class="progress-bar" id="aoProgressBar"></div></div>
+            </div>
+          </div>
+          <div id="activeOrderModules"></div>
+        </div>
+
+        <div class="no-print" style="margin-top:20px; padding-bottom:40px; display:flex; justify-content:space-between;">
+          <button class="btn btn-green" onclick="handleToggleOrderStatusClick()" id="btnBottomDone">✓ Zakończ to zlecenie</button>
+          <button class="btn btn-del" id="btnDeleteOrder" onclick="handleDeleteOrderClick()">🗑️ Usuń to zlecenie</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- ==================== 3. PLANNER KW ==================== -->
-  <div id="viewPlanner" class="view-container" style="display:none; padding:18px; flex-direction:column; overflow-y:auto;">
+  <!-- ==================== 2. OSOBNY KATALOG: GODZINY & CZAS PRACY (DIETY) ==================== -->
+  <div id="viewHours" class="view-container" style="display:none; flex-direction:column; padding:18px; overflow-y:auto;">
     <div style="max-width:1150px; margin:0 auto; width:100%;">
-      <div class="dash-box">
-        <div class="dash-box-title">
-          <span>📅 Tygodniowy Planner Pracy & Rozliczenie Diet</span>
-          <span style="font-size:0.8rem; color:#0284c7;">KW 45 (02.11.2026 - 08.11.2026)</span>
+      
+      <!-- NAGŁÓWEK I WYBÓR MIESIĄCA + KRAJU DIETY -->
+      <div class="box" style="margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <h2 id="hoursMonthDisplayTitle" style="color:#38bdf8; font-size:1.2rem;">⏱️ Katalog Czasu Pracy & Diet</h2>
+            <div style="display:flex; gap:4px;">
+              <button class="btn btn-gray" style="padding:4px 8px;" onclick="changeHoursMonth(-1)">◀ Poprzedni</button>
+              <button class="btn btn-gray" style="padding:4px 8px;" onclick="currentHoursMonthDate = new Date(); renderHoursCatalog();">Bieżący miesiąc</button>
+              <button class="btn btn-gray" style="padding:4px 8px;" onclick="changeHoursMonth(1)">Następny ▶</button>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:0.8rem; color:#94a3b8; font-weight:bold;">🌍 Stawka Diety:</span>
+            <select id="hoursDietCountrySelect" onchange="onHoursDietCountryChanged()" style="width:auto; margin:0; padding:4px 8px; font-size:0.8rem;">
+              <option value="DE_full" selected>Niemcy (DE) - Całodobowa 28.00 €</option>
+              <option value="DE_part">Niemcy (DE) - Wyjazdowa >8h 14.00 €</option>
+              <option value="PL">Polska (PL) - Dieta 45.00 PLN</option>
+              <option value="AT">Austria (AT) - Dieta 40.00 €</option>
+              <option value="NL">Holandia (NL) - Dieta 45.00 €</option>
+              <option value="CH">Szwajcaria (CH) - Dieta 62.00 CHF</option>
+            </select>
+            <input type="number" id="hoursCustomRateInput" value="28.00" step="0.5" style="width:75px; margin:0; padding:4px 6px; font-size:0.8rem;" onchange="renderHoursCatalog()">
+            <span id="hoursCurrencySymbol" style="font-weight:bold; color:#10b981; font-size:1rem;">€</span>
+            <button class="btn btn-purple" style="padding:4px 10px;" onclick="openAddWorkLogModal()">+ Nowy wpis godzin</button>
+          </div>
         </div>
-        <div id="plannerKWListContainer"></div>
+      </div>
+
+      <!-- MIESIĘCZNY PASEK PODSUMOWANIA (GODZINY + DIETY) -->
+      <div class="hours-summary-bar">
+        <div class="hours-kpi-item">
+          <span class="hours-kpi-lbl">ROBOCZOGODZINY NETTO (MIESIĄC):</span>
+          <span class="hours-kpi-val" style="color:#10b981;" id="kpiMonthWorkHours">0.00 h</span>
+        </div>
+        <div class="hours-kpi-item">
+          <span class="hours-kpi-lbl">ŁĄCZNY CZAS PRZERW:</span>
+          <span class="hours-kpi-val" style="color:#f59e0b;" id="kpiMonthBreaks">0 min</span>
+        </div>
+        <div class="hours-kpi-item">
+          <span class="hours-kpi-lbl">DNI WYJAZDOWE Z DIETĄ:</span>
+          <span class="hours-kpi-val" style="color:#38bdf8;" id="kpiMonthDietDays">0 dni</span>
+        </div>
+        <div class="hours-kpi-item">
+          <span class="hours-kpi-lbl">NALICZONA DIETA ZA MIESIĄC:</span>
+          <span class="hours-kpi-val" style="color:#fbbf24;" id="kpiMonthDietTotal">0.00 €</span>
+        </div>
+      </div>
+
+      <!-- TABELA WSZYSTKICH WPISÓW CZASU W TYM MIESIĄCU -->
+      <div class="box">
+        <h3>Ewidencja Dni i Godzin Pracy Techników</h3>
+        <table class="table-custom">
+          <thead>
+            <tr><th>Data</th><th>KW</th><th>Technik</th><th>Klient / Cel</th><th>Rodzaj czynności</th><th>Godziny Od - Do</th><th>Przerwa</th><th>Czas netto</th><th>Dieta dzienna</th><th>Akcja</th></tr>
+          </thead>
+          <tbody id="hoursTableBody"></tbody>
+        </table>
       </div>
     </div>
   </div>
 
-  <!-- ==================== 4. DATA (KATALOG DANYCH) ==================== -->
-  <div id="viewData" class="view-container" style="display:none; padding:18px; overflow-y:auto;">
-    <div style="max-width:1150px; margin:0 auto; width:100%;">
-      <div class="dash-box">
-        <div class="dash-box-title">
-          <span>📂 Katalog Danych (Klienci & Szablony Linii)</span>
-          <button class="btn btn-purple" onclick="openCreateTemplateModal()">+ Nowy szablon maszyny</button>
-        </div>
-        <p style="font-size:0.82rem; color:#6b7280; margin-bottom:12px;">🔒 Wystawione i wykonane checklisty są zablokowane. Nowe moduły dodaje się wyłącznie tutaj przy tworzeniu szablonów.</p>
-        <div id="dataTemplatesList"></div>
+  <!-- ==================== 3. WIDOK: KATALOG DANYCH ==================== -->
+  <div id="viewData" class="view-container" style="display:none;">
+    <div class="sidebar no-print">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <b style="font-size:0.85rem; color:#94a3b8;">KLIENCI / ZAKŁADY:</b>
+        <button class="btn btn-green" style="padding:2px 8px; font-size:0.75rem;" onclick="addNewClientPrompt()">+ Dodaj Klienta</button>
       </div>
+      <div id="clientsListSidebar"></div>
     </div>
-  </div>
-
-  <!-- ==================== MODAL: UPDATE ENTRY & TIME SHEETS (Z FILMU 01:36 - 02:34) ==================== -->
-  <div class="modal-overlay" id="modalUpdateEntry">
-    <div class="modal-window">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e5e7eb; padding-bottom:8px; margin-bottom:12px;">
-        <h3 style="font-size:1.05rem; color:#1f2937;" id="entryModalTitle">Update entry for: 04.11.2026</h3>
-        <button class="btn btn-gray" style="padding:2px 8px;" onclick="closeModal('modalUpdateEntry')">✕</button>
+    <div class="content">
+      <div id="dataClientViewEmpty" style="text-align:center; margin-top:120px; color:#94a3b8;">
+        <h2>Wybierz Klienta z lewego menu, aby modyfikować katalog jego maszyn</h2>
       </div>
-
-      <div class="modal-scrollable">
-        <div class="entry-modal-field">
-          <label>Select task *</label>
-          <select id="modalTaskType">
-            <option value="Wartungstätigkeiten">Wartungstätigkeiten (Prace konserwacyjne)</option>
-            <option value="Wsparcie produkcji">Wsparcie produkcji (Standby)</option>
-            <option value="Anreise">🚗 Wyjazd do klienta (Anreise)</option>
-            <option value="Abreise">🏠 Powrót od klienta (Abreise)</option>
-          </select>
-        </div>
-
-        <div class="entry-modal-field">
-          <label>Select checklists *</label>
-          <select id="modalChecklistSelect"></select>
-        </div>
-
-        <div class="entry-modal-field">
-          <label>Select users *</label>
-          <input id="modalUserNames" value="Arkadiusz Zimochod, Lukas Goldbach">
-        </div>
-
-        <div class="entry-modal-field">
-          <label>Comment</label>
-          <textarea id="modalComment" style="height:60px;" placeholder="Wpisz uwagi techniczne..."></textarea>
-        </div>
-
-        <!-- SEKCJA TIME SHEETS Z BUDZIKIEM DO DODAWANIA -->
-        <div class="timesheet-box">
+      <div id="dataClientView" style="display:none; max-width:980px; margin:0 auto;">
+        <div class="box">
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <b style="font-size:0.85rem; color:#374151;">Time sheets:</b>
-            <button class="btn btn-amber" style="padding:3px 8px; font-size:0.75rem;" onclick="toggleNewTimesheetForm()">⏰ + Add time sheet</button>
+            <h3 style="margin:0;">Katalog Maszyn: <span id="dataActiveClientName" style="color:#fff;"></span></h3>
+            <button class="btn btn-purple" onclick="openTemplateCreatorModal()">+ Utwórz nowy szablon maszyny</button>
           </div>
-
-          <!-- FORMULARZ DODAWANIA CZASU (Z FILMU 02:05 - 02:34) -->
-          <div id="newTimesheetInputForm" style="display:none; background:#fff; border:1px solid #cbd5e1; border-radius:4px; padding:12px; margin-top:10px;">
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-              <div class="entry-modal-field">
-                <label>Date *</label>
-                <input type="text" id="tsDate" value="4.11.2026">
-              </div>
-              <div class="entry-modal-field">
-                <label>User</label>
-                <input type="text" id="tsUser" value="Arkadiusz Zimochod">
-              </div>
-            </div>
-
-            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
-              <div class="entry-modal-field">
-                <label>Start time</label>
-                <input type="time" id="tsStartTime" value="08:00">
-              </div>
-              <div class="entry-modal-field">
-                <label>End time</label>
-                <input type="time" id="tsEndTime" value="17:00">
-              </div>
-              <div class="entry-modal-field">
-                <label>Break duration</label>
-                <input type="text" id="tsBreakDuration" value="01:00">
-              </div>
-            </div>
-
-            <div class="entry-modal-field">
-              <label>private kilometers driven</label>
-              <input type="number" id="tsPrivateKm" placeholder="0 km">
-            </div>
-
-            <!-- CHECKBOXY DIETY / SPESEN (DOKŁADNIE JAK W FILMIE 02:29!) -->
-            <div style="margin:10px 0; background:#f8fafc; padding:8px 12px; border-radius:4px; border:1px solid #e2e8f0;">
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                <input type="checkbox" id="chkArrivalDeparture" style="width:auto; margin:0;" onchange="handleDietCheckboxes('arrival')">
-                <label for="chkArrivalDeparture" style="font-size:0.82rem; font-weight:700; color:#374151; cursor:pointer;">
-                  Arrival- Departure day (Dzień przyjazdu / wyjazdu - Dieta 14.00 €)
-                </label>
-              </div>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <input type="checkbox" id="chk24hDay" style="width:auto; margin:0;" onchange="handleDietCheckboxes('24h')">
-                <label for="chk24hDay" style="font-size:0.82rem; font-weight:700; color:#374151; cursor:pointer;">
-                  24h day (Dzień całodobowy 24h - Dieta 28.00 €)
-                </label>
-              </div>
-            </div>
-
-            <div style="display:flex; justify-content:flex-end; gap:6px;">
-              <button class="btn btn-gray" style="padding:4px 8px; font-size:0.75rem;" onclick="toggleNewTimesheetForm()">Cancel</button>
-              <button class="btn btn-green" style="padding:4px 10px; font-size:0.75rem;" onclick="saveNewTimesheetEntry()">Save time sheet</button>
-            </div>
-          </div>
-
-          <!-- LISTA WPISANYCH TIME SHEETS DLA TEGO DNIA -->
-          <div id="enteredTimesheetsList"></div>
         </div>
-      </div>
-
-      <div style="display:flex; justify-content:flex-end; gap:8px; border-top:1px solid #e5e7eb; padding-top:12px; margin-top:12px;">
-        <button class="btn btn-gray" onclick="closeModal('modalUpdateEntry')">Close</button>
-        <button class="btn btn-green" onclick="confirmSaveEntryModal()">✓ Save entry</button>
+        <div id="clientTemplatesContainer"></div>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: ŻÓŁTY TRÓJKĄT - USTERKA (ZAPIS I ZNIKANIE PO ROZWIĄZANIU) -->
-  <div class="modal-overlay" id="modalProblem">
-    <div class="modal-window" style="max-width:580px;">
-      <h3 style="color:#b45309; margin-bottom:8px;">⚠️ Problem / Usterka w punkcie</h3>
-      <p id="probTaskLabel" style="font-size:0.85rem; color:#6b7280; margin-bottom:10px;"></p>
+  <!-- ==================== 4. WIDOK: DASHBOARD USTEREK ==================== -->
+  <div id="viewDash" class="view-container" style="display:none; flex-direction:column; padding:18px; overflow-y:auto;">
+    <div class="box" style="flex:1;">
+      <h3>
+        <span>⚠️ Tablica Usterek Maszyn & Prac do wykonania (Restarbeit)</span>
+        <select id="dashFilterSelect" onchange="renderDashboardProblems()" style="width:auto; font-size:0.78rem; padding:2px 8px; margin:0;">
+          <option value="open">Tylko Otwarte (Wymagają naprawy)</option>
+          <option value="all">Wszystkie usterki</option>
+          <option value="resolved">Tylko Rozwiązane</option>
+        </select>
+      </h3>
+      <table class="table-custom">
+        <thead>
+          <tr><th>Status</th><th>Klient / Maszyna</th><th>Punkt kontrolny</th><th>Usterka</th><th>Restarbeit (Czynność)</th><th>Części</th><th>Technik</th><th>Akcja</th></tr>
+        </thead>
+        <tbody id="dashProblemsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
 
-      <div class="entry-modal-field">
-        <label>Opis wady / uszkodzenia:</label>
-        <input id="probDescInput" placeholder="np. Zużyty simmerring / wyciek powietrza">
+  <!-- ==================== 5. WIDOK: MAGAZYN CZĘŚCI ==================== -->
+  <div id="viewParts" class="view-container" style="display:none; padding:20px; overflow-y:auto;">
+    <div style="max-width:1050px; margin:0 auto; width:100%;">
+      <div class="box">
+        <h3>Dodaj część do magazynu</h3>
+        <div style="display:grid; grid-template-columns: 2fr 1.5fr 1fr auto; gap:10px; align-items:end;">
+          <div><label>Nazwa części</label><input id="npName" placeholder="np. Rolka dociskowa"></div>
+          <div><label>Nr katalogowy (Art.-Nr)</label><input id="npNum" placeholder="np. S-11885807"></div>
+          <div><label>Stan sztuk</label><input id="npStock" type="number" value="1"></div>
+          <button class="btn btn-green" onclick="saveNewPart()">Zapisz</button>
+        </div>
+      </div>
+      <div class="box">
+        <h3>Katalog części zamiennych</h3>
+        <table class="table-custom">
+          <thead><tr><th>Nazwa części</th><th>Nr katalogowy</th><th>Stan</th><th>Akcja</th></tr></thead>
+          <tbody id="partsCatalogList"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODALE ==================== -->
+
+  <!-- MODAL: WPIS W KATALOGU GODZIN & CZASU PRACY -->
+  <div class="modal-overlay" id="modalAddWorkLog">
+    <div class="modal-window" style="max-width:520px;">
+      <h3 style="color:#38bdf8; margin-bottom:8px;">⏱️ Zapis Czasu Pracy & Diety</h3>
+      <label style="font-size:0.8rem; color:#94a3b8;">Klient / Zakład:</label>
+      <select id="logClientSelect"></select>
+
+      <div class="grid" style="margin-top:8px;">
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8;">Data:</label>
+          <input type="date" id="logDate">
+        </div>
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8;">Technik:</label>
+          <input id="logTechnician" value="Arkadiusz Z.">
+        </div>
       </div>
 
-      <div class="entry-modal-field">
-        <label>Restarbeit (Czynność do wykonania):</label>
-        <input id="probRestInput" placeholder="np. Wymiana na nowy element">
-      </div>
-
-      <div class="entry-modal-field">
-        <label>Potrzebna część z magazynu:</label>
-        <select id="probPartSelect"></select>
-      </div>
-
-      <div class="entry-modal-field">
-        <label>Status usterki:</label>
-        <select id="probStatusSelect">
-          <option value="open">🔴 Otwarte (Wymaga naprawy - widoczne ostrzeżenie)</option>
-          <option value="resolved">🟢 Rozwiązane (Zakończona - ukryj z ekranu roboczego, pokaż w PDF)</option>
+      <div style="margin-top:8px;">
+        <label style="font-size:0.8rem; color:#94a3b8;">Rodzaj czynności / zlecenia:</label>
+        <select id="logType">
+          <option value="service">⚙️ Serwis / Przegląd na obiekcie</option>
+          <option value="travel-to">🚗 Wyjazd do klienta</option>
+          <option value="travel-back">🏠 Powrót od klienta</option>
+          <option value="support">⚡ Wsparcie produkcji (Standby)</option>
         </select>
       </div>
 
-      <div style="display:flex; justify-content:flex-end; gap:8px; border-top:1px solid #e5e7eb; padding-top:10px; margin-top:10px;">
+      <div style="margin-top:8px;">
+        <label style="font-size:0.8rem; color:#94a3b8;">Opis / Trasa / Zadanie:</label>
+        <input id="logDesc" placeholder="np. Dojazd do Fuldy / Przegląd Schubert / Standby">
+      </div>
+
+      <div class="grid-3" style="margin-top:8px;">
+        <div>
+          <label style="font-size:0.75rem; color:#94a3b8;">Godzina Od:</label>
+          <input type="time" id="logStart" value="06:00">
+        </div>
+        <div>
+          <label style="font-size:0.75rem; color:#94a3b8;">Godzina Do:</label>
+          <input type="time" id="logEnd" value="14:30">
+        </div>
+        <div>
+          <label style="font-size:0.75rem; color:#94a3b8;">Przerwa (min):</label>
+          <input type="number" id="logPause" value="30">
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+        <button class="btn btn-gray" onclick="closeModal('modalAddWorkLog')">Anuluj</button>
+        <button class="btn btn-green" onclick="saveDirectWorkLog()">Zapisz wpis godzin</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: HASŁO DO ZAMKNIĘTEGO ZLECENIA -->
+  <div class="modal-overlay" id="modalUnlockPassword">
+    <div class="modal-window" style="max-width:400px;">
+      <h3 style="color:#ef4444; margin-bottom:8px;">🔒 Zlecenie Zakończone</h3>
+      <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:10px;">To zlecenie zostało zamknięte. Aby odblokować edycję, wpisz hasło autoryzacji:</p>
+      <input type="password" id="unlockPasswordInput" placeholder="Hasło (domyślne: 1234)">
+      <div id="unlockPasswordError" style="color:#ef4444; font-size:0.75rem; margin-top:4px; display:none;">Nieprawidłowe hasło!</div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+        <button class="btn btn-gray" onclick="closeModal('modalUnlockPassword')">Anuluj</button>
+        <button class="btn btn-green" onclick="confirmUnlockOrder()">Odblokuj</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ŻÓŁTY TRÓJKĄT - USTERKI W PUNKCIE Z PRZYCISKIEM ZAKOŃCZ USTERKĘ -->
+  <div class="modal-overlay" id="modalProblem">
+    <div class="modal-window" style="max-width:700px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h3 style="color:#fbbf24; margin:0;">⚠️ Usterki & Restarbeit w tym punkcie</h3>
+        <button class="btn btn-purple" style="padding:3px 8px; font-size:0.75rem;" onclick="addNewDefectToProblem()">+ Dodaj kolejną wadę</button>
+      </div>
+      <p id="problemTaskTitle" style="font-size:0.85rem; color:#94a3b8; margin-bottom:10px;"></p>
+      
+      <div class="modal-scrollable" id="defectsListContainer" style="max-height:420px;"></div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px; border-top:1px solid #23385d; padding-top:10px;">
         <button class="btn btn-gray" onclick="closeModal('modalProblem')">Anuluj</button>
-        <button class="btn btn-amber" onclick="saveProblemToTask()">Zapisz usterkę</button>
+        <button class="btn btn-amber" onclick="saveAllDefectsToTask()">Zapisz usterki</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: PODGLĄD WYDRUKU PDF (A4) -->
-  <div class="modal-overlay" id="modalPdf">
-    <div class="modal-window" style="max-width:860px; height:92vh;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <h3 style="color:#1f2937;">📄 Protokół Serwisowy PDF</h3>
+  <div class="modal-overlay" id="modalPdfPreview">
+    <div class="modal-window" style="max-width:890px; height:92vh;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;" class="no-print">
+        <h3 style="color:#38bdf8; margin:0;">📄 Raport Końcowy PDF</h3>
         <div style="display:flex; gap:8px;">
-          <button class="btn btn-green" onclick="window.print()">🖨️ Drukuj / PDF</button>
-          <button class="btn btn-gray" onclick="closeModal('modalPdf')">Zamknij</button>
+          <button class="btn btn-green" onclick="window.print()">🖨️ Drukuj / Zapisz PDF</button>
+          <button class="btn btn-gray" onclick="closeModal('modalPdfPreview')">Zamknij</button>
         </div>
       </div>
-      <div class="modal-scrollable" id="pdfSheetContainer"></div>
+      <div class="modal-scrollable" id="pdfPreviewContentContainer"></div>
     </div>
   </div>
 
-  <!-- MODAL: WYSTAWIENIE NOWEGO ZLECENIA -->
-  <div class="modal-overlay" id="modalDispatch">
-    <div class="modal-window" style="max-width:520px;">
-      <h3 style="color:#0284c7; margin-bottom:10px;">+ Wystaw nowe zlecenie (New Order)</h3>
-      <div class="entry-modal-field">
-        <label>Wybierz maszynę / linię:</label>
-        <select id="dispatchSelectMachine"></select>
+  <!-- MODAL: WYSTAWIENIE ZLECENIA -->
+  <div class="modal-overlay" id="modalDispatchOrder">
+    <div class="modal-window">
+      <h3 style="color:#38bdf8; margin-bottom:10px;">Wystaw nowe zlecenie serwisowe</h3>
+      <label style="font-size:0.8rem; color:#94a3b8;">Wybierz Klienta / Zakład:</label>
+      <select id="dispatchClientSelect" onchange="loadTemplatesForDispatch(this.value)"></select>
+
+      <label style="font-size:0.8rem; color:#94a3b8; margin-top:10px; display:block;">Wybierz Linię / Maszynę z katalogu:</label>
+      <select id="dispatchTemplateSelect"></select>
+
+      <div class="grid" style="margin-top:10px;">
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8;">Numer Zlecenia (Auto):</label>
+          <input id="dispatchOrderNum" readonly style="color:#38bdf8; font-weight:bold;">
+        </div>
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8;">Data zlecenia:</label>
+          <input type="date" id="dispatchOrderDate">
+        </div>
       </div>
-      <div class="entry-modal-field">
-        <label>Numer zlecenia (Auftrag-Nr):</label>
-        <input id="dispatchOrderNumber" readonly style="font-weight:bold; color:#0284c7;">
+
+      <div class="grid" style="margin-top:10px;">
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8;">Technik odpowiedzialny:</label>
+          <input id="dispatchTechnician" value="Arkadiusz Z.">
+        </div>
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8;">Tydzień KW:</label>
+          <input id="dispatchKWDisplay" readonly style="color:#f59e0b; font-weight:bold;">
+        </div>
       </div>
-      <div class="entry-modal-field">
-        <label>Data zlecenia (KW):</label>
-        <input type="date" id="dispatchDate">
-      </div>
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
-        <button class="btn btn-gray" onclick="closeModal('modalDispatch')">Anuluj</button>
-        <button class="btn btn-purple" onclick="executeDispatch()">Wystaw zlecenie</button>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+        <button class="btn btn-gray" onclick="closeModal('modalDispatchOrder')">Anuluj</button>
+        <button class="btn btn-purple" onclick="executeDispatchOrder()">Wystaw Zlecenie</button>
       </div>
     </div>
   </div>
+
+  <!-- MODAL: SPECJALNY WYJAZD / POWRÓT / WSPARCIE -->
+  <div class="modal-overlay" id="modalSpecialDispatch">
+    <div class="modal-window" style="max-width:520px;">
+      <h3 style="color:#fbbf24; margin-bottom:8px;" id="specialModalTitle">Nowe zlecenie</h3>
+      <label style="font-size:0.8rem; color:#94a3b8;">Klient / Zakład docelowy:</label>
+      <select id="specClientSelect"></select>
+
+      <div class="grid" style="margin-top:8px;">
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8;">Data wykonania:</label>
+          <input type="date" id="specDate">
+        </div>
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8;">Technik:</label>
+          <input id="specTechnician" value="Arkadiusz Z.">
+        </div>
+      </div>
+
+      <div style="margin-top:8px;">
+        <label style="font-size:0.8rem; color:#94a3b8;">Tytuł / Trasa / Zadanie:</label>
+        <input id="specTitle">
+      </div>
+
+      <input type="hidden" id="specType">
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+        <button class="btn btn-gray" onclick="closeModal('modalSpecialDispatch')">Anuluj</button>
+        <button class="btn btn-amber" onclick="executeSpecialDispatchOrder()">Zapisz zlecenie</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NOWY SZABLON W KATALOGU DANYCH -->
+  <div class="modal-overlay" id="modalCreateTemplate">
+    <div class="modal-window">
+      <h3 style="color:#38bdf8;">Nowa Maszyna w Katalogu Danych</h3>
+      <div style="margin-top:6px;">
+        <label style="font-size:0.8rem; color:#94a3b8;">Nazwa maszyny / linii:</label>
+        <input id="tplMachineName" placeholder="Wpisz nazwę maszyny...">
+      </div>
+      <div class="modal-scrollable" id="tplModulesList" style="max-height:280px; overflow-y:auto; margin-top:10px;"></div>
+      <div style="margin-top:10px;">
+        <button class="btn" style="background:#0284c7; width:100%;" onclick="addModuleBlockToTemplateBuilder()">+ Dodaj moduł</button>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px; border-top:1px solid #23385d; padding-top:10px;">
+        <button class="btn btn-gray" onclick="closeModal('modalCreateTemplate')">Anuluj</button>
+        <button class="btn btn-purple" onclick="saveTemplateToClient()">Zapisz do katalogu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NOTATKA -->
+  <div class="modal-overlay" id="modalNote">
+    <div class="modal-window" style="max-width:500px;">
+      <h3 style="color:#38bdf8; margin-bottom:10px;">💬 Notatka techniczna</h3>
+      <textarea id="taskNoteInput" style="height:110px;" placeholder="Wpisz uwagi techniczne..."></textarea>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+        <button class="btn btn-gray" onclick="closeModal('modalNote')">Anuluj</button>
+        <button class="btn" onclick="saveTaskNote()">Zapisz</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CZĘŚCI ZWYKŁE (KLUCZ) -->
+  <div class="modal-overlay" id="modalParts">
+    <div class="modal-window" style="max-width:500px;">
+      <h3 style="color:#38bdf8; margin-bottom:10px;">🔧 Części zamienne do punktu</h3>
+      <label style="font-size:0.8rem; color:#94a3b8;">Wybierz z magazynu:</label>
+      <div style="display:flex; gap:6px; margin-top:4px;">
+        <select id="selectRegularPart" style="flex:2;"></select>
+        <input id="selectRegularQty" type="number" value="1" min="1" style="flex:1;" placeholder="Szt.">
+        <button class="btn" onclick="assignRegularPart()">+ Dodaj</button>
+      </div>
+      <div id="regularPartsContainer" style="margin-top:10px; font-size:0.85rem; color:#94a3b8;"></div>
+      <div style="display:flex; justify-content:flex-end; margin-top:14px;">
+        <button class="btn btn-gray" onclick="closeModal('modalParts')">Zamknij</button>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="hiddenPhotoInput" accept="image/*" style="display:none;" onchange="handlePhotoUpload(event)">
 
   <script>
     const firebaseConfig = {
@@ -442,412 +593,543 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let clients = [], templates = [], activeOrders = [], timesheets = [], parts = [];
-    let currentOrderId = null, activeTaskIdx = null;
-    let selectedEntryDate = "04.11.2026";
+    let clients = [], templates = [], activeOrders = [], parts = [], workLogs = [];
+    let currentOrderId = null, currentClientId = null, activeTaskIdx = null;
+    let tempDefects = [];
+    let currentHoursMonthDate = new Date();
+    const APP_PASSWORD = "1234";
 
-    function switchTab(t) {
-      document.getElementById('viewDash').style.display = t === 'dash' ? 'flex' : 'none';
-      document.getElementById('viewOrders').style.display = t === 'orders' ? 'flex' : 'none';
-      document.getElementById('viewPlanner').style.display = t === 'planner' ? 'flex' : 'none';
-      document.getElementById('viewData').style.display = t === 'data' ? 'flex' : 'none';
-
-      document.getElementById('btnTabDash').className = 'tab-btn' + (t === 'dash' ? ' active' : '');
-      document.getElementById('btnTabOrders').className = 'tab-btn' + (t === 'orders' ? ' active' : '');
-      document.getElementById('btnTabPlanner').className = 'tab-btn' + (t === 'planner' ? ' active' : '');
-      document.getElementById('btnTabData').className = 'tab-btn' + (t === 'data' ? ' active' : '');
-
-      if (t === 'planner') renderPlannerView();
-      if (t === 'dash') renderDashboardView();
+    function getWeekNumber(d) {
+      d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+      return { year: d.getUTCFullYear(), week: weekNo };
     }
 
-    // POBIERANIE BAZY
+    function switchTab(t) {
+      document.getElementById('viewOrders').style.display = t === 'orders' ? 'flex' : 'none';
+      document.getElementById('viewHours').style.display = t === 'hours' ? 'flex' : 'none';
+      document.getElementById('viewData').style.display = t === 'data' ? 'flex' : 'none';
+      document.getElementById('viewDash').style.display = t === 'dash' ? 'flex' : 'none';
+      document.getElementById('viewParts').style.display = t === 'parts' ? 'block' : 'none';
+
+      document.getElementById('btnTabOrders').className = 'tab-btn' + (t === 'orders' ? ' active' : '');
+      document.getElementById('btnTabHours').className = 'tab-btn' + (t === 'hours' ? ' active' : '');
+      document.getElementById('btnTabData').className = 'tab-btn' + (t === 'data' ? ' active' : '');
+      document.getElementById('btnTabDash').className = 'tab-btn' + (t === 'dash' ? ' active' : '');
+      document.getElementById('btnTabParts').className = 'tab-btn' + (t === 'parts' ? ' active' : '');
+
+      if (t === 'hours') renderHoursCatalog();
+      if (t === 'dash') renderDashboardProblems();
+    }
+
+    db.collection("clients").orderBy("name").onSnapshot(snap => {
+      clients = [];
+      snap.forEach(d => clients.push({ id: d.id, ...d.data() }));
+      renderClientsList();
+      updateDispatchClientsDropdown();
+    });
+
+    db.collection("templates").orderBy("createdAt", "desc").onSnapshot(snap => {
+      templates = [];
+      snap.forEach(d => templates.push({ id: d.id, ...d.data() }));
+      if (currentClientId) renderClientTemplates(currentClientId);
+    });
+
     db.collection("active_orders").orderBy("createdAt", "desc").onSnapshot(snap => {
       activeOrders = [];
       snap.forEach(d => activeOrders.push({ id: d.id, ...d.data() }));
-      if (activeOrders.length === 0) seedMyMainManOrders();
-      renderOrdersSidebar();
-      renderDashboardView();
-      renderPlannerView();
-      if (currentOrderId) loadChecklistOrder(currentOrderId);
+      filterOrdersList();
+      renderDashboardProblems();
+      renderHoursCatalog();
+      if (currentOrderId) loadActiveOrder(currentOrderId);
     });
 
-    db.collection("timesheets").orderBy("date", "desc").onSnapshot(snap => {
-      timesheets = [];
-      snap.forEach(d => timesheets.push({ id: d.id, ...d.data() }));
-      renderEnteredTimesheetsList();
-      renderDashboardView();
+    db.collection("work_logs").orderBy("date", "desc").onSnapshot(snap => {
+      workLogs = [];
+      snap.forEach(d => workLogs.push({ id: d.id, ...d.data() }));
+      renderHoursCatalog();
     });
 
     db.collection("parts").orderBy("name").onSnapshot(snap => {
       parts = [];
       snap.forEach(d => parts.push({ id: d.id, ...d.data() }));
-      if (parts.length === 0) seedParts();
+      renderPartsCatalog();
+      updatePartsDropdowns();
     });
 
-    function seedParts() {
-      db.collection("parts").add({ name: "Grafitlamellen Becker VT 4.25", num: "90136700005", stock: 12 });
-      db.collection("parts").add({ name: "Rolka dociskowa Schubert", num: "S-11885807", stock: 4 });
-      db.collection("parts").add({ name: "Simmerring BAUM 1SLX7 72 NBR", num: "75 FKM 585", stock: 6 });
-    }
+    // ==========================================
+    // 1. ZLECENIA I ROZGRANICZENIE (WYJAZD / POWRÓT)
+    // ==========================================
+    function filterOrdersList() {
+      const sb = document.getElementById('ordersSidebar');
+      if (!sb) return;
+      sb.innerHTML = '';
 
-    // WSTĘPNE DANE MYMAINMAN Z FILMU
-    function seedMyMainManOrders() {
-      db.collection("active_orders").add({
-        orderNum: "260922 Pickerlinie MA005433 (FTC)",
-        client: "KFF Fulda",
-        machine: "Schubert Pickerlinie MA005433 (FTC)",
-        kw: 45,
-        date: "2026-11-04",
-        status: "active",
-        items: [
-          { group: "F3_301", text: "Werkzeug auf Beschädigungen überprüfen", done: false, defects: [], note: "" },
-          { group: "F3_301 Aufnahmewerkzeug 4 x 12g", text: "Werkzeug auf Beschädigungen überprüfen", done: false, defects: [], note: "" },
-          { group: "F3_301 Aufnahmewerkzeug 4 x 12g", text: "Sauger auf Beschädigungen und Verschleiss überprüfen", done: false, defects: [], note: "" },
-          { group: "F3_301 Aufnahmewerkzeug 4 x 12g", text: "Pneumatik Schläuche auf Dichtigkeit und Verschleiss überprüfen", done: false, defects: [], note: "" },
-          { group: "Magazin Formatplatte 4 x 12g", text: "Kartonmagazin Führungsbleche einstellen", done: false, defects: [], note: "" },
-          { group: "Transportkörper + Aufnahme", text: "Transköpfer Führungsrollen und Riemen kontrollieren", done: false, defects: [], note: "" }
-        ],
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      const query = (document.getElementById('orderSearchInput') ? document.getElementById('orderSearchInput').value : '').toLowerCase();
+      const statusFilter = document.getElementById('orderStatusFilter') ? document.getElementById('orderStatusFilter').value : 'active';
+
+      const filtered = activeOrders.filter(o => {
+        const matchesQuery = `${o.orderNum || ''} ${o.client || ''} ${o.machine || ''} ${o.title || ''}`.toLowerCase().includes(query);
+        const isDone = o.status === 'done';
+        if (statusFilter === 'active' && isDone) return false;
+        if (statusFilter === 'done' && !isDone) return false;
+        return matchesQuery;
       });
 
-      // Przykładowy wpis czasu jak w filmie (01:56)
-      db.collection("timesheets").add({
-        date: "4.11.2026",
-        user: "Arkadiusz Zimochod",
-        hours: 9.25,
-        workingTime: "06:00 - 15:45 Clock",
-        pause: "0.5h",
-        country: "de",
-        dietType: "24h",
-        dietAmount: 28.00
-      });
-    }
-
-    // ==========================================
-    // 1. DASHBOARD & AKORDEONY KW
-    // ==========================================
-    function renderDashboardView() {
-      const container = document.getElementById('activeOrdersAccordionList');
-      if (!container) return;
-      container.innerHTML = '';
-
-      const kwList = [
-        { name: "Wartung KW 39", dateRange: "20.09.2026 - 27.09.2026" },
-        { name: "Wartung KW 41", dateRange: "05.10.2026 - 11.10.2026" },
-        { name: "Wartung KW 42", dateRange: "12.10.2026 - 18.10.2026" },
-        { name: "Wartung KW 45", dateRange: "02.11.2026 - 08.11.2026" }
-      ];
-
-      kwList.forEach((kwItem, kwIdx) => {
-        const div = document.createElement('div');
-        div.className = 'kw-group-accordion';
-        div.innerHTML = `
-          <div class="kw-group-header" onclick="toggleKwAccordion(${kwIdx})">
-            <span>${kwItem.name}</span>
-            <div style="font-size:0.75rem; color:#6b7280; display:flex; align-items:center; gap:8px;">
-              <span>Wartungsarbeiten: ${kwItem.dateRange}</span>
-              <span>▼</span>
-            </div>
-          </div>
-          <div class="kw-days-list" id="kwDaysList_${kwIdx}">
-            <div class="kw-day-row">
-              <div class="kw-day-header-line">
-                <span>02.11.2026</span>
-                <span style="color:#9ca3af;">[0 Reports]</span>
-              </div>
-            </div>
-            <div class="kw-day-row">
-              <div class="kw-day-header-line">
-                <span>03.11.2026</span>
-                <span style="color:#0284c7;">[1 Reports]</span>
-              </div>
-            </div>
-            <div class="kw-day-row">
-              <div class="kw-day-header-line">
-                <span>04.11.2026</span>
-                <span style="color:#10b981; font-weight:bold;">[1 Reports]</span>
-              </div>
-              <div class="kw-task-subitem">
-                <div>
-                  <b>- Wartungstätigkeiten</b><br>
-                  <small style="color:#64748b;">Schubert Pickerlinie MA005382 (FTB) &bull; (Arkadiusz Zimochod)</small>
-                </div>
-                <button class="btn btn-amber" style="padding:2px 8px; font-size:0.75rem;" onclick="openUpdateEntryModal('04.11.2026')">✏️ Edit / Timesheet</button>
-              </div>
-            </div>
-            <div class="kw-day-row">
-              <div class="kw-day-header-line">
-                <span>05.11.2026</span>
-                <span style="color:#9ca3af;">[0 Reports]</span>
-              </div>
-            </div>
-          </div>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function toggleKwAccordion(idx) {
-      const el = document.getElementById(`kwDaysList_${idx}`);
-      if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
-    }
-
-    // ==========================================
-    // 2. MODAL UPDATE ENTRY & CZAS PRACY Z DIETAMI (FILM 01:36 - 02:34)
-    // ==========================================
-    function openUpdateEntryModal(dateStr) {
-      selectedEntryDate = dateStr;
-      document.getElementById('entryModalTitle').innerText = `Update entry for: ${dateStr}`;
-      document.getElementById('tsDate').value = dateStr;
-      
-      const sel = document.getElementById('modalChecklistSelect');
-      sel.innerHTML = '';
-      activeOrders.forEach(o => sel.innerHTML += `<option value="${o.id}">${o.machine || o.orderNum}</option>`);
-
-      renderEnteredTimesheetsList();
-      openModal('modalUpdateEntry');
-    }
-
-    function toggleNewTimesheetForm() {
-      const f = document.getElementById('newTimesheetInputForm');
-      f.style.display = f.style.display === 'block' ? 'none' : 'block';
-    }
-
-    // Obsługa checkboxów diety: wyjazd/powrót (14€) lub 24h (28€)
-    function handleDietCheckboxes(type) {
-      const cArrival = document.getElementById('chkArrivalDeparture');
-      const c24h = document.getElementById('chk24hDay');
-      if (type === 'arrival' && cArrival.checked) c24h.checked = false;
-      if (type === '24h' && c24h.checked) cArrival.checked = false;
-    }
-
-    function saveNewTimesheetEntry() {
-      const date = document.getElementById('tsDate').value;
-      const user = document.getElementById('tsUser').value;
-      const start = document.getElementById('tsStartTime').value;
-      const end = document.getElementById('tsEndTime').value;
-      const pause = document.getElementById('tsBreakDuration').value;
-      const km = document.getElementById('tsPrivateKm').value;
-
-      // Oblicz godziny
-      const [sh, sm] = start.split(':').map(Number);
-      const [eh, em] = end.split(':').map(Number);
-      let diff = (eh * 60 + em) - (sh * 60 + sm);
-      let pMin = 30;
-      if (pause.includes(':')) {
-        const [ph, pm] = pause.split(':').map(Number);
-        pMin = ph * 60 + pm;
-      }
-      const workedH = Math.max(0, (diff - pMin) / 60);
-
-      // Oblicz dietę
-      const isArrival = document.getElementById('chkArrivalDeparture').checked;
-      const is24h = document.getElementById('chk24hDay').checked;
-      let dietType = "none";
-      let dietAmount = 0;
-      if (isArrival) { dietType = "Arrival-Departure"; dietAmount = 14.00; }
-      if (is24h) { dietType = "24h"; dietAmount = 28.00; }
-
-      db.collection("timesheets").add({
-        date: date,
-        user: user,
-        hours: parseFloat(workedH.toFixed(2)),
-        workingTime: `${start} - ${end} Clock`,
-        pause: pause,
-        km: km || 0,
-        country: "de",
-        dietType: dietType,
-        dietAmount: dietAmount,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => {
-        toggleNewTimesheetForm();
-        renderEnteredTimesheetsList();
-      });
-    }
-
-    function renderEnteredTimesheetsList() {
-      const box = document.getElementById('enteredTimesheetsList');
-      if (!box) return;
-      box.innerHTML = '';
-
-      const filtered = timesheets.filter(t => t.date === selectedEntryDate);
       if (!filtered.length) {
-        box.innerHTML = '<div style="color:#9ca3af; font-size:0.75rem; margin-top:8px;">Brak wpisanych time sheets dla tego dnia.</div>';
+        sb.innerHTML = '<div style="color:#64748b; font-size:0.8rem; text-align:center; padding:12px;">Brak pasujących zleceń.</div>';
         return;
       }
 
-      filtered.forEach(ts => {
-        const div = document.createElement('div');
-        div.className = 'timesheet-card-entered';
-        div.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <b>(${ts.date}) &bull; ${ts.user}</b>
-            <span style="color:#10b981; font-weight:bold;">${ts.hours}h</span>
+      filtered.forEach(o => {
+        const isDone = o.status === 'done';
+        const type = o.type || 'service';
+        let cardClass = isDone ? 'card is-done' : (type === 'travel-to' ? 'card is-travel-to' : (type === 'travel-back' ? 'card is-travel-back' : (type === 'support' ? 'card is-support' : 'card is-active')));
+        if (o.id === currentOrderId) cardClass += ' act';
+
+        const d = document.createElement('div');
+        d.className = cardClass;
+        d.onclick = () => loadActiveOrder(o.id);
+
+        let typeLabel = 'SERWIS';
+        if (type === 'travel-to') typeLabel = '🚗 WYJAZD DO KLIENTA';
+        else if (type === 'travel-back') typeLabel = '🏠 POWRÓT OD KLIENTA';
+        else if (type === 'support') typeLabel = '⚡ WSPARCIE PRODUKCJI';
+
+        let statusBadge = isDone ? '<span class="badge-status done">🔒 ZAKOŃCZONO</span>' : '<span class="badge-status active">W TOKU</span>';
+
+        d.innerHTML = `
+          <button class="card-del-btn" title="Usuń zlecenie" onclick="event.stopPropagation(); deleteOrderDirect('${o.id}')">✕</button>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; padding-right:20px;">
+            <b style="font-size:0.75rem; color:#38bdf8;">${o.orderNum || '-'}</b>
+            ${statusBadge}
           </div>
-          <div style="color:#4b5563; margin-top:3px;">
-            Working hours: ${ts.hours}h &bull; Working time: ${ts.workingTime} &bull; Pause: ${ts.pause}<br>
-            Country: ${ts.country || 'de'} ${ts.dietAmount ? `&bull; <b style="color:#f59e0b;">Dieta: +${ts.dietAmount} € (${ts.dietType})</b>` : ''}
+          <b style="color:#fff; font-size:0.88rem;">${o.client || 'Klient'}</b>
+          <div style="font-size:0.78rem; color:#94a3b8; margin-top:2px;">${o.machine || o.title || '-'}</div>
+          <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:#cbd5e1; margin-top:4px;">
+            <span>📅 ${o.date || 'Brak daty'} (${o.kw ? 'KW ' + o.kw : '-'})</span>
+            <span style="color:#f59e0b; font-weight:bold;">${typeLabel}</span>
           </div>
         `;
-        box.appendChild(div);
+        sb.appendChild(d);
       });
     }
 
-    function confirmSaveEntryModal() {
-      closeModal('modalUpdateEntry');
-      alert("Zapisano dane zlecenia i godziny pracy!");
-    }
-
-    // ==========================================
-    // 3. CHECKLISTY I ROZWIĄZYWANIE USTEREK (ZNIKANIE Z EKRANU ROBOCZEGO)
-    // ==========================================
-    function renderOrdersSidebar() {
-      const sb = document.getElementById('ordersSidebarList');
-      if (!sb) return;
-      sb.innerHTML = '';
-      activeOrders.forEach(o => {
-        const div = document.createElement('div');
-        div.style.background = o.id === currentOrderId ? '#f0fdf4' : '#f9fafb';
-        div.style.border = '1px solid ' + (o.id === currentOrderId ? '#10b981' : '#e5e7eb');
-        div.style.borderRadius = '4px';
-        div.style.padding = '8px 10px';
-        div.style.cursor = 'pointer';
-        div.onclick = () => loadChecklistOrder(o.id);
-        div.innerHTML = `
-          <b style="font-size:0.82rem; color:#1e293b;">${o.orderNum || o.machine}</b>
-          <div style="font-size:0.72rem; color:#64748b; margin-top:2px;">${o.client} &bull; Status: ${o.status || 'W toku'}</div>
-        `;
-        sb.appendChild(div);
-      });
-    }
-
-    function loadChecklistOrder(id) {
+    function loadActiveOrder(id) {
       currentOrderId = id;
       const o = activeOrders.find(x => x.id === id);
       if (!o) return;
-      document.getElementById('orderEmptyMsg').style.display = 'none';
-      document.getElementById('activeOrderContent').style.display = 'block';
 
-      document.getElementById('chkOrderMachineTitle').innerText = o.machine || o.orderNum;
-      document.getElementById('chkOrderClientSub').innerText = `Klient: ${o.client} | Status: ${o.status === 'done' ? 'ZAKOŃCZONE' : 'W TOKU'}`;
+      document.getElementById('orderEmptyState').style.display = 'none';
+      document.getElementById('activeOrderView').style.display = 'block';
 
-      const btnFinish = document.getElementById('btnToggleFinishOrder');
-      btnFinish.innerText = o.status === 'done' ? '↺ Przywróć zlecenie' : '✓ Zakończ zlecenie';
-      btnFinish.className = o.status === 'done' ? 'btn btn-amber' : 'btn btn-green';
+      const isDone = o.status === 'done';
+      const type = o.type || 'service';
 
-      renderChecklistModules(o.items || []);
-      renderOrdersSidebar();
+      document.getElementById('aoHeaderOrderNum').innerText = `${o.orderNum || '-'} (${o.kw ? 'KW ' + o.kw : ''})`;
+      document.getElementById('aoStatusBadge').className = isDone ? 'badge-status done' : 'badge-status active';
+      document.getElementById('aoStatusBadge').innerText = isDone ? '🔒 ZAKOŃCZONE' : 'W TOKU';
+      document.getElementById('aoLockNotice').style.display = isDone ? 'inline' : 'none';
+
+      const typeBadge = document.getElementById('aoTypeBadge');
+      typeBadge.className = 'badge-type ' + type;
+      if (type === 'travel-to') typeBadge.innerText = '🚗 WYJAZD DO KLIENTA';
+      else if (type === 'travel-back') typeBadge.innerText = '🏠 POWRÓT OD KLIENTA';
+      else if (type === 'support') typeBadge.innerText = '⚡ WSPARCIE PRODUKCJI';
+      else typeBadge.innerText = '⚙️ SERWIS & PRZEGLĄD';
+
+      const btnToggle = document.getElementById('btnToggleOrderDone');
+      const btnBottom = document.getElementById('btnBottomDone');
+      btnToggle.innerText = isDone ? '🔓 Odblokuj hasłem' : '✓ Zakończ zlecenie';
+      btnBottom.innerText = isDone ? '🔓 Odblokuj hasłem' : '✓ Zakończ zlecenie';
+      btnToggle.className = isDone ? 'btn btn-amber' : 'btn btn-green';
+      btnBottom.className = isDone ? 'btn btn-amber' : 'btn btn-green';
+
+      document.getElementById('aoClientName').value = o.client || '';
+      document.getElementById('aoMachineName').value = o.machine || '';
+      document.getElementById('aoOrderDate').value = o.date || '';
+      document.getElementById('aoOrderTitle').value = o.title || '';
+      document.getElementById('aoTechnician').value = o.technician || 'Arkadiusz Z.';
+      document.getElementById('aoSpecialNotes').value = o.specialNotes || '';
+
+      document.getElementById('aoOrderDate').disabled = isDone;
+      document.getElementById('aoOrderTitle').disabled = isDone;
+      document.getElementById('aoTechnician').disabled = isDone;
+      document.getElementById('aoSpecialNotes').disabled = isDone;
+
+      const chkSection = document.getElementById('serviceChecklistSection');
+      if (type === 'support' || type === 'travel-to' || type === 'travel-back') {
+        chkSection.style.display = 'none';
+        document.getElementById('notesBoxTitle').innerText = (type === 'support') ? 'Przebieg wsparcia produkcji (Standby)' : 'Trasa, kilometry i uwagi podróży';
+      } else {
+        chkSection.style.display = 'block';
+        document.getElementById('notesBoxTitle').innerText = 'Przebieg prac / Notatki techniczne';
+        renderOrderModulesAndTasks(o.items || [], isDone);
+      }
+
+      filterOrdersList();
     }
 
-    function toggleFinishOrder() {
+    function handleToggleOrderStatusClick() {
       if (!currentOrderId) return;
       const o = activeOrders.find(x => x.id === currentOrderId);
-      const newSt = o.status === 'done' ? 'active' : 'done';
-      db.collection("active_orders").doc(currentOrderId).update({ status: newSt });
-    }
-
-    function renderChecklistModules(items) {
-      const container = document.getElementById('chkModulesContainer');
-      container.innerHTML = '';
-
-      const grouped = {};
-      items.forEach((it, idx) => {
-        const g = it.group || 'Moduł';
-        if (!grouped[g]) grouped[g] = [];
-        grouped[g].push({ ...it, originalIdx: idx });
-      });
-
-      for (const groupName in grouped) {
-        const tasks = grouped[groupName];
-        const card = document.createElement('div');
-        card.className = 'module-card';
-
-        let header = `
-          <div class="module-card-head">
-            <span>${groupName} (${tasks.length})</span>
-            <span style="font-size:0.75rem; color:#64748b;">Moduł zablokowany</span>
-          </div>
-        `;
-
-        let taskRows = '';
-        tasks.forEach(t => {
-          const defects = t.defects || [];
-          const activeDefects = defects.filter(d => d.status !== 'resolved');
-
-          // ZASADA: JEŚLI ROZWIĄZANE LUB ZROBIONE -> USTERKA ZNIKA Z EKRANU ROBOCZEGO!
-          let probHtml = '';
-          if (!t.done && activeDefects.length > 0) {
-            probHtml = '<div style="background:#fffbeb; border-left:3px solid #f59e0b; padding:6px 10px; font-size:0.8rem; margin-top:6px; color:#b45309;">';
-            activeDefects.forEach(df => {
-              probHtml += `⚠️ <b>${df.desc}</b> (Restarbeit: ${df.rest})<br>`;
-            });
-            probHtml += '</div>';
-          }
-
-          taskRows += `
-            <div class="task-row ${t.done ? 'done' : ''}">
-              <div class="task-row-title" onclick="toggleTaskDone(${t.originalIdx})">
-                ${t.done ? '<span style="color:#10b981; font-weight:bold; margin-right:6px;">✓</span>' : ''}
-                ${t.text}
-              </div>
-              ${probHtml}
-              <div class="task-toolbar no-print">
-                <span class="tool-icon" title="Nie dotyczy" onclick="toggleTaskDone(${t.originalIdx})">🚫</span>
-                <span class="tool-icon" style="color:#f59e0b;" title="Zgłoś usterkę (Problem)" onclick="openProblemModal(${t.originalIdx})">
-                  ⚠️ ${defects.length ? `<span class="badge-count">${defects.length}</span>` : ''}
-                </span>
-                <span class="tool-icon" title="Komentarz">💬</span>
-                <span class="tool-icon" title="Części">🔧</span>
-                <span class="tool-icon" title="Więcej">...</span>
-              </div>
-            </div>
-          `;
-        });
-
-        card.innerHTML = header + taskRows;
-        container.appendChild(card);
+      if (o.status === 'done') {
+        document.getElementById('unlockPasswordInput').value = '';
+        document.getElementById('unlockPasswordError').style.display = 'none';
+        openModal('modalUnlockPassword');
+      } else {
+        if (confirm("Czy na pewno chcesz zamknąć to zlecenie? Po zamknięciu edycja będzie zablokowana hasłem.")) {
+          db.collection("active_orders").doc(currentOrderId).update({ status: 'done' });
+        }
       }
     }
 
+    function confirmUnlockOrder() {
+      const pass = document.getElementById('unlockPasswordInput').value;
+      if (pass === APP_PASSWORD) {
+        closeModal('modalUnlockPassword');
+        db.collection("active_orders").doc(currentOrderId).update({ status: 'active' });
+        alert("Zlecenie zostało odblokowane do edycji!");
+      } else {
+        document.getElementById('unlockPasswordError').style.display = 'block';
+      }
+    }
+
+    function handleDeleteOrderClick() {
+      if (!currentOrderId) return;
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      if (o.status === 'done') {
+        const pass = prompt("Zlecenie jest zamknięte. Wpisz hasło, aby potwierdzić usunięcie:");
+        if (pass !== APP_PASSWORD) return alert("Nieprawidłowe hasło! Anulowano.");
+      }
+      deleteOrderDirect(currentOrderId);
+    }
+
+    function updateActiveOrderField(k, v) {
+      if (!currentOrderId) return;
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      if (o.status === 'done') return;
+      db.collection("active_orders").doc(currentOrderId).update({ [k]: v });
+    }
+
+    function onOrderDateChanged(dateVal) {
+      if (!dateVal || !currentOrderId) return;
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      if (o.status === 'done') return;
+      const parsed = new Date(dateVal);
+      const kwInfo = getWeekNumber(parsed);
+      db.collection("active_orders").doc(currentOrderId).update({
+        date: dateVal,
+        kw: kwInfo.week,
+        year: kwInfo.year
+      });
+    }
+
+    function deleteOrderDirect(id) {
+      if (!confirm('Na pewno trwale usunąć to zlecenie?')) return;
+      db.collection("active_orders").doc(id).delete().then(() => {
+        if (currentOrderId === id) {
+          currentOrderId = null;
+          document.getElementById('activeOrderView').style.display = 'none';
+          document.getElementById('orderEmptyState').style.display = 'block';
+        }
+      });
+    }
+
+    // ==========================================
+    // CHECKLISTA: ROZWIĄZANA USTERKA CAŁKOWICIE ZNIKA Z EKRANU ROBOCZEGO!
+    // ==========================================
     function toggleTaskDone(idx) {
       const o = activeOrders.find(x => x.id === currentOrderId);
+      if (o.status === 'done') return;
       let items = o.items || [];
       items[idx].done = !items[idx].done;
       db.collection("active_orders").doc(currentOrderId).update({ items });
     }
 
+    function renderOrderModulesAndTasks(items, isLocked) {
+      const box = document.getElementById('activeOrderModules');
+      box.innerHTML = '';
+
+      const countDone = items.filter(x => x.done).length;
+      const total = items.length;
+      const pct = total ? Math.round((countDone / total) * 100) : 0;
+      document.getElementById('aoProgressBar').style.width = pct + '%';
+      document.getElementById('aoProgressTxt').innerText = `${pct}% (${countDone}/${total} wykonane)`;
+
+      if (!items.length) {
+        box.innerHTML = '<div style="color:#64748b; padding:10px;">Brak zadań w tym zleceniu.</div>';
+        return;
+      }
+
+      const grouped = {};
+      items.forEach((it, idx) => {
+        const g = it.group || 'Moduł Główny';
+        if (!grouped[g]) grouped[g] = [];
+        grouped[g].push({ ...it, originalIdx: idx });
+      });
+
+      for (const groupName in grouped) {
+        const gTasks = grouped[groupName];
+        const gDone = gTasks.filter(x => x.done).length;
+        const modCard = document.createElement('div');
+        modCard.className = 'chk-mod-container';
+
+        let headerHtml = `
+          <div class="chk-mod-header">
+            <div>
+              <div class="chk-mod-title">📦 ${groupName}</div>
+              <div style="font-size:0.75rem; color:#94a3b8;">${gTasks.length} zadań (wykonano: ${gDone})</div>
+            </div>
+            ${!isLocked ? `<button class="btn btn-green no-print" style="padding:2px 8px; font-size:0.75rem;" onclick="markAllInOrderGroup('${groupName}')">✓ Zaznacz wszystkie</button>` : ''}
+          </div>
+        `;
+
+        let rowsHtml = '<div class="chk-mod-list">';
+        gTasks.forEach(it => {
+          const defects = it.defects || (it.problem ? [it.problem] : []);
+          const activeDefects = defects.filter(d => d.status !== 'resolved');
+          const hasAnyDefect = defects.length > 0;
+          const hasActiveDefects = activeDefects.length > 0;
+
+          // ZASADA: JEŚLI PUNKT JEST WYKONANY LUB USTERKA JEST ZAKOŃCZONA -> ZNIKA Z EKRANU ROBOCZEGO!
+          let problemHtml = '';
+          if (!it.done && hasActiveDefects) {
+            problemHtml = '<div class="problem-snippet">';
+            activeDefects.forEach((df, dIdx) => {
+              let pPartsHtml = '';
+              (df.parts || []).forEach(p => pPartsHtml += `<span class="prob-parts-tag">🔩 ${p.name} (${p.qty}x)</span>`);
+              problemHtml += `
+                <div class="prob-item-row">
+                  <div>
+                    <span class="prob-dot"></span> <b>Wada #${dIdx+1}:</b> ${df.desc || '-'}<br>
+                    <span style="color:#94a3b8; font-size:0.78rem;"><b>Restarbeit:</b> ${df.rest || '-'} (${df.author || ''})</span>
+                    <div style="margin-top:2px;">${pPartsHtml}</div>
+                  </div>
+                  <div>
+                    ${!isLocked ? `<button class="btn btn-green" style="padding:2px 6px; font-size:0.7rem;" onclick="quickResolveDefect(${it.originalIdx}, ${dIdx})">✓ Zakończ tę usterkę</button>` : ''}
+                  </div>
+                </div>
+              `;
+            });
+            problemHtml += '</div>';
+          }
+
+          const hasNote = it.note && it.note.trim() !== '';
+          let noteHtml = hasNote ? `<div style="font-size:0.8rem; color:#38bdf8; margin-top:4px;">💬 ${it.note}</div>` : '';
+          
+          const photosCount = (it.photos || []).length;
+          let photosHtml = '';
+          if (photosCount > 0) {
+            photosHtml = '<div style="display:flex; gap:6px; margin-top:6px;">';
+            it.photos.forEach(src => {
+              photosHtml += `<img src="${src}" style="width:45px; height:45px; object-fit:cover; border-radius:3px; cursor:pointer;" onclick="window.open('${src}')">`;
+            });
+            photosHtml += '</div>';
+          }
+
+          const checkIcon = it.done ? '<span style="color:#10b981; font-weight:800; margin-right:6px;">✓</span>' : '';
+
+          rowsHtml += `
+            <div class="task-card-row ${it.done ? 'done' : ''}">
+              <div class="task-left-box">
+                <div class="task-main-text" onclick="${!isLocked ? `toggleTaskDone(${it.originalIdx})` : ''}">
+                  ${checkIcon}${it.text}
+                </div>
+                ${problemHtml}
+                ${noteHtml}
+                ${photosHtml}
+
+                <div class="task-sub-toolbar no-print">
+                  <span class="sub-icon" title="Dodaj zdjęcie" onclick="${!isLocked ? `triggerPhoto(${it.originalIdx})` : ''}">
+                    📷 ${photosCount ? `<span class="badge-counter">${photosCount}</span>` : ''}
+                  </span>
+                  <span class="sub-icon" title="Usterki & Restarbeit" style="color:#fbbf24;" onclick="openProblemModal(${it.originalIdx})">
+                    ⚠️ ${hasAnyDefect ? `<span class="badge-counter">${defects.length}</span>` : ''}
+                  </span>
+                  <span class="sub-icon" title="Notatka" onclick="${!isLocked ? `openNoteModal(${it.originalIdx})` : ''}">
+                    💬 ${hasNote ? '•' : ''}
+                  </span>
+                  <span class="sub-icon" title="Części" onclick="${!isLocked ? `openRegularPartsModal(${it.originalIdx})` : ''}">
+                    🔧 ${(it.parts || []).length ? `<span class="badge-counter">${it.parts.length}</span>` : ''}
+                  </span>
+                </div>
+              </div>
+
+              <div class="no-print" style="display:flex; align-items:center; gap:8px;">
+                <span class="status-badge ${it.done ? 'ok' : 'open'}" onclick="${!isLocked ? `toggleTaskDone(${it.originalIdx})` : ''}">
+                  ${it.done ? '✓ Wykonano' : 'Do zrobienia'}
+                </span>
+              </div>
+            </div>
+          `;
+        });
+        rowsHtml += '</div>';
+        modCard.innerHTML = headerHtml + rowsHtml;
+        box.appendChild(modCard);
+      }
+    }
+
+    function quickResolveDefect(taskIdx, defectIdx) {
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      if (o.status === 'done') return;
+      let items = o.items || [];
+      let defects = items[taskIdx].defects || (items[taskIdx].problem ? [items[taskIdx].problem] : []);
+      if (defects[defectIdx]) {
+        defects[defectIdx].status = 'resolved';
+        items[taskIdx].defects = defects;
+        db.collection("active_orders").doc(currentOrderId).update({ items });
+      }
+    }
+
+    function markAllInOrderGroup(groupName) {
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      if (o.status === 'done') return;
+      let items = o.items || [];
+      const current = items.filter(it => (it.group || 'Moduł Główny') === groupName);
+      const allDone = current.every(it => it.done);
+      items.forEach(it => {
+        if ((it.group || 'Moduł Główny') === groupName) it.done = !allDone;
+      });
+      db.collection("active_orders").doc(currentOrderId).update({ items });
+    }
+
+    // ==========================================
+    // ŻÓŁTY TRÓJKĄT - ZARZĄDZANIE WADAMI
+    // ==========================================
     function openProblemModal(idx) {
       activeTaskIdx = idx;
       const o = activeOrders.find(x => x.id === currentOrderId);
       const it = o.items[idx];
-      document.getElementById('probTaskLabel').innerText = `Zadanie: ${it.text}`;
-
-      const sel = document.getElementById('probPartSelect');
-      sel.innerHTML = '<option value="">-- Brak części --</option>';
-      parts.forEach(p => sel.innerHTML += `<option value="${p.name}">${p.name} (${p.num||'-'})</option>`);
-
+      document.getElementById('problemTaskTitle').innerText = 'Punkt: ' + it.text;
+      
+      const defects = it.defects || (it.problem ? [it.problem] : []);
+      tempDefects = JSON.parse(JSON.stringify(defects));
+      if (!tempDefects.length) {
+        tempDefects.push({ desc: "", rest: "", author: "Arkadiusz Z.", status: "open", parts: [] });
+      }
+      renderDefectsList(o.status === 'done');
       openModal('modalProblem');
     }
 
-    function saveProblemToTask() {
-      const desc = document.getElementById('probDescInput').value.trim();
-      const rest = document.getElementById('probRestInput').value.trim();
-      const part = document.getElementById('probPartSelect').value;
-      const status = document.getElementById('probStatusSelect').value;
+    function renderDefectsList(isLocked) {
+      const container = document.getElementById('defectsListContainer');
+      container.innerHTML = '';
 
-      if (!desc && !rest) return alert('Wpisz usterkę lub czynność naprawczą!');
+      tempDefects.forEach((df, idx) => {
+        const isResolved = df.status === 'resolved';
+        const div = document.createElement('div');
+        div.className = 'module-builder-row';
+        div.style.borderColor = isResolved ? '#10b981' : '#f59e0b';
 
-      const o = activeOrders.find(x => x.id === currentOrderId);
-      let items = o.items || [];
-      if (!items[activeTaskIdx].defects) items[activeTaskIdx].defects = [];
-      items[activeTaskIdx].defects.push({
-        desc: desc,
-        rest: rest,
-        part: part,
-        status: status,
-        author: "Arkadiusz Zimochod"
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <b style="color:${isResolved ? '#10b981' : '#fbbf24'}; font-size:0.85rem;">
+              ${isResolved ? '🟢 Rozwiązana Wada #' : '⚠️ Wada #'}${idx + 1}
+            </b>
+            <div style="display:flex; gap:6px;">
+              ${!isLocked ? `
+                <button class="btn btn-green" style="padding:1px 6px; font-size:0.7rem;" onclick="toggleDefectStatusInTemp(${idx})">
+                  ${isResolved ? 'Oznacz jako otwartą' : '✓ Zakończ tę usterkę'}
+                </button>
+                <button class="btn btn-del" style="padding:1px 6px; font-size:0.7rem;" onclick="removeDefectFromTemp(${idx})">✕</button>
+              ` : ''}
+            </div>
+          </div>
+          
+          <label style="font-size:0.75rem; color:#cbd5e1;">Opis uszkodzenia / usterki:</label>
+          <input type="text" value="${df.desc || ''}" ${isLocked ? 'disabled' : ''} placeholder="np. Zużyty simmerring" oninput="tempDefects[${idx}].desc = this.value">
+
+          <label style="font-size:0.75rem; color:#cbd5e1; margin-top:6px; display:block;">Restarbeit (Czynność do wykonania):</label>
+          <input type="text" value="${df.rest || ''}" ${isLocked ? 'disabled' : ''} placeholder="np. Wymiana na nowy" oninput="tempDefects[${idx}].rest = this.value">
+
+          <div class="grid" style="margin-top:6px;">
+            <div>
+              <label style="font-size:0.75rem; color:#cbd5e1;">Technik:</label>
+              <input type="text" value="${df.author || 'Arkadiusz Z.'}" ${isLocked ? 'disabled' : ''} oninput="tempDefects[${idx}].author = this.value">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:#cbd5e1;">Status:</label>
+              <select ${isLocked ? 'disabled' : ''} onchange="tempDefects[${idx}].status = this.value; renderDefectsList(${isLocked});">
+                <option value="open" ${!isResolved ? 'selected' : ''}>🔴 Otwarte (W toku)</option>
+                <option value="resolved" ${isResolved ? 'selected' : ''}>🟢 Rozwiązane (Zakończona)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-top:8px; border-top:1px solid #1f3454; padding-top:6px;">
+            <label style="font-size:0.75rem; color:#38bdf8; font-weight:700;">🔩 Potrzebna część zamienna:</label>
+            ${!isLocked ? `
+              <div style="display:flex; gap:6px; margin-top:2px;">
+                <select id="defectPartSelect_${idx}" style="flex:2;"></select>
+                <input type="number" id="defectPartQty_${idx}" value="1" min="1" style="flex:1;" placeholder="Sztuk">
+                <button class="btn btn-amber" style="padding:2px 8px; font-size:0.75rem;" onclick="addPartToDefect(${idx})">+ Przypisz</button>
+              </div>
+            ` : ''}
+            <div id="defectPartsList_${idx}" style="margin-top:4px; display:flex; flex-wrap:wrap; gap:4px;"></div>
+          </div>
+        `;
+        container.appendChild(div);
+
+        if (!isLocked) {
+          const sel = div.querySelector(`#defectPartSelect_${idx}`);
+          sel.innerHTML = '<option value="">-- Wybierz część z magazynu --</option>';
+          parts.forEach(p => sel.innerHTML += `<option value="${p.id}">${p.name} (${p.num||'-'}) [Stan: ${p.stock}]</option>`);
+        }
+
+        const partsBox = div.querySelector(`#defectPartsList_${idx}`);
+        (df.parts || []).forEach((pt, pIdx) => {
+          partsBox.innerHTML += `
+            <span class="prob-parts-tag">
+              ${pt.name} (${pt.qty}x)
+              ${!isLocked ? `<b style="cursor:pointer; color:#ef4444; margin-left:4px;" onclick="removePartFromDefect(${idx}, ${pIdx})">✕</b>` : ''}
+            </span>
+          `;
+        });
       });
+    }
+
+    function toggleDefectStatusInTemp(idx) {
+      tempDefects[idx].status = tempDefects[idx].status === 'resolved' ? 'open' : 'resolved';
+      renderDefectsList(false);
+    }
+
+    function addNewDefectToProblem() {
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      if (o.status === 'done') return alert('Zlecenie zamknięte!');
+      tempDefects.push({ desc: "", rest: "", author: "Arkadiusz Z.", status: "open", parts: [] });
+      renderDefectsList(false);
+    }
+
+    function removeDefectFromTemp(idx) {
+      tempDefects.splice(idx, 1);
+      renderDefectsList(false);
+    }
+
+    function addPartToDefect(idx) {
+      const pId = document.getElementById(`defectPartSelect_${idx}`).value;
+      const qty = parseInt(document.getElementById(`defectPartQty_${idx}`).value) || 1;
+      if (!pId) return alert('Wybierz część z magazynu!');
+      const p = parts.find(x => x.id === pId);
+      if (!tempDefects[idx].parts) tempDefects[idx].parts = [];
+      tempDefects[idx].parts.push({ id: p.id, name: p.name, num: p.num || '', qty });
+      renderDefectsList(false);
+    }
+
+    function removePartFromDefect(dfIdx, ptIdx) {
+      tempDefects[dfIdx].parts.splice(ptIdx, 1);
+      renderDefectsList(false);
+    }
+
+    function saveAllDefectsToTask() {
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      if (o.status === 'done') return;
+      const valid = tempDefects.filter(d => (d.desc && d.desc.trim()) || (d.rest && d.rest.trim()));
+      let items = o.items || [];
+      items[activeTaskIdx].defects = valid;
+      items[activeTaskIdx].problem = valid.length ? valid[0] : null;
 
       db.collection("active_orders").doc(currentOrderId).update({ items }).then(() => {
         closeModal('modalProblem');
@@ -855,83 +1137,718 @@
     }
 
     // ==========================================
-    // 4. PLANNER I PDF
+    // 2. OSOBNY KATALOG: GODZINY & CZAS PRACY (DIETY)
     // ==========================================
-    function renderPlannerView() {
-      const container = document.getElementById('plannerKWListContainer');
-      if (!container) return;
-      container.innerHTML = '<div style="color:#6b7280; font-size:0.85rem;">Przegląd tygodniowy KW z podsumowaniem czasu pracy i diet dla KFF Fulda.</div>';
+    const hoursDietRates = {
+      DE_full: { rate: 28.00, currency: "€" },
+      DE_part: { rate: 14.00, currency: "€" },
+      PL: { rate: 45.00, currency: "PLN" },
+      AT: { rate: 40.00, currency: "€" },
+      NL: { rate: 45.00, currency: "€" },
+      CH: { rate: 62.00, currency: "CHF" }
+    };
+
+    function onHoursDietCountryChanged() {
+      const val = document.getElementById('hoursDietCountrySelect').value;
+      const cfg = hoursDietRates[val] || hoursDietRates.DE_full;
+      document.getElementById('hoursCustomRateInput').value = cfg.rate.toFixed(2);
+      document.getElementById('hoursCurrencySymbol').innerText = cfg.currency;
+      renderHoursCatalog();
     }
 
-    function openPdfModal() {
+    function changeHoursMonth(delta) {
+      currentHoursMonthDate.setMonth(currentHoursMonthDate.getMonth() + delta);
+      renderHoursCatalog();
+    }
+
+    function calculateHoursDecimal(startStr, endStr, breakMin) {
+      if (!startStr || !endStr) return 0;
+      const [sh, sm] = startStr.split(':').map(Number);
+      const [eh, em] = endStr.split(':').map(Number);
+      let startMinutes = sh * 60 + sm;
+      let endMinutes = eh * 60 + em;
+      if (endMinutes < startMinutes) endMinutes += 24 * 60;
+      const workedMinutes = Math.max(0, (endMinutes - startMinutes) - (parseInt(breakMin) || 0));
+      return (workedMinutes / 60);
+    }
+
+    function openAddWorkLogModal() {
+      updateDispatchClientsDropdown();
+      const sel = document.getElementById('logClientSelect');
+      sel.innerHTML = '';
+      clients.forEach(c => sel.innerHTML += `<option value="${c.name}">${c.name} (${c.location||''})</option>`);
+      document.getElementById('logDate').value = new Date().toISOString().split('T')[0];
+      openModal('modalAddWorkLog');
+    }
+
+    function saveDirectWorkLog() {
+      const client = document.getElementById('logClientSelect').value;
+      const date = document.getElementById('logDate').value || new Date().toISOString().split('T')[0];
+      const tech = document.getElementById('logTechnician').value.trim() || 'Arkadiusz Z.';
+      const type = document.getElementById('logType').value;
+      const desc = document.getElementById('logDesc').value.trim() || 'Czynność serwisowa';
+      const start = document.getElementById('logStart').value || '06:00';
+      const end = document.getElementById('logEnd').value || '14:30';
+      const pause = parseInt(document.getElementById('logPause').value) || 0;
+      const kw = getWeekNumber(new Date(date)).week;
+
+      db.collection("work_logs").add({
+        client: client,
+        date: date,
+        kw: kw,
+        technician: tech,
+        type: type,
+        desc: desc,
+        start: start,
+        end: end,
+        pause: pause,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        closeModal('modalAddWorkLog');
+        renderHoursCatalog();
+      });
+    }
+
+    function renderHoursCatalog() {
+      const tbody = document.getElementById('hoursTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const year = currentHoursMonthDate.getFullYear();
+      const month = currentHoursMonthDate.getMonth();
+      const monthNamesPl = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+      document.getElementById('hoursMonthDisplayTitle').innerText = `⏱️ Katalog Czasu Pracy & Diet: ${monthNamesPl[month]} ${year}`;
+
+      const ratePerDay = parseFloat(document.getElementById('hoursCustomRateInput').value) || 28.00;
+      const currency = document.getElementById('hoursCurrencySymbol').innerText || "€";
+
+      let monthTotalHours = 0;
+      let monthTotalBreaks = 0;
+      const daysWithDiet = new Set();
+
+      const combined = [];
+
+      workLogs.forEach(w => {
+        if (!w.date) return;
+        const d = new Date(w.date);
+        if (d.getFullYear() === year && d.getMonth() === month) {
+          combined.push({
+            id: w.id,
+            isLog: true,
+            date: w.date,
+            kw: w.kw || getWeekNumber(d).week,
+            technician: w.technician || 'Arkadiusz Z.',
+            client: w.client,
+            desc: w.desc,
+            type: w.type || 'service',
+            start: w.start,
+            end: w.end,
+            pause: w.pause
+          });
+        }
+      });
+
+      combined.sort((a,b) => b.date.localeCompare(a.date));
+
+      combined.forEach(item => {
+        const hNetto = calculateHoursDecimal(item.start, item.end, item.pause);
+        monthTotalHours += hNetto;
+        monthTotalBreaks += (parseInt(item.pause) || 0);
+        daysWithDiet.add(item.date);
+
+        let typeBadge = '<span class="badge-type service">Serwis</span>';
+        if (item.type === 'travel-to') typeBadge = '<span class="badge-type travel-to">🚗 Wyjazd</span>';
+        else if (item.type === 'travel-back') typeBadge = '<span class="badge-type travel-back">🏠 Powrót</span>';
+        else if (item.type === 'support') typeBadge = '<span class="badge-type support">⚡ Wsparcie</span>';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><b>${item.date}</b></td>
+          <td><b style="color:#f59e0b;">KW ${item.kw}</b></td>
+          <td>${item.technician}</td>
+          <td><b>${item.client}</b></td>
+          <td>${typeBadge} ${item.desc}</td>
+          <td>${item.start} - ${item.end}</td>
+          <td>${item.pause} min</td>
+          <td style="color:#10b981; font-weight:bold;">${hNetto.toFixed(2)} h</td>
+          <td style="color:#fbbf24; font-weight:bold;">+${ratePerDay.toFixed(2)} ${currency}</td>
+          <td>
+            <button class="btn btn-del" style="padding:1px 6px; font-size:0.7rem;" onclick="deleteWorkLogEntry('${item.id}')">✕</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const totalDietSum = daysWithDiet.size * ratePerDay;
+      document.getElementById('kpiMonthWorkHours').innerText = monthTotalHours.toFixed(2) + ' h';
+      document.getElementById('kpiMonthBreaks').innerText = monthTotalBreaks + ' min';
+      document.getElementById('kpiMonthDietDays').innerText = daysWithDiet.size + ' dni';
+      document.getElementById('kpiMonthDietTotal').innerText = totalDietSum.toFixed(2) + ' ' + currency;
+
+      if (!combined.length) {
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:#64748b; padding:16px;">Brak wpisów czasu pracy w tym miesiącu. Kliknij „+ Nowy wpis godzin”.</td></tr>';
+      }
+    }
+
+    function deleteWorkLogEntry(id) {
+      if (confirm("Usunąć ten wpis z katalogu godzin?")) {
+        db.collection("work_logs").doc(id).delete();
+      }
+    }
+
+    // ==========================================
+    // 3. KATALOG DANYCH: ZABLOKOWANE MODUŁY W GOTOWYCH LISTACH
+    // ==========================================
+    function renderClientsList() {
+      const box = document.getElementById('clientsListSidebar');
+      if (!box) return;
+      box.innerHTML = '';
+      clients.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'card ' + (c.id === currentClientId ? 'act' : '');
+        div.onclick = () => selectClientInData(c.id);
+        const count = templates.filter(t => t.clientId === c.id).length;
+        div.innerHTML = `
+          <button class="card-del-btn" title="Usuń klienta" onclick="event.stopPropagation(); deleteClientDirect('${c.id}')">✕</button>
+          <b>${c.name}</b>
+          <div style="font-size:0.75rem; color:#94a3b8; margin-top:2px;">${c.location || ''} &bull; ${count} maszyn</div>
+        `;
+        box.appendChild(div);
+      });
+    }
+
+    function selectClientInData(id) {
+      currentClientId = id;
+      const c = clients.find(x => x.id === id);
+      if (!c) return;
+      document.getElementById('dataClientViewEmpty').style.display = 'none';
+      document.getElementById('dataClientView').style.display = 'block';
+      document.getElementById('dataActiveClientName').innerText = `${c.name} (${c.location || ''})`;
+      renderClientTemplates(id);
+      renderClientsList();
+    }
+
+    function renderClientTemplates(clientId) {
+      const box = document.getElementById('clientTemplatesContainer');
+      box.innerHTML = '';
+      const clientTpls = templates.filter(t => t.clientId === clientId);
+      if (!clientTpls.length) {
+        box.innerHTML = '<div style="color:#64748b; padding:20px 0;">Brak maszyn w katalogu tego klienta. Utwórz nowy szablon maszyny.</div>';
+        return;
+      }
+
+      clientTpls.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'box';
+        let modulesPreview = '';
+        const groups = {};
+        (t.items || []).forEach(it => {
+          const g = it.group || 'Moduł';
+          groups[g] = (groups[g] || 0) + 1;
+        });
+
+        for (const g in groups) {
+          modulesPreview += `<span style="background:#0f172a; border:1px solid #283955; padding:3px 8px; border-radius:3px; font-size:0.75rem; margin-right:6px; color:#38bdf8;">📦 ${g} (${groups[g]} zadań)</span>`;
+        }
+
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <b style="font-size:1rem; color:#fff;">${t.machine}</b>
+              <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">Łącznie punktów kontrolnych: ${(t.items||[]).length}</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-purple" onclick="dispatchDirectFromTemplate('${t.id}')">+ Wystaw zlecenie</button>
+              <button class="btn btn-del" onclick="deleteTemplate('${t.id}')">✕ Usuń szablon</button>
+            </div>
+          </div>
+          <div style="margin-top:10px;">${modulesPreview}</div>
+        `;
+        box.appendChild(div);
+      });
+    }
+
+    let tplModCount = 0;
+    function openTemplateCreatorModal() {
+      if (!currentClientId) return alert('Wybierz najpierw klienta!');
+      document.getElementById('tplMachineName').value = '';
+      const box = document.getElementById('tplModulesList');
+      box.innerHTML = '';
+      tplModCount = 0;
+      addModuleBlockToTemplateBuilder();
+      openModal('modalCreateTemplate');
+    }
+
+    function addModuleBlockToTemplateBuilder(defName = '', defTasks = '') {
+      tplModCount++;
+      const box = document.getElementById('tplModulesList');
+      const div = document.createElement('div');
+      div.className = 'module-builder-row';
+      div.id = 'tplMod_' + tplModCount;
+      div.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <b style="color:#38bdf8; font-size:0.8rem;">Moduł #${tplModCount}</b>
+          <button class="btn btn-del" style="padding:1px 6px; font-size:0.7rem;" onclick="document.getElementById('tplMod_${tplModCount}').remove()">✕</button>
+        </div>
+        <input class="tpl-m-name" value="${defName}" placeholder="Nazwa modułu (np. Magazynek 1, F303)..." style="margin-top:4px;">
+        <textarea class="tpl-m-tasks" style="height:65px; margin-top:4px;" placeholder="Punkty kontrolne (każda linijka to punkt)...">${defTasks}</textarea>
+      `;
+      box.appendChild(div);
+    }
+
+    function saveTemplateToClient() {
+      const machine = document.getElementById('tplMachineName').value.trim();
+      if (!machine) return alert('Wpisz nazwę maszyny / linii!');
+      const rows = document.querySelectorAll('.module-builder-row');
+      if (!rows.length) return alert('Dodaj przynajmniej jeden moduł!');
+
+      const items = [];
+      rows.forEach(r => {
+        const mName = r.querySelector('.tpl-m-name').value.trim() || 'Moduł';
+        const tasks = r.querySelector('.tpl-m-tasks').value.trim();
+        const lines = tasks.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        lines.forEach(l => {
+          items.push({ group: mName, text: l, done: false, photos: [], note: '', parts: [], defects: [] });
+        });
+      });
+
+      if (!items.length) return alert('Wpisz przynajmniej jeden punkt kontrolny!');
+
+      db.collection("templates").add({
+        clientId: currentClientId,
+        machine: machine,
+        items: items,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => closeModal('modalCreateTemplate'));
+    }
+
+    function addNewClientPrompt() {
+      const name = prompt("Nazwa nowego Klienta / Firmy (np. KFF Fulda, Nestlé):");
+      if (!name) return;
+      const loc = prompt("Lokalizacja zakładu (np. Fulda, Schwerin):") || "";
+      db.collection("clients").add({ name, location: loc });
+    }
+
+    function deleteClientDirect(id) {
+      if (!confirm('Usunąć tego Klienta z katalogu?')) return;
+      db.collection("clients").doc(id).delete().then(() => {
+        if (currentClientId === id) {
+          currentClientId = null;
+          document.getElementById('dataClientView').style.display = 'none';
+          document.getElementById('dataClientViewEmpty').style.display = 'block';
+        }
+      });
+    }
+
+    function deleteTemplate(id) {
+      if (!confirm('Usunąć ten szablon z katalogu?')) return;
+      db.collection("templates").doc(id).delete();
+    }
+
+    // ==========================================
+    // PODGLĄD PDF (A4)
+    // ==========================================
+    function openPdfPreviewModal() {
       const o = activeOrders.find(x => x.id === currentOrderId);
       if (!o) return;
-      const container = document.getElementById('pdfSheetContainer');
+
+      const container = document.getElementById('pdfPreviewContentContainer');
 
       let itemsHtml = '';
       (o.items || []).forEach(it => {
-        let defsHtml = '';
-        (it.defects || []).forEach(df => {
-          defsHtml += `<div style="font-size:0.75rem; color:#b45309;">⚠️ [${df.status === 'resolved' ? 'ROZWIĄZANO' : 'DO WYKONANIA'}] ${df.desc} (Restarbeit: ${df.rest})</div>`;
+        const defects = it.defects || (it.problem ? [it.problem] : []);
+        let defectsDetail = '';
+        defects.forEach(df => {
+          const statusTxt = df.status === 'resolved' ? '🟢 ROZWIĄZANO' : '🔴 DO WYKONANIA';
+          let pStr = '';
+          (df.parts || []).forEach(p => pStr += `[${p.name} ${p.qty}x] `);
+          defectsDetail += `
+            <div class="pdf-prob-box">
+              <b>${statusTxt}:</b> ${df.desc || '-'} | <b>Restarbeit:</b> ${df.rest || '-'} ${pStr ? '| Części: ' + pStr : ''}
+            </div>
+          `;
         });
+
+        const statusIcon = it.done ? '<b style="color:#047857;">[✓ WYKONANO]</b>' : '<b style="color:#b45309;">[DO ZROBIENIA]</b>';
         itemsHtml += `
-          <div style="padding:6px 0; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between;">
-            <div><b>${it.group}:</b> ${it.text}${defsHtml}</div>
-            <div>${it.done ? '✓ WYKONANO' : 'DO WYKONANIA'}</div>
+          <div class="pdf-item-row">
+            <div style="flex:1;">
+              <div><b>${it.group}:</b> ${it.text}</div>
+              ${defectsDetail}
+              ${it.note ? '<div style="font-size:0.75rem; color:#475569;">Uwagi: ' + it.note + '</div>' : ''}
+            </div>
+            <div style="width:140px; text-align:right;">${statusIcon}</div>
           </div>
         `;
       });
 
       container.innerHTML = `
-        <div class="pdf-sheet">
-          <h2>PROTOKÓŁ PRZEGLĄDU TECHNICZNEGO & ZEITNACHWEIS</h2>
-          <table style="width:100%; margin-bottom:14px;">
-            <tr><td><b>Klient:</b> ${o.client}</td><td><b>Zlecenie:</b> ${o.orderNum}</td></tr>
-            <tr><td><b>Maszyna:</b> ${o.machine}</td><td><b>Data:</b> ${o.date} (KW ${o.kw || '-'})</td></tr>
+        <div class="pdf-preview-sheet">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>⚙️ PROTOKÓŁ SERWISOWY I ZEITNACHWEIS</h2>
+            <div style="font-size:0.85rem; font-weight:bold; color:#0284c7;">SerwisMaster Pro</div>
+          </div>
+          
+          <table class="pdf-meta-table">
+            <tr>
+              <td><b>Klient / Zakład:</b> ${o.client}</td>
+              <td><b>Zlecenie Nr:</b> ${o.orderNum}</td>
+              <td><b>Data serwisu:</b> ${o.date || '-'} (KW ${o.kw || '-'})</td>
+            </tr>
+            <tr>
+              <td><b>Maszyna / Linia:</b> ${o.machine}</td>
+              <td><b>Technik:</b> ${o.technician || 'Arkadiusz Z.'}</td>
+              <td><b>Status zlecenia:</b> ${o.status === 'done' ? 'ZAKOŃCZONE' : 'W TOKU'}</td>
+            </tr>
           </table>
 
-          <div style="font-weight:bold; background:#f3f4f6; padding:6px; margin:10px 0;">PUNKTY KONTROLNE & ROZWIĄZANE USTERKI:</div>
-          ${itemsHtml}
+          ${o.specialNotes ? '<div class="pdf-sec-title">📝 PRZEBIEG PRAC / NOTATKI TECHNICZNE / TRASA</div><div style="font-size:0.82rem; padding:8px; background:#f8fafc; border:1px solid #e2e8f0; margin-bottom:10px;">' + o.specialNotes + '</div>' : ''}
 
-          <div style="margin-top:30px; display:flex; justify-content:space-between;">
-            <div>Podpis technika: ....................</div>
-            <div>Podpis klienta: ....................</div>
+          ${(o.items && o.items.length) ? '<div class="pdf-sec-title">✅ PUNKTY KONTROLNE & ROZWIĄZANE/OTWARTE USTERKI (REST)</div>' + itemsHtml : ''}
+
+          <div style="margin-top:36px; display:flex; justify-content:space-between; font-size:0.8rem; border-top:1px solid #cbd5e1; padding-top:14px;">
+            <div>Data: .........................</div>
+            <div>Podpis technika: .........................</div>
+            <div>Podpis klienta: .........................</div>
           </div>
         </div>
       `;
-      openModal('modalPdf');
+
+      openModal('modalPdfPreview');
+    }
+
+    // ==========================================
+    // WYSTAWIANIE ZLECENIA SERWISOWEGO
+    // ==========================================
+    function generateNextOrderNumber() {
+      const year = new Date().getFullYear();
+      const count = (activeOrders.length + 1).toString().padStart(3, '0');
+      const randomSuffix = Math.floor(10 + Math.random() * 90);
+      return `AUF-${year}-${count}${randomSuffix}`;
+    }
+
+    function updateDispatchClientsDropdown() {
+      const sel1 = document.getElementById('dispatchClientSelect');
+      const sel2 = document.getElementById('specClientSelect');
+      [sel1, sel2].forEach(sel => {
+        if (!sel) return;
+        sel.innerHTML = '<option value="">-- Wybierz Klienta --</option>';
+        clients.forEach(c => sel.innerHTML += `<option value="${c.id}">${c.name} (${c.location||''})</option>`);
+      });
+    }
+
+    function loadTemplatesForDispatch(cId) {
+      const sel = document.getElementById('dispatchTemplateSelect');
+      sel.innerHTML = '<option value="">-- Wybierz Maszynę --</option>';
+      const filtered = templates.filter(t => t.clientId === cId);
+      filtered.forEach(t => sel.innerHTML += `<option value="${t.id}">${t.machine} (${(t.items||[]).length} zadań)</option>`);
     }
 
     function openOrderDispatchModal() {
-      const sel = document.getElementById('dispatchSelectMachine');
-      sel.innerHTML = `
-        <option value="Schubert Pickerlinie MA005382 (FTB)">Schubert Pickerlinie MA005382 (FTB)</option>
-        <option value="Schubert Pickerlinie MA005433 (FTC)">Schubert Pickerlinie MA005433 (FTC)</option>
-      `;
-      document.getElementById('dispatchOrderNumber').value = "AUF-2026-" + Math.floor(1000 + Math.random() * 9000);
-      document.getElementById('dispatchDate').value = new Date().toISOString().split('T')[0];
-      openModal('modalDispatch');
+      updateDispatchClientsDropdown();
+      document.getElementById('dispatchOrderNum').value = generateNextOrderNumber();
+      const todayStr = new Date().toISOString().split('T')[0];
+      document.getElementById('dispatchOrderDate').value = todayStr;
+      const kw = getWeekNumber(new Date());
+      document.getElementById('dispatchKWDisplay').value = `KW ${kw.week} (${kw.year})`;
+      openModal('modalDispatchOrder');
     }
 
-    function executeDispatch() {
-      const machine = document.getElementById('dispatchSelectMachine').value;
-      const num = document.getElementById('dispatchOrderNumber').value;
-      const date = document.getElementById('dispatchDate').value;
-      const kw = 45;
+    function executeDispatchOrder() {
+      const cId = document.getElementById('dispatchClientSelect').value;
+      const tId = document.getElementById('dispatchTemplateSelect').value;
+      const orderNum = document.getElementById('dispatchOrderNum').value.trim() || generateNextOrderNumber();
+      const orderDate = document.getElementById('dispatchOrderDate').value || new Date().toISOString().split('T')[0];
+      const tech = document.getElementById('dispatchTechnician').value.trim() || 'Arkadiusz Z.';
+      if (!cId || !tId) return alert('Wybierz klienta i maszynę!');
+
+      const client = clients.find(x => x.id === cId);
+      const template = templates.find(x => x.id === tId);
+      const kwInfo = getWeekNumber(new Date(orderDate));
+
+      const clonedItems = JSON.parse(JSON.stringify(template.items || []));
+      clonedItems.forEach(it => { it.done = false; it.defects = []; it.photos = []; it.parts = []; });
 
       db.collection("active_orders").add({
-        orderNum: num,
-        client: "KFF Fulda",
-        machine: machine,
-        kw: kw,
-        date: date,
+        type: "service",
         status: "active",
-        items: [
-          { group: "F3_301", text: "Werkzeug auf Beschädigungen überprüfen", done: false, defects: [], note: "" },
-          { group: "Magazin Formatplatte 4 x 12g", text: "Kartonmagazin Führungsbleche einstellen", done: false, defects: [], note: "" }
-        ],
+        clientId: cId,
+        client: client.name,
+        machine: template.machine,
+        title: "Przegląd okresowy",
+        orderNum: orderNum,
+        date: orderDate,
+        kw: kwInfo.week,
+        year: kwInfo.year,
+        technician: tech,
+        specialNotes: "",
+        items: clonedItems,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => closeModal('modalDispatch'));
+      }).then(docRef => {
+        closeModal('modalDispatchOrder');
+        switchTab('orders');
+        loadActiveOrder(docRef.id);
+      });
+    }
+
+    function dispatchDirectFromTemplate(tId) {
+      const template = templates.find(x => x.id === tId);
+      const client = clients.find(x => x.id === template.clientId);
+      const clonedItems = JSON.parse(JSON.stringify(template.items || []));
+      clonedItems.forEach(it => { it.done = false; it.defects = []; it.photos = []; it.parts = []; });
+
+      const autoNum = generateNextOrderNumber();
+      const todayStr = new Date().toISOString().split('T')[0];
+      const kwInfo = getWeekNumber(new Date(todayStr));
+
+      db.collection("active_orders").add({
+        type: "service",
+        status: "active",
+        clientId: client.id,
+        client: client.name,
+        machine: template.machine,
+        title: "Przegląd okresowy",
+        orderNum: autoNum,
+        date: todayStr,
+        kw: kwInfo.week,
+        year: kwInfo.year,
+        technician: 'Arkadiusz Z.',
+        specialNotes: "",
+        items: clonedItems,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(docRef => {
+        switchTab('orders');
+        loadActiveOrder(docRef.id);
+      });
+    }
+
+    // ==========================================
+    // OSOBNO: WYJAZD DO KLIENTA / POWRÓT / WSPARCIE
+    // ==========================================
+    function openSpecialDispatchModal(type) {
+      updateDispatchClientsDropdown();
+      document.getElementById('specType').value = type;
+      const titleElem = document.getElementById('specialModalTitle');
+      const titleInput = document.getElementById('specTitle');
+      const todayStr = new Date().toISOString().split('T')[0];
+      document.getElementById('specDate').value = todayStr;
+
+      if (type === 'travel-to') {
+        titleElem.innerText = '🚗 Nowy Wyjazd do Klienta (Anreise)';
+        titleInput.value = 'Wyjazd do klienta (Trasa & Przejazd)';
+      } else if (type === 'travel-back') {
+        titleElem.innerText = '🏠 Nowy Powrót od Klienta (Rückreise)';
+        titleInput.value = 'Powrót od klienta (Trasa & Zjazd do bazy)';
+      } else {
+        titleElem.innerText = '⚡ Nowe Wsparcie Produkcji (Standby)';
+        titleInput.value = 'Wsparcie produkcji na hali';
+      }
+      openModal('modalSpecialDispatch');
+    }
+
+    function executeSpecialDispatchOrder() {
+      const cId = document.getElementById('specClientSelect').value;
+      if (!cId) return alert('Wybierz klienta docelowego!');
+      const client = clients.find(x => x.id === cId);
+      const type = document.getElementById('specType').value;
+      const dateVal = document.getElementById('specDate').value || new Date().toISOString().split('T')[0];
+      const tech = document.getElementById('specTechnician').value.trim() || 'Arkadiusz Z.';
+      const title = document.getElementById('specTitle').value.trim();
+      const kwInfo = getWeekNumber(new Date(dateVal));
+
+      let prefix = 'TRIP';
+      if (type === 'travel-to') prefix = 'WYJ';
+      else if (type === 'travel-back') prefix = 'POWR';
+      else if (type === 'support') prefix = 'PROD';
+
+      const autoNum = `${prefix}-${kwInfo.year}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      db.collection("active_orders").add({
+        type: type,
+        status: "active",
+        clientId: cId,
+        client: client.name,
+        machine: (type === 'support') ? 'Wsparcie produkcji' : 'Trasa i transport',
+        title: title,
+        orderNum: autoNum,
+        date: dateVal,
+        kw: kwInfo.week,
+        year: kwInfo.year,
+        technician: tech,
+        specialNotes: "",
+        items: [],
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(docRef => {
+        closeModal('modalSpecialDispatch');
+        switchTab('orders');
+        loadActiveOrder(docRef.id);
+      });
+    }
+
+    // ==========================================
+    // NOTATKI, FOTO, MAGAZYN
+    // ==========================================
+    function triggerPhoto(idx) {
+      activeTaskIdx = idx;
+      document.getElementById('hiddenPhotoInput').click();
+    }
+
+    function handlePhotoUpload(e) {
+      const f = e.target.files[0];
+      if (!f || activeTaskIdx === null || !currentOrderId) return;
+      const r = new FileReader();
+      r.onload = ev => {
+        const im = new Image();
+        im.onload = () => {
+          const cv = document.createElement('canvas');
+          let mx = 800, w = im.width, h = im.height;
+          if (w > mx) { h = Math.round(h * mx / w); w = mx; }
+          cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(im, 0, 0, w, h);
+          const u = cv.toDataURL('image/jpeg', 0.65);
+
+          const o = activeOrders.find(x => x.id === currentOrderId);
+          let items = o.items || [];
+          if (!items[activeTaskIdx].photos) items[activeTaskIdx].photos = [];
+          items[activeTaskIdx].photos.push(u);
+          db.collection("active_orders").doc(currentOrderId).update({ items });
+        };
+        im.src = ev.target.result;
+      };
+      r.readAsDataURL(f);
+      e.target.value = '';
+    }
+
+    function openNoteModal(idx) {
+      activeTaskIdx = idx;
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      document.getElementById('taskNoteInput').value = o.items[idx].note || '';
+      openModal('modalNote');
+    }
+
+    function saveTaskNote() {
+      const n = document.getElementById('taskNoteInput').value.trim();
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      let items = o.items || [];
+      items[activeTaskIdx].note = n;
+      db.collection("active_orders").doc(currentOrderId).update({ items }).then(() => closeModal('modalNote'));
+    }
+
+    function openRegularPartsModal(idx) {
+      activeTaskIdx = idx;
+      updatePartsDropdowns();
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      const it = o.items[idx];
+      const box = document.getElementById('regularPartsContainer');
+      const pList = it.parts || [];
+      box.innerHTML = pList.length ? '' : 'Brak przypisanych części.';
+      pList.forEach((p, pIdx) => {
+        box.innerHTML += `
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px; background:#0b1329; padding:4px 8px; border-radius:3px;">
+            <span>${p.name} (${p.num || '-'}) - ${p.qty} szt.</span>
+            <b style="cursor:pointer; color:#ef4444;" onclick="removeRegularPart(${pIdx})">✕</b>
+          </div>
+        `;
+      });
+      openModal('modalParts');
+    }
+
+    function assignRegularPart() {
+      const pId = document.getElementById('selectRegularPart').value;
+      const qty = parseInt(document.getElementById('selectRegularQty').value) || 1;
+      if (!pId) return alert('Wybierz część!');
+      const part = parts.find(x => x.id === pId);
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      let items = o.items || [];
+      if (!items[activeTaskIdx].parts) items[activeTaskIdx].parts = [];
+      items[activeTaskIdx].parts.push({ id: part.id, name: part.name, num: part.num || '', qty });
+      db.collection("active_orders").doc(currentOrderId).update({ items }).then(() => openRegularPartsModal(activeTaskIdx));
+    }
+
+    function removeRegularPart(pIdx) {
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      let items = o.items || [];
+      items[activeTaskIdx].parts.splice(pIdx, 1);
+      db.collection("active_orders").doc(currentOrderId).update({ items }).then(() => openRegularPartsModal(activeTaskIdx));
+    }
+
+    function updatePartsDropdowns() {
+      const sel = document.getElementById('selectRegularPart');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">-- Wybierz część z magazynu --</option>';
+      parts.forEach(p => sel.innerHTML += `<option value="${p.id}">${p.name} (${p.num || '-'}) [Stan: ${p.stock}]</option>`);
+    }
+
+    function saveNewPart() {
+      const name = document.getElementById('npName').value.trim();
+      const num = document.getElementById('npNum').value.trim();
+      const stock = parseInt(document.getElementById('npStock').value) || 0;
+      if (!name) return alert('Wpisz nazwę części!');
+      db.collection("parts").add({ name, num, stock }).then(() => {
+        document.getElementById('npName').value = '';
+        document.getElementById('npNum').value = '';
+        document.getElementById('npStock').value = '1';
+      });
+    }
+
+    function renderPartsCatalog() {
+      const tb = document.getElementById('partsCatalogList');
+      if (!tb) return;
+      tb.innerHTML = '';
+      if (!parts.length) {
+        tb.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">Katalog części jest pusty</td></tr>';
+        return;
+      }
+      parts.forEach(p => {
+        tb.innerHTML += `
+          <tr>
+            <td><b>${p.name}</b></td><td>${p.num || '-'}</td>
+            <td><input type="number" value="${p.stock}" style="width:60px; padding:2px;" onchange="db.collection('parts').doc('${p.id}').update({stock: parseInt(this.value)||0})"> szt.</td>
+            <td><button class="btn btn-del" style="padding:2px 6px; font-size:0.75rem;" onclick="if(confirm('Usunąć część?'))db.collection('parts').doc('${p.id}').delete()">Usuń</button></td>
+          </tr>
+        `;
+      });
+    }
+
+    // DASHBOARD USTEREK
+    function renderDashboardProblems() {
+      const tbody = document.getElementById('dashProblemsTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const filterVal = document.getElementById('dashFilterSelect').value;
+      activeOrders.forEach(o => {
+        (o.items || []).forEach(it => {
+          const defects = it.defects || (it.problem ? [it.problem] : []);
+          defects.forEach(df => {
+            const isResolved = df.status === 'resolved';
+            if (filterVal === 'open' && isResolved) return;
+            if (filterVal === 'resolved' && !isResolved) return;
+
+            let partsStr = '';
+            (df.parts || []).forEach(p => partsStr += `<span class="prob-parts-tag">${p.name} (${p.qty}x)</span>`);
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${isResolved ? '<span style="color:#10b981; font-weight:bold;">🟢 Rozwiązana</span>' : '<span style="color:#ef4444; font-weight:bold;">🔴 Wymaga naprawy</span>'}</td>
+              <td><b>${o.client}</b><br><small style="color:#94a3b8;">${o.machine}</small></td>
+              <td>${it.text}</td>
+              <td style="color:#fbbf24; font-weight:600;">${df.desc || '-'}</td>
+              <td><b>${df.rest || '-'}</b></td>
+              <td>${partsStr || '-'}</td>
+              <td>${df.author || '-'}</td>
+              <td>
+                <button class="btn btn-purple" style="padding:2px 8px; font-size:0.75rem;" onclick="switchTab('orders'); loadActiveOrder('${o.id}');">Przejdź</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        });
+      });
+
+      if (!tbody.children.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#64748b; padding:14px;">Brak usterek.</td></tr>';
+      }
     }
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
