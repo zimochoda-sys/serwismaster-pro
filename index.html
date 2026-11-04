@@ -87,16 +87,26 @@
     .zeit-kpi-val { font-size: 1.55rem; font-weight: 800; margin-top: 2px; }
 
     .day-sheet-card { background: #131f36; border: 1px solid #223556; border-radius: 6px; margin-bottom: 10px; overflow: hidden; }
-    .day-sheet-header { background: #182845; padding: 8px 14px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: bold; }
+    .day-sheet-header { background: #182845; padding: 9px 14px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: bold; }
     .day-sheet-entries { padding: 8px 12px; display: flex; flex-direction: column; gap: 6px; }
-    .day-entry-line { background: #0d172a; border-left: 3px solid #38bdf8; border-radius: 3px; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+    .day-entry-line { background: #0d172a; border-left: 3px solid #38bdf8; border-radius: 3px; padding: 7px 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; }
     .day-entry-line.anreise { border-left-color: #3b82f6; }
     .day-entry-line.abreise { border-left-color: #a855f7; }
     .day-entry-line.arbeit { border-left-color: #10b981; }
+    .day-entry-line.standby { border-left-color: #f59e0b; }
 
     .table-custom { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
     .table-custom th, .table-custom td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #23385d; }
     .table-custom th { color: #94a3b8; }
+
+    /* KALENDARZ MIESIĘCZNY OD 1 DO 31 */
+    .month-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; flex: 1; overflow-y: auto; }
+    .month-day-cell { background: #131f36; border: 1px solid #223556; border-radius: 4px; padding: 6px; min-height: 95px; display: flex; flex-direction: column; }
+    .month-day-cell.today { border-color: #38bdf8; background: #162846; }
+    .month-day-cell.weekend { background: #0d1627; }
+    .month-day-header { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: bold; border-bottom: 1px solid #1e2e4a; padding-bottom: 3px; margin-bottom: 4px; }
+    .month-day-event { background: #1d2d47; border-left: 3px solid #0284c7; padding: 2px 5px; font-size: 0.7rem; border-radius: 2px; margin-bottom: 3px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .month-day-event.done { border-left-color: #10b981; }
 
     /* PODGLĄD PDF */
     .pdf-preview-sheet { background: #ffffff; color: #000000; padding: 36px 42px; border-radius: 4px; max-width: 820px; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.6); font-family: "Segoe UI", Arial, sans-serif; }
@@ -126,6 +136,7 @@
     <div class="nav-tabs">
       <button class="tab-btn active" id="btnTabOrders" onclick="switchTab('orders')">📋 Zlecenia Maszyn</button>
       <button class="tab-btn" id="btnTabZeit" onclick="switchTab('zeit')">⏱️ Godziny Pracy & Diety (Zeitnachweis)</button>
+      <button class="tab-btn" id="btnTabCalendar" onclick="switchTab('calendar')">🗓️ Kalendarz Miesiąca</button>
       <button class="tab-btn" id="btnTabData" onclick="switchTab('data')">📂 Katalog Danych (Maszyny & Moduły)</button>
       <button class="tab-btn" id="btnTabDash" onclick="switchTab('dash')">📊 Usterki & Restarbeit</button>
       <button class="tab-btn" id="btnTabParts" onclick="switchTab('parts')">📦 Magazyn Części</button>
@@ -136,7 +147,7 @@
     </div>
   </header>
 
-  <!-- ==================== 1. WIDOK: ZLECENIA MASZYN (BEZ DOJAZDÓW!) ==================== -->
+  <!-- ==================== 1. WIDOK: ZLECENIA MASZYN (CZYSTE ZLECENIA, BEZ DOJAZDÓW!) ==================== -->
   <div id="viewOrders" class="view-container">
     <div class="sidebar no-print">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
@@ -154,7 +165,7 @@
     <div class="content">
       <div id="orderEmptyState" style="text-align:center; margin-top:120px; color:#94a3b8;">
         <h2>Wybierz zlecenie z listy po lewej lub kliknij „+ Wystaw zlecenie”</h2>
-        <p style="font-size:0.85rem; color:#64748b; margin-top:6px;">Zlecenia dotyczą wyłącznie przeglądów i napraw maszyn. Wyjazdy (Anreise), zjazdy (Abreise) i godziny rejestrujesz w zakładce ⏱️ Godziny Pracy & Diety.</p>
+        <p style="font-size:0.85rem; color:#64748b; margin-top:6px;">Zlecenia dotyczą wyłącznie prac serwisowych i przeglądów maszyn na obiekcie. Cały czas pracy (Anreise, Abreise, godziny i diety) rejestrujesz w zakładce <b>⏱️ Godziny Pracy & Diety</b>.</p>
       </div>
 
       <div id="activeOrderView" style="display:none; max-width:980px; margin:0 auto;">
@@ -177,7 +188,7 @@
           <div class="grid-3">
             <div><label>Klient / Zakład</label><input id="aoClientName" readonly style="color:#38bdf8; font-weight:bold;"></div>
             <div><label>Maszyna / Linia</label><input id="aoMachineName" readonly style="color:#fff; font-weight:bold;"></div>
-            <div><label>Data zlecenia (KW)</label><input type="date" id="aoOrderDate" onchange="onOrderDateChanged(this.value)"></div>
+            <div><label>Data realizacji (KW)</label><input type="date" id="aoOrderDate" onchange="onOrderDateChanged(this.value)"></div>
           </div>
           <div class="grid" style="margin-top:8px;">
             <div><label>Tytuł / Zakres zlecenia</label><input id="aoOrderTitle" oninput="updateActiveOrderField('title', this.value)"></div>
@@ -196,7 +207,7 @@
           <div class="box">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <h3 style="margin:0;">Protokół Punktów Kontrolnych</h3>
-              <span style="font-size:0.75rem; color:#f59e0b; font-weight:600;">🔒 Lista stała (edycja szablonu maszyny w Katalogu Danych)</span>
+              <span style="font-size:0.75rem; color:#f59e0b; font-weight:600;">🔒 Lista bieżąca (edycja szablonu w Katalogu Danych)</span>
             </div>
             <div style="margin-top:10px;">
               <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
@@ -217,11 +228,11 @@
     </div>
   </div>
 
-  <!-- ==================== 2. NOWY PROFESJONALNY ZEITNACHWEIS & DIETY ==================== -->
+  <!-- ==================== 2. ZEITNACHWEIS & DIETY NIEMIECKIE W EURO (€) ==================== -->
   <div id="viewZeit" class="view-container" style="display:none; flex-direction:column; padding:18px; overflow-y:auto;">
     <div style="max-width:1150px; margin:0 auto; width:100%;">
       
-      <!-- NAGŁÓWEK MIESIĘCZNY, PRZEŁĄCZANIE I WYBÓR STAWKI DIETY -->
+      <!-- NAGŁÓWEK MIESIĘCZNY I PRZEŁĄCZANIE -->
       <div class="box" style="margin-bottom:12px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
           <div style="display:flex; align-items:center; gap:10px;">
@@ -233,13 +244,13 @@
             </div>
           </div>
 
-          <div style="display:flex; align-items:center; gap:8px;">
-            <button class="btn btn-purple" onclick="openAddDayEntryModal()">+ Dodaj wpis do dnia (Dojazd / Praca / Powrót)</button>
+          <div>
+            <button class="btn btn-purple" onclick="openAddDayEntryModal()">+ Dodaj czynność (Anreise / Praca / Abreise)</button>
           </div>
         </div>
       </div>
 
-      <!-- MIESIĘCZNY PASEK PODSUMOWANIA (GODZINY I DIETA ZA CAŁY MIESIĄC) -->
+      <!-- MIESIĘCZNY PASEK PODSUMOWANIA (GODZINY I DIETA W EURO ZA CAŁY MIESIĄC) -->
       <div class="zeit-summary-kpi">
         <div class="zeit-kpi-item">
           <span class="zeit-kpi-lbl">ROBOCZOGODZINY W MIESIĄCU:</span>
@@ -254,7 +265,7 @@
           <span class="zeit-kpi-val" style="color:#38bdf8;" id="zeitKpiDietDays">0 dni</span>
         </div>
         <div class="zeit-kpi-item">
-          <span class="zeit-kpi-lbl">SUMA DIETY ZA CAŁY MIESIĄC:</span>
+          <span class="zeit-kpi-lbl">SUMA DIET ZA MIESIĄC (W EURO):</span>
           <span class="zeit-kpi-val" style="color:#fbbf24;" id="zeitKpiDietTotal">0.00 €</span>
         </div>
       </div>
@@ -263,15 +274,42 @@
       <div class="box">
         <h3>Ewidencja Dni Pracy i Rozliczenie Diety w Miesiącu</h3>
         <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
-          💡 W jednym dniu możesz mieć kilka czynności (np. rano wyjazd <em>Anreise</em>, potem praca u klienta, za kilka dni powrót <em>Abreise</em>). 
-          <strong>Zasada kontrolna:</strong> w danym dniu dieta (Auslöse) naliczana jest <u>maksymalnie raz na dzień</u> (14 € dzień wyjazdowy lub 28 € pełny dzień), bez podwójnego naliczania!
+          💡 Wszystkie stawki diet wyliczane są według oficjalnych <strong>niemieckich stawek delegacyjnych BMF i wypłacane w EURO (€)</strong> dla każdego kraju docelowego (Niemcy, Szwajcaria, Polska, Austria, Włochy itd.). 
+          <strong>Zasada kontrolna:</strong> w jednym dniu dieta naliczana jest <u>dokładnie raz na dobę</u> (nie ma podwójnego naliczania, jeśli tego samego dnia masz dojazd i pracę!).
         </p>
         <div id="zeitDaysCardsContainer"></div>
       </div>
     </div>
   </div>
 
-  <!-- ==================== 3. WIDOK: KATALOG DANYCH (PEŁNA EDYCJA MODUŁÓW PO HASLE) ==================== -->
+  <!-- ==================== 3. WIDOK: KALENDARZ MIESIĄCA (1 DO 31) ==================== -->
+  <div id="viewCalendar" class="view-container" style="display:none; flex-direction:column; padding:16px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <h2 id="calMonthViewTitle" style="color:#38bdf8; font-size:1.2rem;">Miesiąc: Listopad 2026</h2>
+        <div style="display:flex; gap:4px;">
+          <button class="btn btn-gray" style="padding:4px 8px;" onclick="changeMonthView(-1)">◀ Poprzedni</button>
+          <button class="btn btn-gray" style="padding:4px 8px;" onclick="currentMonthViewDate = new Date(); renderMonthCalendar();">Dziś</button>
+          <button class="btn btn-gray" style="padding:4px 8px;" onclick="changeMonthView(1)">Następny ▶</button>
+        </div>
+      </div>
+      <button class="btn btn-purple" onclick="openOrderDispatchModal()">+ Wystaw zlecenie</button>
+    </div>
+
+    <div style="display:grid; grid-template-columns: repeat(7, 1fr); gap:6px; margin-bottom:4px; text-align:center; font-weight:bold; font-size:0.75rem; color:#94a3b8;">
+      <div style="background:#152238; padding:4px; border-radius:3px;">Poniedziałek</div>
+      <div style="background:#152238; padding:4px; border-radius:3px;">Wtorek</div>
+      <div style="background:#152238; padding:4px; border-radius:3px;">Środa</div>
+      <div style="background:#152238; padding:4px; border-radius:3px;">Czwartek</div>
+      <div style="background:#152238; padding:4px; border-radius:3px;">Piątek</div>
+      <div style="background:#152238; padding:4px; border-radius:3px;">Sobota</div>
+      <div style="background:#152238; padding:4px; border-radius:3px;">Niedziela</div>
+    </div>
+    
+    <div class="month-calendar-grid" id="monthCalendarCellsGrid"></div>
+  </div>
+
+  <!-- ==================== 4. WIDOK: KATALOG DANYCH (PEŁNA EDYCJA MODUŁÓW PO HASLE) ==================== -->
   <div id="viewData" class="view-container" style="display:none;">
     <div class="sidebar no-print">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -296,7 +334,7 @@
     </div>
   </div>
 
-  <!-- ==================== 4. WIDOK: DASHBOARD USTEREK (REST-ARBEIT) ==================== -->
+  <!-- ==================== 5. WIDOK: DASHBOARD USTEREK (REST-ARBEIT) ==================== -->
   <div id="viewDash" class="view-container" style="display:none; flex-direction:column; padding:18px; overflow-y:auto;">
     <div class="box" style="flex:1;">
       <h3>
@@ -316,7 +354,7 @@
     </div>
   </div>
 
-  <!-- ==================== 5. WIDOK: MAGAZYN CZĘŚCI ==================== -->
+  <!-- ==================== 6. WIDOK: MAGAZYN CZĘŚCI ==================== -->
   <div id="viewParts" class="view-container" style="display:none; padding:20px; overflow-y:auto;">
     <div style="max-width:1050px; margin:0 auto; width:100%;">
       <div class="box">
@@ -340,9 +378,9 @@
 
   <!-- ==================== MODALE ==================== -->
 
-  <!-- MODAL: NOWY WPIS CZASU PRACY / ANREISE / ABREISE (ZEITNACHWEIS) -->
+  <!-- MODAL: NOWY WPIS CZASU PRACY / ANREISE / ABREISE (ZEITNACHWEIS) Z NIEMIECKIMI DIETAMI W EURO -->
   <div class="modal-overlay" id="modalAddZeitEntry">
-    <div class="modal-window" style="max-width:540px;">
+    <div class="modal-window" style="max-width:560px;">
       <h3 style="color:#38bdf8; margin-bottom:8px;">⏱️ Wpis Czasu Pracy & Diety (Zeitnachweis)</h3>
       
       <div class="grid" style="margin-top:6px;">
@@ -373,7 +411,7 @@
 
       <div style="margin-top:8px;">
         <label style="font-size:0.8rem; color:#94a3b8;">Opis / Trasa / Zadanie:</label>
-        <input id="zeDesc" placeholder="np. Dojazd do KFF Fulda / Przegląd linii Schubert">
+        <input id="zeDesc" placeholder="np. Dojazd do Fuldy / Serwis Schubert / Zjazd do bazy">
       </div>
 
       <div class="grid-3" style="margin-top:8px;">
@@ -397,35 +435,47 @@
           <input type="number" id="zeKm" placeholder="np. 180 km">
         </div>
         <div>
-          <label style="font-size:0.75rem; color:#94a3b8;">Kraj:</label>
-          <select id="zeCountry">
-            <option value="de" selected>Niemcy (DE)</option>
-            <option value="pl">Polska (PL)</option>
-            <option value="at">Austria (AT)</option>
-            <option value="nl">Holandia (NL)</option>
-            <option value="ch">Szwajcaria (CH)</option>
+          <label style="font-size:0.75rem; color:#94a3b8;">Kraj wykonywania pracy (stawka BMF w €):</label>
+          <select id="zeCountry" onchange="updateDietRatesDisplay()">
+            <option value="DE" selected>🇩🇪 Niemcy (Deutschland)</option>
+            <option value="CH">🇨🇭 Szwajcaria (Schweiz)</option>
+            <option value="PL">🇵🇱 Polska (Polen)</option>
+            <option value="AT">🇦🇹 Austria (Österreich)</option>
+            <option value="IT">🇮🇹 Włochy (Italien)</option>
+            <option value="NL">🇳🇱 Holandia (Niederlande)</option>
+            <option value="FR">🇫🇷 Francja (Frankreich)</option>
+            <option value="CZ">🇨🇿 Czechy (Tschechien)</option>
+            <option value="CUSTOM">Inny kraj (własna stawka w €)</option>
           </select>
         </div>
       </div>
 
-      <!-- KONTROLA DIETY NA TEN DZIEŃ -->
+      <!-- KONTROLA DIETY NA TEN KONKRETNY DZIEŃ (ZAPISYWANA TRWALE W TYM WPISIE W EURO!) -->
       <div style="margin-top:12px; background:#0d182b; border:1px solid #1c2e4d; border-radius:6px; padding:10px;">
-        <b style="font-size:0.8rem; color:#fbbf24;">🍽️ Dieta (Auslöse / Spesen) dla tego dnia:</b>
-        <div style="font-size:0.75rem; color:#94a3b8; margin-top:2px;">Wybierz status diety dla tej daty (maksymalnie 1 dieta na dzień):</div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <b style="font-size:0.82rem; color:#fbbf24;">🍽️ Dieta (Auslöse) w walucie EURO (€):</b>
+          <span id="zeCountryDietInfoBadge" style="font-size:0.75rem; color:#38bdf8; font-weight:bold;">Niemcy: 14 € / 28 €</span>
+        </div>
+        <div style="font-size:0.74rem; color:#94a3b8; margin-top:2px;">Wybierz wymiar diety na ten dzień (nie zmienia innych dni ani historii!):</div>
         
-        <div style="display:flex; flex-direction:column; gap:6px; margin-top:6px;">
+        <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
           <label style="font-size:0.8rem; color:#cbd5e1; cursor:pointer;">
-            <input type="radio" name="zeDietRadio" value="none" style="width:auto; margin-right:6px;">
-            Brak diety / Dzień bez diety
+            <input type="radio" name="zeDietRadio" value="none" style="width:auto; margin-right:6px;" onchange="onDietRadioChanged()">
+            Brak diety (0.00 €)
           </label>
           <label style="font-size:0.8rem; color:#cbd5e1; cursor:pointer;">
-            <input type="radio" name="zeDietRadio" value="part" id="radioDietPart" checked style="width:auto; margin-right:6px;">
-            Dzień wyjazdowy / przyjazdowy (Anreise/Abreise &gt;8h) – 14.00 €
+            <input type="radio" name="zeDietRadio" value="part" id="radioDietPart" checked style="width:auto; margin-right:6px;" onchange="onDietRadioChanged()">
+            <span id="labelDietPart">Dzień wyjazdowy / powrotny (>8h / Anreise / Abreise) – 14.00 €</span>
           </label>
           <label style="font-size:0.8rem; color:#cbd5e1; cursor:pointer;">
-            <input type="radio" name="zeDietRadio" value="full" id="radioDietFull" style="width:auto; margin-right:6px;">
-            Dzień pełny całodobowy (24h na wyjeździe) – 28.00 €
+            <input type="radio" name="zeDietRadio" value="full" id="radioDietFull" style="width:auto; margin-right:6px;" onchange="onDietRadioChanged()">
+            <span id="labelDietFull">Dzień pełny całodobowy (24h) – 28.00 €</span>
           </label>
+        </div>
+
+        <div id="customDietRateBox" style="display:none; margin-top:8px;">
+          <label style="font-size:0.75rem; color:#94a3b8;">Wpisz ręcznie kwotę diety na ten dzień (w €):</label>
+          <input type="number" id="zeCustomDietEuroInput" value="28.00" step="0.5" style="width:120px; padding:4px 8px;"> €
         </div>
       </div>
 
@@ -633,9 +683,23 @@
     let currentOrderId = null, currentClientId = null, activeTaskIdx = null;
     let tempDefects = [];
     let currentZeitMonthDate = new Date();
+    let currentMonthViewDate = new Date();
     
     let currentAdminPassword = "1234";
     let pendingAuthAction = null;
+
+    // OFICJALNE NIEMIECKIE STAWKI DIET BMF DLA PRACOWNIKÓW (WYPŁACANE W EURO €)
+    const BMF_DIET_RATES_EUR = {
+      DE: { name: "Niemcy", part: 14.00, full: 28.00 },
+      CH: { name: "Szwajcaria", part: 43.00, full: 64.00 },
+      PL: { name: "Polska", part: 29.00, full: 44.00 },
+      AT: { name: "Austria", part: 27.00, full: 40.00 },
+      IT: { name: "Włochy", part: 31.00, full: 46.00 },
+      NL: { name: "Holandia", part: 31.00, full: 47.00 },
+      FR: { name: "Francja", part: 39.00, full: 58.00 },
+      CZ: { name: "Czechy", part: 26.00, full: 39.00 },
+      CUSTOM: { name: "Własna", part: 14.00, full: 28.00 }
+    };
 
     function getWeekNumber(d) {
       d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -648,17 +712,20 @@
     function switchTab(t) {
       document.getElementById('viewOrders').style.display = t === 'orders' ? 'flex' : 'none';
       document.getElementById('viewZeit').style.display = t === 'zeit' ? 'flex' : 'none';
+      document.getElementById('viewCalendar').style.display = t === 'calendar' ? 'flex' : 'none';
       document.getElementById('viewData').style.display = t === 'data' ? 'flex' : 'none';
       document.getElementById('viewDash').style.display = t === 'dash' ? 'flex' : 'none';
       document.getElementById('viewParts').style.display = t === 'parts' ? 'block' : 'none';
 
       document.getElementById('btnTabOrders').className = 'tab-btn' + (t === 'orders' ? ' active' : '');
       document.getElementById('btnTabZeit').className = 'tab-btn' + (t === 'zeit' ? ' active' : '');
+      document.getElementById('btnTabCalendar').className = 'tab-btn' + (t === 'calendar' ? ' active' : '');
       document.getElementById('btnTabData').className = 'tab-btn' + (t === 'data' ? ' active' : '');
       document.getElementById('btnTabDash').className = 'tab-btn' + (t === 'dash' ? ' active' : '');
       document.getElementById('btnTabParts').className = 'tab-btn' + (t === 'parts' ? ' active' : '');
 
       if (t === 'zeit') renderZeitnachweisView();
+      if (t === 'calendar') renderMonthCalendar();
       if (t === 'dash') renderDashboardProblems();
     }
 
@@ -686,6 +753,7 @@
       snap.forEach(d => activeOrders.push({ id: d.id, ...d.data() }));
       filterOrdersList();
       renderDashboardProblems();
+      renderMonthCalendar();
       if (currentOrderId) loadActiveOrder(currentOrderId);
     });
 
@@ -784,7 +852,7 @@
       });
 
       if (!filtered.length) {
-        sb.innerHTML = '<div style="color:#64748b; font-size:0.8rem; text-align:center; padding:12px;">Brak zleceń.</div>';
+        sb.innerHTML = '<div style="color:#64748b; font-size:0.8rem; text-align:center; padding:12px;">Brak zleceń maszyn.</div>';
         return;
       }
 
@@ -1156,7 +1224,7 @@
           partsBox.innerHTML += `
             <span class="prob-parts-tag">
               ${pt.name} (${pt.qty}x)
-              ${!isLocked ? `<b style="cursor:pointer; color:#ef4444; margin-left:4px;" onclick="removePartFromDefect(${idx}, ${pIdx})">✕</b>` : ''}
+              ${!isLocked ? `<b style="cursor:pointer; color:#ef4444;" onclick="removePartFromDefect(${idx}, ${pIdx})">✕</b>` : ''}
             </span>
           `;
         });
@@ -1209,7 +1277,7 @@
     }
 
     // ==========================================
-    // 2. NOWY ZEITNACHWEIS: MIESIĘCZNE SUMOWANIE & KONTROLA DIETY
+    // 2. NOWY ZEITNACHWEIS: NIEMIECKIE DIETY W EURO (€) I BRAK PODWÓJNYCH NALICZEŃ
     // ==========================================
     function changeZeitMonth(delta) {
       currentZeitMonthDate.setMonth(currentZeitMonthDate.getMonth() + delta);
@@ -1227,14 +1295,42 @@
       return (workedMinutes / 60);
     }
 
+    function updateDietRatesDisplay() {
+      const countryCode = document.getElementById('zeCountry').value;
+      const customBox = document.getElementById('customDietRateBox');
+      const badge = document.getElementById('zeCountryDietInfoBadge');
+      const lblPart = document.getElementById('labelDietPart');
+      const lblFull = document.getElementById('labelDietFull');
+
+      if (countryCode === 'CUSTOM') {
+        customBox.style.display = 'block';
+        badge.innerText = 'Własna stawka w €';
+        lblPart.innerText = 'Dzień wyjazdowy / powrotny (>8h) – stawka częściowa';
+        lblFull.innerText = 'Dzień pełny całodobowy (24h) – stawka pełna';
+        return;
+      }
+
+      customBox.style.display = 'none';
+      const cData = BMF_DIET_RATES_EUR[countryCode] || BMF_DIET_RATES_EUR.DE;
+      badge.innerText = `${cData.name}: ${cData.part.toFixed(2)} € / ${cData.full.toFixed(2)} €`;
+      lblPart.innerText = `Dzień wyjazdowy / powrotny (>8h / Anreise / Abreise) – ${cData.part.toFixed(2)} €`;
+      lblFull.innerText = `Dzień pełny całodobowy (24h) – ${cData.full.toFixed(2)} €`;
+    }
+
+    function onDietRadioChanged() {
+      // pomocnicza przy zmianie radio
+    }
+
     function openAddDayEntryModal() {
       updateDispatchClientsDropdown();
       const sel = document.getElementById('zeClientSelect');
       sel.innerHTML = '';
       clients.forEach(c => sel.innerHTML += `<option value="${c.name}">${c.name} (${c.location||''})</option>`);
       document.getElementById('zeDate').value = new Date().toISOString().split('T')[0];
-      document.getElementById('zeDesc').value = 'Prace konserwacyjne / Przegląd';
+      document.getElementById('zeDesc').value = 'Prace konserwacyjne / Przegląd maszyny';
       document.getElementById('radioDietPart').checked = true;
+      document.getElementById('zeCountry').value = 'DE';
+      updateDietRatesDisplay();
       openModal('modalAddZeitEntry');
     }
 
@@ -1267,16 +1363,27 @@
       const end = document.getElementById('zeEnd').value || '15:45';
       const pause = parseInt(document.getElementById('zePause').value) || 0;
       const km = document.getElementById('zeKm').value || 0;
-      const country = document.getElementById('zeCountry').value;
+      const countryCode = document.getElementById('zeCountry').value;
       const kw = getWeekNumber(new Date(date)).week;
 
-      // Wybrana dieta w tym formularzu
+      // OBLICZENIE DIETY W EURO DLA TEGO WPISU WEDŁUG KRAJU
       const dietRadio = document.querySelector('input[name="zeDietRadio"]:checked').value;
+      const cData = BMF_DIET_RATES_EUR[countryCode] || BMF_DIET_RATES_EUR.DE;
       let chosenDietAmount = 0;
       let chosenDietType = "Brak";
-      if (dietRadio === 'part') { chosenDietAmount = 14.00; chosenDietType = "Częściowa 14€ (>8h / Anreise / Abreise)"; }
-      if (dietRadio === 'full') { chosenDietAmount = 28.00; chosenDietType = "Pełna 28€ (24h)"; }
 
+      if (dietRadio === 'part') {
+        chosenDietAmount = cData.part;
+        chosenDietType = `Częściowa ${cData.part.toFixed(2)} € (${cData.name} >8h)`;
+      } else if (dietRadio === 'full') {
+        chosenDietAmount = cData.full;
+        chosenDietType = `Pełna ${cData.full.toFixed(2)} € (${cData.name} 24h)`;
+      } else if (dietRadio === 'custom') {
+        chosenDietAmount = parseFloat(document.getElementById('zeCustomDietEuroInput').value) || 0;
+        chosenDietType = `Własna ${chosenDietAmount.toFixed(2)} €`;
+      }
+
+      // ZAPIS TRWAŁY DO BAZY DANYCH (KWOTA W EURO I KRAJ ZAPISUJĄ SIĘ NA STAŁE)
       db.collection("zeitnachweis").add({
         date: date,
         kw: kw,
@@ -1288,7 +1395,8 @@
         end: end,
         pause: pause,
         km: km,
-        country: country,
+        countryCode: countryCode,
+        countryName: cData.name,
         dietType: chosenDietType,
         dietAmount: chosenDietAmount,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -1315,7 +1423,7 @@
         return d.getFullYear() === year && d.getMonth() === month;
       });
 
-      // Grupujemy wpisy po DNIACH (dacie), aby zagwarantować JEDNĄ dietę na dzień!
+      // GRUPOWANIE PO DNIACH (DLA JEDNEJ DIETY NA DOBĘ)
       const daysGrouped = {};
       monthEntries.forEach(item => {
         if (!daysGrouped[item.date]) {
@@ -1325,16 +1433,20 @@
             technician: item.technician,
             entries: [],
             dietDayAmount: 0,
-            dietDayName: "Brak"
+            dietDayName: "Brak",
+            dietCountry: ""
           };
         }
         daysGrouped[item.date].entries.push(item);
-        // KONTROLA DIETY: Jeśli którykolwiek wpis w tym dniu ma zadeklarowaną dietę 28€, wygrywa 28€.
-        // Jeśli ma 14€, bierze 14€. Nigdy nie sumuje podwójnie w tym samym dniu!
+
+        // KONTROLA DIETY NA DOBĘ:
+        // Jeśli w danym dniu technik ma np. wyjazd (14 €) i pracę (np. 28 € pełny dzień lub Szwajcaria 64 €),
+        // system wybiera MAKSYMALNĄ przysługującą dietę dla tego dnia i NIE sumuje jej podwójnie!
         const amt = parseFloat(item.dietAmount) || 0;
         if (amt > daysGrouped[item.date].dietDayAmount) {
           daysGrouped[item.date].dietDayAmount = amt;
           daysGrouped[item.date].dietDayName = item.dietType;
+          daysGrouped[item.date].dietCountry = item.countryName || item.countryCode || '';
         }
       });
 
@@ -1344,7 +1456,7 @@
       let totalMonthHours = 0;
       let totalMonthBreaks = 0;
       let totalDietDaysCount = 0;
-      let totalDietSum = 0;
+      let totalDietSumEur = 0;
 
       sortedDays.forEach(dayObj => {
         let dayHours = 0;
@@ -1358,8 +1470,8 @@
 
           let typeClass = 'arbeit';
           let typeLbl = '⚙️ Praca';
-          if (ent.actType === 'anreise') { typeClass = 'anreise'; typeLbl = '🚗 Anreise (Wyjazd)'; }
-          else if (ent.actType === 'abreise') { typeClass = 'abreise'; typeLbl = '🏠 Abreise (Powrót)'; }
+          if (ent.actType === 'anreise') { typeClass = 'anreise'; typeLbl = '🚗 Anreise'; }
+          else if (ent.actType === 'abreise') { typeClass = 'abreise'; typeLbl = '🏠 Abreise'; }
           else if (ent.actType === 'standby') { typeClass = 'standby'; typeLbl = '⚡ Standby'; }
 
           entriesHtml += `
@@ -1367,6 +1479,7 @@
               <div>
                 <b>${typeLbl} &bull; ${ent.client}:</b> ${ent.desc}
                 ${ent.km ? `<small style="color:#94a3b8; margin-left:6px;">(${ent.km} km)</small>` : ''}
+                <span style="font-size:0.75rem; color:#38bdf8; margin-left:6px;">[${ent.countryName || ent.countryCode || 'DE'}]</span>
               </div>
               <div style="display:flex; align-items:center; gap:12px;">
                 <span style="color:#cbd5e1;">${ent.start} - ${ent.end} (przerwa: ${ent.pause} min)</span>
@@ -1381,7 +1494,7 @@
         totalMonthBreaks += dayBreaks;
         if (dayObj.dietDayAmount > 0) {
           totalDietDaysCount++;
-          totalDietSum += dayObj.dietDayAmount;
+          totalDietSumEur += dayObj.dietDayAmount;
         }
 
         const card = document.createElement('div');
@@ -1394,7 +1507,7 @@
             </div>
             <div style="display:flex; gap:14px; align-items:center;">
               <span style="color:#fbbf24;">🍽️ Dieta dnia: <b>+${dayObj.dietDayAmount.toFixed(2)} €</b> <small style="color:#94a3b8;">(${dayObj.dietDayName})</small></span>
-              <span style="color:#10b981;">Razem dzień: <b>${dayHours.toFixed(2)} h</b></span>
+              <span style="color:#10b981;">Czas netto: <b>${dayHours.toFixed(2)} h</b></span>
             </div>
           </div>
           <div class="day-sheet-entries">${entriesHtml}</div>
@@ -1402,14 +1515,14 @@
         container.appendChild(card);
       });
 
-      // ZAKTUALIZUJ PŁYWAJĄCY PASEK MIESIĘCZNY
+      // ZAKTUALIZUJ PŁYWAJĄCY PASEK MIESIĘCZNY (WSZYSTKO W EURO)
       document.getElementById('zeitKpiWorkHours').innerText = totalMonthHours.toFixed(2) + ' h';
       document.getElementById('zeitKpiBreaks').innerText = totalMonthBreaks + ' min';
       document.getElementById('zeitKpiDietDays').innerText = totalDietDaysCount + ' dni';
-      document.getElementById('zeitKpiDietTotal').innerText = totalDietSum.toFixed(2) + ' €';
+      document.getElementById('zeitKpiDietTotal').innerText = totalDietSumEur.toFixed(2) + ' €';
 
       if (!sortedDays.length) {
-        container.innerHTML = '<div style="text-align:center; color:#64748b; padding:24px;">Brak wpisów czasu pracy w wybranym miesiącu. Kliknij fioletowy przycisk „+ Dodaj wpis do dnia”.</div>';
+        container.innerHTML = '<div style="text-align:center; color:#64748b; padding:24px;">Brak wpisów czasu pracy w wybranym miesiącu. Kliknij fioletowy przycisk „+ Dodaj czynność”.</div>';
       }
     }
 
@@ -1420,7 +1533,74 @@
     }
 
     // ==========================================
-    // 3. KATALOG DANYCH: MODYFIKACJA MASZYN I MODUŁÓW PO AUTORYZACJI
+    // 3. KALENDARZ MIESIĘCZNY (OD 1 DO 31)
+    // ==========================================
+    function changeMonthView(delta) {
+      currentMonthViewDate.setMonth(currentMonthViewDate.getMonth() + delta);
+      renderMonthCalendar();
+    }
+
+    function renderMonthCalendar() {
+      const grid = document.getElementById('monthCalendarCellsGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      const year = currentMonthViewDate.getFullYear();
+      const month = currentMonthViewDate.getMonth();
+      const monthNamesPl = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+      document.getElementById('calMonthViewTitle').innerText = `Miesiąc: ${monthNamesPl[month]} ${year}`;
+
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const daysCount = lastDay.getDate();
+
+      let startDayOfWeek = firstDay.getDay() - 1;
+      if (startDayOfWeek === -1) startDayOfWeek = 6;
+
+      for (let i = 0; i < startDayOfWeek; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.style.background = 'transparent';
+        grid.appendChild(emptyCell);
+      }
+
+      const today = new Date();
+      const isCurMonth = today.getFullYear() === year && today.getMonth() === month;
+
+      for (let day = 1; day <= daysCount; day++) {
+        const dObj = new Date(year, month, day);
+        const dayOfWeekIndex = (dObj.getDay() + 6) % 7;
+        const isWeekend = dayOfWeekIndex === 5 || dayOfWeekIndex === 6;
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const isToday = isCurMonth && today.getDate() === day;
+
+        const cell = document.createElement('div');
+        cell.className = 'month-day-cell' + (isToday ? ' today' : (isWeekend ? ' weekend' : ''));
+
+        const dayOrders = activeOrders.filter(o => o.date === dateStr);
+        let eventsHtml = '';
+        dayOrders.forEach(ord => {
+          const isDone = ord.status === 'done';
+          const cls = isDone ? 'month-day-event done' : 'month-day-event';
+          eventsHtml += `
+            <div class="${cls}" onclick="switchTab('orders'); loadActiveOrder('${ord.id}');">
+              ${isDone ? '✓ ' : ''}${ord.client}: ${ord.machine || ord.title}
+            </div>
+          `;
+        });
+
+        cell.innerHTML = `
+          <div class="month-day-header">
+            <span>Dzień ${day}</span>
+            <span style="color:#38bdf8;">${dayOrders.length ? dayOrders.length + ' zlec.' : ''}</span>
+          </div>
+          <div style="flex:1; overflow-y:auto;">${eventsHtml}</div>
+        `;
+        grid.appendChild(cell);
+      }
+    }
+
+    // ==========================================
+    // 4. KATALOG DANYCH: MODYFIKACJA MASZYN I MODUŁÓW PO AUTORYZACJI
     // ==========================================
     let editorModCount = 0;
 
@@ -1737,10 +1917,10 @@
     }
 
     function updateDispatchClientsDropdown() {
-      const sel = document.getElementById('dispatchClientSelect');
-      if (!sel) return;
-      sel.innerHTML = '<option value="">-- Wybierz Klienta --</option>';
-      clients.forEach(c => sel.innerHTML += `<option value="${c.id}">${c.name} (${c.location||''})</option>`);
+      const sel1 = document.getElementById('dispatchClientSelect');
+      if (!sel1) return;
+      sel1.innerHTML = '<option value="">-- Wybierz Klienta --</option>';
+      clients.forEach(c => sel1.innerHTML += `<option value="${c.id}">${c.name} (${c.location||''})</option>`);
     }
 
     function loadTemplatesForDispatch(cId) {
