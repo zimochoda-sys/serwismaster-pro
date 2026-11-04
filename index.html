@@ -91,7 +91,7 @@
     .module-builder-row { background: #0e172a; border: 1px solid #233658; border-radius: 4px; padding: 10px; margin-bottom: 10px; }
 
     .part-search-box { position: relative; width: 100%; }
-    .part-results-dropdown { max-height: 140px; overflow-y: auto; background: #0c1527; border: 1px solid #283e66; border-radius: 4px; margin-top: 4px; display: none; }
+    .part-results-dropdown { max-height: 140px; overflow-y: auto; background: #0c1527; border: 1px solid #283e66; border-radius: 4px; margin-top: 4px; display: none; position: absolute; z-index: 50; width: 100%; }
     .part-result-item { padding: 6px 10px; font-size: 0.8rem; cursor: pointer; border-bottom: 1px solid #1a2942; display: flex; justify-content: space-between; }
     .part-result-item:hover { background: #1b2e50; color: #38bdf8; }
 
@@ -121,10 +121,11 @@
     </div>
   </header>
 
+  <!-- 1. WIDOK: ZLECENIA AKTYWNE -->
   <div id="viewOrders" class="view-container">
     <div class="sidebar no-print">
       <div style="font-size:0.75rem; color:#94a3b8; font-weight:700; margin-bottom:4px;">ARCHIWUM ZLECEŃ:</div>
-      <input type="text" id="orderSearchInput" placeholder="🔍 Szukaj zlecenia po numerze..." oninput="filterOrdersList(this.value)" style="margin-bottom:8px; padding:5px 8px; font-size:0.8rem;">
+      <input type="text" id="orderSearchInput" placeholder="🔍 Szukaj zlecenia po numerze lub maszynie..." oninput="filterOrdersList(this.value)" style="margin-bottom:8px; padding:5px 8px; font-size:0.8rem;">
       <div id="ordersSidebar"></div>
     </div>
     
@@ -192,6 +193,7 @@
     </div>
   </div>
 
+  <!-- 2. WIDOK: KALENDARZ ZLECEŃ -->
   <div id="viewCalendar" class="view-container" style="display:none; padding:18px; flex-direction:column;">
     <div class="calendar-wrapper">
       <div class="calendar-head">
@@ -219,6 +221,7 @@
     </div>
   </div>
 
+  <!-- 3. WIDOK: KATALOG DANYCH -->
   <div id="viewData" class="view-container" style="display:none;">
     <div class="sidebar no-print">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -245,6 +248,7 @@
     </div>
   </div>
 
+  <!-- 4. WIDOK: ZEITNACHWEIS -->
   <div id="viewTimes" class="view-container" style="display:none; padding:20px; overflow-y:auto;">
     <div style="max-width:1050px; margin:0 auto; width:100%;">
       <div class="box">
@@ -262,6 +266,7 @@
     </div>
   </div>
 
+  <!-- 5. WIDOK: MAGAZYN CZĘŚCI -->
   <div id="viewParts" class="view-container" style="display:none; padding:20px; overflow-y:auto;">
     <div style="max-width:1050px; margin:0 auto; width:100%;">
       <div class="box">
@@ -283,6 +288,7 @@
     </div>
   </div>
 
+  <!-- MODAL: WYSTAWIENIE ZLECENIA -->
   <div class="modal-overlay" id="modalDispatchOrder">
     <div class="modal-window">
       <h3 style="color:#38bdf8; margin-bottom:10px;">Wystaw nowe zlecenie serwisowe</h3>
@@ -315,6 +321,7 @@
     </div>
   </div>
 
+  <!-- MODAL: KREATOR SZABLONU MASZYNY W KATALOGU DANYCH (PUSTE POLA) -->
   <div class="modal-overlay" id="modalCreateTemplate">
     <div class="modal-window">
       <h3 style="color:#38bdf8;">Nowa Maszyna / Linia w katalogu Klienta</h3>
@@ -333,6 +340,7 @@
     </div>
   </div>
 
+  <!-- MODAL: ŻÓŁTY TRÓJKĄT (PROBLEME + WYSZUKIWARKA CZĘŚCI) -->
   <div class="modal-overlay" id="modalProblem">
     <div class="modal-window">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -385,6 +393,7 @@
     </div>
   </div>
 
+  <!-- MODAL: NOTATKA -->
   <div class="modal-overlay" id="modalNote">
     <div class="modal-window" style="max-width:500px;">
       <h3 style="color:#38bdf8; margin-bottom:10px;">💬 Notatka techniczna</h3>
@@ -396,6 +405,7 @@
     </div>
   </div>
 
+  <!-- MODAL: CZĘŚCI ZWYKŁE -->
   <div class="modal-overlay" id="modalParts">
     <div class="modal-window" style="max-width:500px;">
       <h3 style="color:#38bdf8; margin-bottom:10px;">🔧 Części zamienne</h3>
@@ -412,6 +422,7 @@
     </div>
   </div>
 
+  <!-- MODAL: DODANIE MODUŁU W ZLECENIU -->
   <div class="modal-overlay" id="modalAddModToOrder">
     <div class="modal-window" style="max-width:500px;">
       <h3 style="color:#38bdf8; margin-bottom:8px;">Dodaj kolejny moduł do zlecenia</h3>
@@ -463,44 +474,97 @@
       if (t === 'calendar') renderCalendar();
     }
 
+    // 1. KLIENCI
     db.collection("clients").orderBy("name").onSnapshot(snap => {
       clients = [];
       snap.forEach(d => clients.push({ id: d.id, ...d.data() }));
-      if (clients.length === 0) seedInitialClients();
+      if (clients.length === 0) seedInitialData();
       renderClientsList();
     });
 
+    // 2. SZABLONY
     db.collection("templates").orderBy("createdAt", "desc").onSnapshot(snap => {
       templates = [];
       snap.forEach(d => templates.push({ id: d.id, ...d.data() }));
       if (currentClientId) renderClientTemplates(currentClientId);
     });
 
+    // 3. ZLECENIA (kompatybilne z checklists i active_orders)
     db.collection("active_orders").orderBy("createdAt", "desc").onSnapshot(snap => {
       activeOrders = [];
       snap.forEach(d => activeOrders.push({ id: d.id, ...d.data() }));
-      renderActiveOrdersSidebar();
+      
+      // Jeśli brak aktywnych zleceń, sprawdźmy starszą kolekcję 'checklists' żeby nie stracić dawnych wpisów
+      if (activeOrders.length === 0) {
+        db.collection("checklists").get().then(cSnap => {
+          if (!cSnap.empty) {
+            cSnap.forEach(cd => {
+              const cdata = cd.data();
+              db.collection("active_orders").add({
+                client: cdata.client || "KFF Fulda",
+                machine: cdata.machine || "Linia Schubert 1212",
+                title: cdata.title || "Przegląd linii",
+                orderNum: "AUF-2026-00101",
+                date: new Date().toISOString().split('T')[0],
+                technician: "Arkadiusz Z.",
+                items: cdata.items || [],
+                createdAt: cdata.createdAt || firebase.firestore.FieldValue.serverTimestamp()
+              });
+            });
+          }
+        });
+      }
+
+      renderActiveOrdersSidebar(document.getElementById('orderSearchInput') ? document.getElementById('orderSearchInput').value : '');
       renderCalendar();
       if (currentOrderId) loadActiveOrder(currentOrderId);
     });
 
+    // 4. ZEITNACHWEIS
     db.collection("times").orderBy("date", "desc").onSnapshot(snap => {
       times = [];
       snap.forEach(d => times.push({ id: d.id, ...d.data() }));
       renderTimesTable();
     });
 
+    // 5. MAGAZYN CZĘŚCI
     db.collection("parts").orderBy("name").onSnapshot(snap => {
       parts = [];
       snap.forEach(d => parts.push({ id: d.id, ...d.data() }));
+      if (parts.length === 0) seedInitialParts();
       renderPartsCatalog();
       updatePartsDropdowns();
     });
 
-    function seedInitialClients() {
-      db.collection("clients").add({ name: "KFF Fulda", location: "Fulda" });
+    // WSTĘPNE DANE BRANŻOWE (SCHUBERT, BECKER, USZCZELNIENIA)
+    function seedInitialData() {
+      db.collection("clients").add({ name: "KFF Fulda", location: "Fulda" }).then(doc => {
+        // Dodaj domyślną linię Schubert 1212 z pełnymi punktami
+        db.collection("templates").add({
+          clientId: doc.id,
+          machine: "Linia Schubert 1212 TLM",
+          items: [
+            { group: "Magazynek 1 (Kartonmagazin)", text: "Betriebsgeräusch: Auf untypische Geräusche, starke Vibrationen oder übermäßige Erwärmung prüfen", done: false, photos: [], note: "", parts: [], problem: null },
+            { group: "Magazynek 1 (Kartonmagazin)", text: "Leckagen: Vakuumleitungen, Schläuche und Verbindungen auf Dichtheit und Risse kontrollieren", done: false, photos: [], note: "", parts: [], problem: null },
+            { group: "Magazynek 1 (Kartonmagazin)", text: "Verschleißteile: Graphitschieber / Kohleschieber auf Abnutzung prüfen", done: false, photos: [], note: "", parts: [], problem: null },
+            { group: "Magazynek 2 (F303 Aufrichtturm)", text: "Transköpfer F303: Pneumatik-Ventilinsel Dichtheit und Schaltzeiten prüfen", done: false, photos: [], note: "", parts: [], problem: null },
+            { group: "Magazynek 2 (F303 Aufrichtturm)", text: "Servoantriebe: Spiel und Zahnriemenspannung kontrollieren", done: false, photos: [], note: "", parts: [], problem: null },
+            { group: "BHP & LOTO (Sicherheit)", text: "Hauptschalter & Not-Aus Verriegelung (LOTO) prüfen", done: false, photos: [], note: "", parts: [], problem: null }
+          ],
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      });
+
       db.collection("clients").add({ name: "Nestlé Schwerin", location: "Schwerin" });
       db.collection("clients").add({ name: "Panem Backstube", location: "Bleicherode" });
+    }
+
+    function seedInitialParts() {
+      db.collection("parts").add({ name: "Grafitlamellen Becker VT 4.25", num: "90136700005", stock: 12 });
+      db.collection("parts").add({ name: "Rolka dociskowa Schubert", num: "S-11885807", stock: 4 });
+      db.collection("parts").add({ name: "Simmerring BAUM 1SLX7 72 NBR", num: "75 FKM 585", stock: 6 });
+      db.collection("parts").add({ name: "Zawór pneumatyczny Festo 5/2", num: "VUVS-LK20", stock: 3 });
+      db.collection("parts").add({ name: "Przyssawka silikonowa Ø30mm", num: "S-0045129", stock: 24 });
     }
 
     function renderActiveOrdersSidebar(filterText = '') {
@@ -732,8 +796,7 @@
       const modName = document.getElementById('aoNewModName').value.trim() || 'Nowy Moduł';
       const raw = document.getElementById('aoNewModTasks').value.trim();
       if (!raw) return alert('Wpisz punkty do sprawdzenia!');
-      const lines = raw.split('
-').map(l => l.trim()).filter(l => l.length > 0);
+      const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
 
       const o = activeOrders.find(x => x.id === currentOrderId);
       let items = o.items || [];
@@ -946,8 +1009,7 @@
       rows.forEach(r => {
         const mName = r.querySelector('.tpl-m-name').value.trim() || 'Moduł';
         const tasks = r.querySelector('.tpl-m-tasks').value.trim();
-        const lines = tasks.split('
-').map(l => l.trim()).filter(l => l.length > 0);
+        const lines = tasks.split('\n').map(l => l.trim()).filter(l => l.length > 0);
         lines.forEach(l => {
           items.push({ group: mName, text: l, done: false, photos: [], note: '', parts: [], problem: null });
         });
@@ -1321,7 +1383,7 @@
         box.innerHTML += `
           <div style="display:flex; justify-content:space-between; margin-bottom:4px; background:#0b1329; padding:4px 8px; border-radius:3px;">
             <span>${p.name} (${p.num || '-'}) - ${p.qty} szt.</span>
-            <b style="cursor:color:#ef4444;" onclick="removeRegularPart(${pIdx})">✕</b>
+            <b style="cursor:pointer; color:#ef4444;" onclick="removeRegularPart(${pIdx})">✕</b>
           </div>
         `;
       });
