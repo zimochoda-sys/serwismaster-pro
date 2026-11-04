@@ -378,10 +378,11 @@
 
   <!-- ==================== MODALE ==================== -->
 
-  <!-- MODAL: NOWY WPIS CZASU PRACY / ANREISE / ABREISE (ZEITNACHWEIS) Z NIEMIECKIMI DIETAMI W EURO -->
+  <!-- MODAL: NOWY / EDYCJA WPISU CZASU PRACY / ANREISE / ABREISE (ZEITNACHWEIS) -->
   <div class="modal-overlay" id="modalAddZeitEntry">
     <div class="modal-window" style="max-width:560px;">
-      <h3 style="color:#38bdf8; margin-bottom:8px;">⏱️ Wpis Czasu Pracy & Diety (Zeitnachweis)</h3>
+      <h3 style="color:#38bdf8; margin-bottom:8px;" id="zeModalHeaderTitle">⏱️ Wpis Czasu Pracy & Diety (Zeitnachweis)</h3>
+      <input type="hidden" id="zeEditingDocId">
       
       <div class="grid" style="margin-top:6px;">
         <div>
@@ -450,13 +451,13 @@
         </div>
       </div>
 
-      <!-- KONTROLA DIETY NA TEN KONKRETNY DZIEŃ (ZAPISYWANA TRWALE W TYM WPISIE W EURO!) -->
+      <!-- KONTROLA DIETY NA TEN KONKRETNY DZIEŃ -->
       <div style="margin-top:12px; background:#0d182b; border:1px solid #1c2e4d; border-radius:6px; padding:10px;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <b style="font-size:0.82rem; color:#fbbf24;">🍽️ Dieta (Auslöse) w walucie EURO (€):</b>
           <span id="zeCountryDietInfoBadge" style="font-size:0.75rem; color:#38bdf8; font-weight:bold;">Niemcy: 14 € / 28 €</span>
         </div>
-        <div style="font-size:0.74rem; color:#94a3b8; margin-top:2px;">Wybierz wymiar diety na ten dzień (nie zmienia innych dni ani historii!):</div>
+        <div style="font-size:0.74rem; color:#94a3b8; margin-top:2px;">Wybierz wymiar diety na ten dzień:</div>
         
         <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
           <label style="font-size:0.8rem; color:#cbd5e1; cursor:pointer;">
@@ -481,7 +482,7 @@
 
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
         <button class="btn btn-gray" onclick="closeModal('modalAddZeitEntry')">Anuluj</button>
-        <button class="btn btn-green" onclick="saveZeitEntry()">Zapisz do karty czasu</button>
+        <button class="btn btn-green" onclick="saveZeitEntry()">Zapisz zmiany</button>
       </div>
     </div>
   </div>
@@ -753,7 +754,6 @@
       snap.forEach(d => activeOrders.push({ id: d.id, ...d.data() }));
       filterOrdersList();
       renderDashboardProblems();
-      renderMonthCalendar();
       if (currentOrderId) loadActiveOrder(currentOrderId);
     });
 
@@ -833,7 +833,7 @@
     }
 
     // ==========================================
-    // 1. ZLECENIA MASZYN (WYŁĄCZNIE SERWIS I PRZEGLĄDY)
+    // 1. ZLECENIA MASZYN
     // ==========================================
     function filterOrdersList() {
       const sb = document.getElementById('ordersSidebar');
@@ -930,9 +930,37 @@
           db.collection("active_orders").doc(currentOrderId).update({ status: 'active' });
         });
       } else {
-        if (confirm("Czy na pewno chcesz zamknąć to zlecenie? Po zamknięciu edycja będzie zablokowana hasłem.")) {
+        if (confirm("Czy na pewno chcesz zamknąć to zlecenie? Wszystkie otwarte wady (Restarbeit) przejdą automatycznie do historii tej maszyny i pojawią się w kolejnym zleceniu.")) {
+          // Synchronizuj niezamknięte wady z szablonem maszyny
+          syncUnresolvedDefectsToMachineTemplate(o);
           db.collection("active_orders").doc(currentOrderId).update({ status: 'done' });
         }
+      }
+    }
+
+    // PRZENIESIENIE OTWARTEJ WADY DO KARTOTEKI MASZYNY
+    function syncUnresolvedDefectsToMachineTemplate(order) {
+      if (!order.machine || !order.items) return;
+      const tpl = templates.find(t => t.machine === order.machine);
+      if (!tpl) return;
+
+      let tplItems = tpl.items || [];
+      let updated = false;
+
+      order.items.forEach(ordItem => {
+        const defects = ordItem.defects || [];
+        const openDefects = defects.filter(d => d.status !== 'resolved');
+        if (openDefects.length > 0) {
+          const matchTplItem = tplItems.find(ti => ti.text === ordItem.text && ti.group === ordItem.group);
+          if (matchTplItem) {
+            matchTplItem.pendingDefects = openDefects;
+            updated = true;
+          }
+        }
+      });
+
+      if (updated) {
+        db.collection("templates").doc(tpl.id).update({ items: tplItems });
       }
     }
 
@@ -1277,7 +1305,7 @@
     }
 
     // ==========================================
-    // 2. NOWY ZEITNACHWEIS: NIEMIECKIE DIETY W EURO (€) I BRAK PODWÓJNYCH NALICZEŃ
+    // 2. NOWY ZEITNACHWEIS: EDYCJA WPISU BEZ KASOWANIA + NIEMIECKIE DIETY W EURO (€)
     // ==========================================
     function changeZeitMonth(delta) {
       currentZeitMonthDate.setMonth(currentZeitMonthDate.getMonth() + delta);
@@ -1322,15 +1350,57 @@
     }
 
     function openAddDayEntryModal() {
+      document.getElementById('zeEditingDocId').value = '';
+      document.getElementById('zeModalHeaderTitle').innerText = '⏱️ Nowy Wpis Czasu Pracy & Diety';
       updateDispatchClientsDropdown();
       const sel = document.getElementById('zeClientSelect');
       sel.innerHTML = '';
       clients.forEach(c => sel.innerHTML += `<option value="${c.name}">${c.name} (${c.location||''})</option>`);
       document.getElementById('zeDate').value = new Date().toISOString().split('T')[0];
       document.getElementById('zeDesc').value = 'Prace konserwacyjne / Przegląd maszyny';
-      document.getElementById('radioDietPart').checked = true;
+      document.getElementById('zeStart').value = '06:00';
+      document.getElementById('zeEnd').value = '15:45';
+      document.getElementById('zePause').value = '30';
+      document.getElementById('zeKm').value = '';
       document.getElementById('zeCountry').value = 'DE';
+      document.getElementById('radioDietPart').checked = true;
       updateDietRatesDisplay();
+      openModal('modalAddZeitEntry');
+    }
+
+    // EDYCJA ISTNIEJĄCEGO WPISU CZASU (BEZ KASOWANIA!)
+    function openEditZeitEntryModal(id) {
+      const ent = zeitEntries.find(z => z.id === id);
+      if (!ent) return;
+
+      document.getElementById('zeEditingDocId').value = ent.id;
+      document.getElementById('zeModalHeaderTitle').innerText = `✏️ Edycja Wpisu Czasu: ${ent.date}`;
+      updateDispatchClientsDropdown();
+      const sel = document.getElementById('zeClientSelect');
+      sel.innerHTML = '';
+      clients.forEach(c => sel.innerHTML += `<option value="${c.name}" ${c.name === ent.client ? 'selected' : ''}>${c.name} (${c.location||''})</option>`);
+      
+      document.getElementById('zeDate').value = ent.date || '';
+      document.getElementById('zeTechnician').value = ent.technician || 'Arkadiusz Zimochod';
+      document.getElementById('zeActivityType').value = ent.actType || 'arbeit';
+      document.getElementById('zeDesc').value = ent.desc || '';
+      document.getElementById('zeStart').value = ent.start || '06:00';
+      document.getElementById('zeEnd').value = ent.end || '15:45';
+      document.getElementById('zePause').value = ent.pause || '30';
+      document.getElementById('zeKm').value = ent.km || '';
+      document.getElementById('zeCountry').value = ent.countryCode || 'DE';
+      
+      updateDietRatesDisplay();
+
+      // Ustaw radio diety
+      if (ent.dietAmount === 28.00 || (ent.dietType && ent.dietType.includes('Pełna'))) {
+        document.getElementById('radioDietFull').checked = true;
+      } else if (ent.dietAmount === 14.00 || (ent.dietType && ent.dietType.includes('Częściowa'))) {
+        document.getElementById('radioDietPart').checked = true;
+      } else if (ent.dietAmount === 0 || ent.dietType === 'Brak') {
+        document.querySelector('input[name="zeDietRadio"][value="none"]').checked = true;
+      }
+
       openModal('modalAddZeitEntry');
     }
 
@@ -1353,6 +1423,7 @@
     }
 
     function saveZeitEntry() {
+      const editingId = document.getElementById('zeEditingDocId').value;
       const date = document.getElementById('zeDate').value;
       if (!date) return alert('Wybierz datę!');
       const tech = document.getElementById('zeTechnician').value.trim() || 'Arkadiusz Zimochod';
@@ -1383,8 +1454,7 @@
         chosenDietType = `Własna ${chosenDietAmount.toFixed(2)} €`;
       }
 
-      // ZAPIS TRWAŁY DO BAZY DANYCH (KWOTA W EURO I KRAJ ZAPISUJĄ SIĘ NA STAŁE)
-      db.collection("zeitnachweis").add({
+      const payload = {
         date: date,
         kw: kw,
         technician: tech,
@@ -1399,11 +1469,23 @@
         countryName: cData.name,
         dietType: chosenDietType,
         dietAmount: chosenDietAmount,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => {
-        closeModal('modalAddZeitEntry');
-        renderZeitnachweisView();
-      });
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      if (editingId) {
+        // EDYCJA ISTNIEJĄCEGO WPISU
+        db.collection("zeitnachweis").doc(editingId).update(payload).then(() => {
+          closeModal('modalAddZeitEntry');
+          renderZeitnachweisView();
+        });
+      } else {
+        // NOWY WPIS
+        payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        db.collection("zeitnachweis").add(payload).then(() => {
+          closeModal('modalAddZeitEntry');
+          renderZeitnachweisView();
+        });
+      }
     }
 
     function renderZeitnachweisView() {
@@ -1416,7 +1498,6 @@
       const monthNamesPl = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
       document.getElementById('zeitMonthDisplayTitle').innerText = `⏱️ Karta Czasu Pracy & Diety: ${monthNamesPl[month]} ${year}`;
 
-      // Filtrujemy tylko wpisy z danego miesiąca
       const monthEntries = zeitEntries.filter(z => {
         if (!z.date) return false;
         const d = new Date(z.date);
@@ -1439,9 +1520,6 @@
         }
         daysGrouped[item.date].entries.push(item);
 
-        // KONTROLA DIETY NA DOBĘ:
-        // Jeśli w danym dniu technik ma np. wyjazd (14 €) i pracę (np. 28 € pełny dzień lub Szwajcaria 64 €),
-        // system wybiera MAKSYMALNĄ przysługującą dietę dla tego dnia i NIE sumuje jej podwójnie!
         const amt = parseFloat(item.dietAmount) || 0;
         if (amt > daysGrouped[item.date].dietDayAmount) {
           daysGrouped[item.date].dietDayAmount = amt;
@@ -1450,7 +1528,6 @@
         }
       });
 
-      // Posortuj dni malejąco
       const sortedDays = Object.values(daysGrouped).sort((a,b) => b.date.localeCompare(a.date));
 
       let totalMonthHours = 0;
@@ -1481,10 +1558,11 @@
                 ${ent.km ? `<small style="color:#94a3b8; margin-left:6px;">(${ent.km} km)</small>` : ''}
                 <span style="font-size:0.75rem; color:#38bdf8; margin-left:6px;">[${ent.countryName || ent.countryCode || 'DE'}]</span>
               </div>
-              <div style="display:flex; align-items:center; gap:12px;">
+              <div style="display:flex; align-items:center; gap:8px;">
                 <span style="color:#cbd5e1;">${ent.start} - ${ent.end} (przerwa: ${ent.pause} min)</span>
                 <span style="color:#10b981; font-weight:bold; min-width:55px; text-align:right;">${hNet.toFixed(2)} h</span>
-                <button class="btn btn-del" style="padding:1px 5px; font-size:0.68rem;" onclick="deleteZeitEntryDoc('${ent.id}')">✕</button>
+                <button class="btn btn-amber" style="padding:1px 6px; font-size:0.7rem;" onclick="openEditZeitEntryModal('${ent.id}')" title="Edytuj godziny tego wpisu">✏️</button>
+                <button class="btn btn-del" style="padding:1px 6px; font-size:0.7rem;" onclick="deleteZeitEntryDoc('${ent.id}')" title="Usuń wpis">✕</button>
               </div>
             </div>
           `;
@@ -1515,7 +1593,6 @@
         container.appendChild(card);
       });
 
-      // ZAKTUALIZUJ PŁYWAJĄCY PASEK MIESIĘCZNY (WSZYSTKO W EURO)
       document.getElementById('zeitKpiWorkHours').innerText = totalMonthHours.toFixed(2) + ' h';
       document.getElementById('zeitKpiBreaks').innerText = totalMonthBreaks + ' min';
       document.getElementById('zeitKpiDietDays').innerText = totalDietDaysCount + ' dni';
@@ -1953,7 +2030,13 @@
       const kwInfo = getWeekNumber(new Date(orderDate));
 
       const clonedItems = JSON.parse(JSON.stringify(template.items || []));
-      clonedItems.forEach(it => { it.done = false; it.defects = []; it.photos = []; it.parts = []; });
+      clonedItems.forEach(it => { 
+        it.done = false; 
+        // Jeśli w szablonie były oczekujące usterki z poprzedniego serwisu, przenieś je!
+        it.defects = it.pendingDefects ? JSON.parse(JSON.stringify(it.pendingDefects)) : [];
+        it.photos = []; 
+        it.parts = []; 
+      });
 
       db.collection("active_orders").add({
         type: "service",
@@ -1981,7 +2064,12 @@
       const template = templates.find(x => x.id === tId);
       const client = clients.find(x => x.id === template.clientId);
       const clonedItems = JSON.parse(JSON.stringify(template.items || []));
-      clonedItems.forEach(it => { it.done = false; it.defects = []; it.photos = []; it.parts = []; });
+      clonedItems.forEach(it => { 
+        it.done = false; 
+        it.defects = it.pendingDefects ? JSON.parse(JSON.stringify(it.pendingDefects)) : [];
+        it.photos = []; 
+        it.parts = []; 
+      });
 
       const autoNum = generateNextOrderNumber();
       const todayStr = new Date().toISOString().split('T')[0];
@@ -2133,7 +2221,9 @@
       });
     }
 
-    // DASHBOARD USTEREK
+    // ==========================================
+    // DASHBOARD USTEREK Z BEZPOŚREDNIM SKOKIEM DO TRÓJKĄTA
+    // ==========================================
     function renderDashboardProblems() {
       const tbody = document.getElementById('dashProblemsTableBody');
       if (!tbody) return;
@@ -2141,9 +2231,9 @@
 
       const filterVal = document.getElementById('dashFilterSelect').value;
       activeOrders.forEach(o => {
-        (o.items || []).forEach(it => {
+        (o.items || []).forEach((it, itIdx) => {
           const defects = it.defects || (it.problem ? [it.problem] : []);
-          defects.forEach(df => {
+          defects.forEach((df, dfIdx) => {
             const isResolved = df.status === 'resolved';
             if (filterVal === 'open' && isResolved) return;
             if (filterVal === 'resolved' && !isResolved) return;
@@ -2161,7 +2251,7 @@
               <td>${partsStr || '-'}</td>
               <td>${df.author || '-'}</td>
               <td>
-                <button class="btn btn-purple" style="padding:2px 8px; font-size:0.75rem;" onclick="switchTab('orders'); loadActiveOrder('${o.id}');">Przejdź</button>
+                <button class="btn btn-purple" style="padding:2px 8px; font-size:0.75rem;" onclick="jumpDirectToProblemModal('${o.id}', ${itIdx})">⚠️ Otwórz trójkąt</button>
               </td>
             `;
             tbody.appendChild(tr);
@@ -2172,6 +2262,15 @@
       if (!tbody.children.length) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#64748b; padding:14px;">Brak usterek.</td></tr>';
       }
+    }
+
+    // BEZPOŚREDNIE PRZEJŚCIE Z TABELI USTEREK DO TRÓJKĄTA
+    function jumpDirectToProblemModal(orderId, taskIdx) {
+      switchTab('orders');
+      loadActiveOrder(orderId);
+      setTimeout(() => {
+        openProblemModal(taskIdx);
+      }, 100);
     }
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
