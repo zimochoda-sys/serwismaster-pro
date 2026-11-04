@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SerwisMaster Pro - System Serwisowy</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #0b1329; color: #f8fafc; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+    header { background: #1e293b; padding: 0 16px; height: 48px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; }
+    .brand { font-weight: 800; font-size: 1.15rem; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+    .nav-tabs { display: flex; gap: 6px; height: 100%; align-items: center; }
+    .tab-btn { background: transparent; color: #94a3b8; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.84rem; display: flex; align-items: center; gap: 6px; }
+    .tab-btn:hover { color: #fff; background: #334155; }
+    .tab-btn.active { background: #0284c7; color: #fff; }
+
+    .btn { background: #0284c7; color: #fff; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; }
+    .btn:hover { opacity: 0.9; }
+    .btn-green { background: #10b981; }
+    .btn-amber { background: #d97706; }
+    .btn-purple { background: #8b5cf6; }
+    .btn-del { background: #ef4444; }
+
+    .view-container { display: flex; flex: 1; width: 100%; height: calc(100vh - 48px); overflow: hidden; }
+    .sidebar { width: 340px; background: #111c33; border-right: 1px solid #1e2e4a; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .content { flex: 1; padding: 18px; overflow-y: auto; }
+    
+    .card { background: #16243d; border: 1px solid #23385d; padding: 12px; border-radius: 6px; cursor: pointer; position: relative; }
+    .card:hover { border-color: #38bdf8; }
+    .card.act { border-color: #38bdf8; background: #1b2e50; }
+    .card-del-btn { position: absolute; top: 8px; right: 8px; background: #ef4444; color: #fff; border: none; width: 22px; height: 22px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; }
+
+    .box { background: #152238; border: 1px solid #23385d; border-radius: 6px; padding: 16px; margin-bottom: 14px; }
+    .box h3 { color: #38bdf8; font-size: 0.95rem; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    input, select, textarea { width: 100%; background: #0c1527; border: 1px solid #283e66; color: #fff; padding: 7px 10px; border-radius: 4px; margin-top: 4px; font-size: 0.88rem; }
+    textarea { height: 75px; resize: vertical; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .chk-mod-container { background: #131e33; border: 1px solid #25395c; border-radius: 6px; margin-bottom: 14px; overflow: hidden; }
+    .chk-mod-header { background: #1b2a47; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #25395c; }
+    .chk-mod-title { font-weight: 700; font-size: 0.92rem; color: #38bdf8; }
+    .chk-mod-list { padding: 8px; display: flex; flex-direction: column; gap: 6px; background: #0d172a; }
+
+    .task-card-row { background: #16243d; border: 1px solid #23385d; border-radius: 4px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: flex-start; transition: 0.15s; }
+    .task-card-row:hover { border-color: #38bdf8; background: #1a2c4b; }
+    .task-card-row.done { background: #0b2e25; border-color: #10b981; }
+    
+    .task-left-box { flex: 1; margin-right: 14px; }
+    .task-main-text { font-size: 0.88rem; font-weight: 600; color: #f8fafc; line-height: 1.35; cursor: pointer; }
+    .task-card-row.done .task-main-text { color: #ecfdf5; font-weight: 600; text-decoration: none !important; }
+    
+    .task-sub-toolbar { display: flex; align-items: center; gap: 12px; margin-top: 6px; font-size: 0.85rem; }
+    .sub-icon { cursor: pointer; transition: transform 0.15s; display: inline-flex; align-items: center; gap: 4px; }
+    .sub-icon:hover { transform: scale(1.15); color: #38bdf8; }
+    .badge-counter { font-size: 0.68rem; background: #ef4444; color: #fff; padding: 1px 5px; border-radius: 10px; font-weight: bold; }
+
+    .problem-snippet { margin-top: 8px; background: #1c263d; border-left: 3px solid #ef4444; padding: 8px 10px; border-radius: 4px; font-size: 0.82rem; }
+    .prob-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; display: inline-block; margin-right: 6px; }
+    .prob-dot.resolved { background: #10b981; }
+    .prob-parts-tag { display: inline-block; background: #283955; color: #fbbf24; padding: 2px 6px; border-radius: 3px; font-size: 0.75rem; margin-top: 4px; margin-right: 4px; }
+
+    .status-badge { font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; }
+    .status-badge.ok { background: #047857; color: #ecfdf5; border-color: #10b981; }
+    .status-badge.open { background: #243550; color: #fbbf24; border-color: #f59e0b; }
+
+    .time-tracker-bar { background: #101c31; border: 1px solid #24395c; border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+    .time-timer-display { font-size: 1.35rem; font-weight: 800; color: #38bdf8; font-family: monospace; }
+    .progress-wrap { background: #0c1527; border: 1px solid #283e66; border-radius: 6px; height: 16px; width: 100%; overflow: hidden; margin: 10px 0; }
+    .progress-bar { background: #10b981; height: 100%; width: 0%; transition: width 0.3s ease; }
+
+    .table-custom { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+    .table-custom th, .table-custom td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #23385d; }
+    .table-custom th { color: #94a3b8; }
+
+    .calendar-wrapper { display: flex; flex-direction: column; height: 100%; }
+    .calendar-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; flex: 1; }
+    .cal-day-header { text-align: center; font-weight: 700; font-size: 0.8rem; color: #94a3b8; padding: 6px 0; background: #152238; border-radius: 4px; }
+    .cal-cell { background: #131f36; border: 1px solid #223556; border-radius: 4px; min-height: 95px; padding: 6px; display: flex; flex-direction: column; overflow-y: auto; }
+    .cal-cell.today { border-color: #38bdf8; background: #162744; }
+    .cal-cell.other-month { opacity: 0.35; }
+    .cal-date-num { font-size: 0.75rem; font-weight: 700; color: #94a3b8; margin-bottom: 4px; }
+    .cal-event-pill { background: #0284c7; color: #fff; font-size: 0.7rem; font-weight: 600; padding: 2px 5px; border-radius: 3px; margin-bottom: 3px; cursor: pointer; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+    .cal-event-pill:hover { opacity: 0.9; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; justify-content: center; align-items: center; z-index: 1000; overflow-y: auto; padding: 16px; }
+    .modal-window { background: #16243d; border: 1px solid #284069; border-radius: 8px; padding: 18px; width: 100%; max-width: 620px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    .module-builder-row { background: #0e172a; border: 1px solid #233658; border-radius: 4px; padding: 10px; margin-bottom: 10px; }
+
+    .part-search-box { position: relative; width: 100%; }
+    .part-results-dropdown { max-height: 140px; overflow-y: auto; background: #0c1527; border: 1px solid #283e66; border-radius: 4px; margin-top: 4px; display: none; }
+    .part-result-item { padding: 6px 10px; font-size: 0.8rem; cursor: pointer; border-bottom: 1px solid #1a2942; display: flex; justify-content: space-between; }
+    .part-result-item:hover { background: #1b2e50; color: #38bdf8; }
+
+    @media print {
+      header, .sidebar, .nav-tabs, .no-print, button, input[type="file"] { display: none !important; }
+      body, .content, .view-container { background: #fff !important; color: #000 !important; height: auto !important; overflow: visible !important; padding: 0 !important; }
+      .box, .chk-mod-container, .task-card-row { background: #fff !important; color: #000 !important; border: 1px solid #ccc !important; }
+      .chk-mod-title, .box h3, .task-main-text { color: #000 !important; }
+      .print-only { display: block !important; }
+    }
+    .print-only { display: none; }
+  </style>
+</head>
+<body>
+
+  <header class="no-print">
+    <div class="brand">⚙️ SerwisMaster Pro</div>
+    <div class="nav-tabs">
+      <button class="tab-btn active" id="btnTabOrders" onclick="switchTab('orders')">📋 Zlecenia Aktywne</button>
+      <button class="tab-btn" id="btnTabCalendar" onclick="switchTab('calendar')">📅 Kalendarz Zleceń</button>
+      <button class="tab-btn" id="btnTabData" onclick="switchTab('data')">📂 Katalog Danych (Klienci & Maszyny)</button>
+      <button class="tab-btn" id="btnTabTimes" onclick="switchTab('times')">⏱️ Czas Pracy (Zeitnachweis)</button>
+      <button class="tab-btn" id="btnTabParts" onclick="switchTab('parts')">📦 Magazyn Części</button>
+    </div>
+    <div>
+      <button class="btn btn-purple" onclick="openOrderDispatchModal()">+ Wystaw nowe zlecenie</button>
+    </div>
+  </header>
+
+  <div id="viewOrders" class="view-container">
+    <div class="sidebar no-print">
+      <div style="font-size:0.75rem; color:#94a3b8; font-weight:700; margin-bottom:4px;">ARCHIWUM ZLECEŃ:</div>
+      <input type="text" id="orderSearchInput" placeholder="🔍 Szukaj zlecenia po numerze..." oninput="filterOrdersList(this.value)" style="margin-bottom:8px; padding:5px 8px; font-size:0.8rem;">
+      <div id="ordersSidebar"></div>
+    </div>
+    
+    <div class="content">
+      <div id="orderEmptyState" style="text-align:center; margin-top:120px; color:#94a3b8;">
+        <h2>Wybierz zlecenie z archiwum po lewej lub kliknij u góry „+ Wystaw nowe zlecenie”</h2>
+      </div>
+
+      <div id="activeOrderView" style="display:none; max-width:980px; margin:0 auto;">
+        <div class="time-tracker-bar no-print">
+          <div>
+            <div style="font-size:0.75rem; color:#94a3b8;">Rejestrator Czasu Pracy:</div>
+            <div style="font-weight:700; color:#fff;" id="activeOrderTechnicianDisplay">Technik: Arkadiusz Z.</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div class="time-timer-display" id="timerClock">00:00:00</div>
+            <button class="btn btn-green" id="btnTimerStart" onclick="startWorkTimer()">▶ Start Pracy</button>
+            <button class="btn btn-amber" id="btnTimerPause" onclick="pauseWorkTimer()">⏸ Przerwa</button>
+            <button class="btn btn-del" id="btnTimerStop" onclick="stopAndSaveWorkTimer()">⏹ Zakończ & Zapisz</button>
+          </div>
+        </div>
+
+        <div class="print-only" style="margin-bottom:20px;">
+          <h2>PROTOKÓŁ PRZEGLĄDU TECHNICZNEGO I ZLECENIA</h2>
+          <hr style="margin:10px 0;">
+        </div>
+
+        <div class="box">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0;"><span id="activeOrderClientHeader">Klient</span> &bull; <span id="activeOrderLineHeader">Maszyna</span></h3>
+            <div class="no-print" style="display:flex; gap:8px;">
+              <button class="btn btn-green" onclick="openAddModuleToActiveOrder()">+ Dodaj Moduł</button>
+              <button class="btn" style="background:#475569;" onclick="window.print()">🖨️ Drukuj Protokół</button>
+            </div>
+          </div>
+          <div class="grid" style="margin-top:10px;">
+            <div><label>Numer Zlecenia (Identyfikator)</label><input id="aoOrderNum" readonly style="color:#38bdf8; font-weight:bold;"></div>
+            <div><label>Data realizacji w kalendarzu</label><input type="date" id="aoOrderDate" onchange="updateActiveOrderField('date', this.value)"></div>
+          </div>
+          <div style="margin-top:10px;">
+            <label>Tytuł / Zakres prac</label><input id="aoOrderTitle" oninput="updateActiveOrderField('title', this.value)">
+          </div>
+          <div style="margin-top:12px;">
+            <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+              <span>Postęp realizacji punktów kontrolnych:</span>
+              <b id="aoProgressTxt" style="color:#38bdf8;">0%</b>
+            </div>
+            <div class="progress-wrap"><div class="progress-bar" id="aoProgressBar"></div></div>
+          </div>
+        </div>
+
+        <div id="activeOrderModules"></div>
+
+        <div class="no-print" style="margin-top:20px; padding-bottom:40px; display:flex; justify-content:space-between;">
+          <button class="btn btn-green" onclick="openAddModuleToActiveOrder()">+ Dodaj kolejny moduł</button>
+          <button class="btn btn-del" onclick="deleteActiveOrder()">🗑️ Usuń to zlecenie</button>
+        </div>
+
+        <div class="print-only" style="margin-top:40px; display:flex; justify-content:space-between;">
+          <div>Data serwisu: .................................</div>
+          <div>Podpis technika: .................................</div>
+          <div>Podpis klienta: .................................</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="viewCalendar" class="view-container" style="display:none; padding:18px; flex-direction:column;">
+    <div class="calendar-wrapper">
+      <div class="calendar-head">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <h2 id="calendarMonthTitle" style="color:#38bdf8; font-size:1.25rem;">Listopad 2026</h2>
+          <div style="display:flex; gap:6px;">
+            <button class="btn" style="background:#1e293b;" onclick="changeCalendarMonth(-1)">◀ Poprzedni</button>
+            <button class="btn" style="background:#1e293b;" onclick="currentCalendarDate = new Date(); renderCalendar();">Dziś</button>
+            <button class="btn" style="background:#1e293b;" onclick="changeCalendarMonth(1)">Następny ▶</button>
+          </div>
+        </div>
+        <button class="btn btn-purple" onclick="openOrderDispatchModal()">+ Zaplanuj nowe zlecenie</button>
+      </div>
+
+      <div class="calendar-grid" style="flex:0; margin-bottom:6px;">
+        <div class="cal-day-header">Poniedziałek</div>
+        <div class="cal-day-header">Wtorek</div>
+        <div class="cal-day-header">Środa</div>
+        <div class="cal-day-header">Czwartek</div>
+        <div class="cal-day-header">Piątek</div>
+        <div class="cal-day-header">Sobota</div>
+        <div class="cal-day-header">Niedziela</div>
+      </div>
+      <div class="calendar-grid" id="calendarDaysGrid" style="flex:1;"></div>
+    </div>
+  </div>
+
+  <div id="viewData" class="view-container" style="display:none;">
+    <div class="sidebar no-print">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <b style="font-size:0.85rem; color:#94a3b8;">KLIENCI / ZAKŁADY:</b>
+        <button class="btn btn-green" style="padding:2px 8px; font-size:0.75rem;" onclick="addNewClientPrompt()">+ Dodaj Klienta</button>
+      </div>
+      <div id="clientsListSidebar"></div>
+    </div>
+    
+    <div class="content">
+      <div id="dataClientViewEmpty" style="text-align:center; margin-top:120px; color:#94a3b8;">
+        <h2>Wybierz Klienta z lewego menu, aby zarządzać katalogiem jego maszyn i szablonami checklist</h2>
+      </div>
+
+      <div id="dataClientView" style="display:none; max-width:980px; margin:0 auto;">
+        <div class="box">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0;">Katalog Maszyn: <span id="dataActiveClientName" style="color:#fff;"></span></h3>
+            <button class="btn btn-purple" onclick="openTemplateCreatorModal()">+ Utwórz nową maszynę dla tego Klienta</button>
+          </div>
+        </div>
+        <div id="clientTemplatesContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="viewTimes" class="view-container" style="display:none; padding:20px; overflow-y:auto;">
+    <div style="max-width:1050px; margin:0 auto; width:100%;">
+      <div class="box">
+        <h3>
+          <span>Rejestr Czasu Pracy Techników (Zeitnachweis)</span>
+          <button class="btn btn-green" onclick="openManualTimeModal()">+ Dodaj wpis ręcznie</button>
+        </h3>
+        <table class="table-custom">
+          <thead>
+            <tr><th>Data</th><th>Technik</th><th>Zlecenie / Maszyna</th><th>Czas pracy</th><th>Przerwa</th><th>Akcja</th></tr>
+          </thead>
+          <tbody id="timesTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="viewParts" class="view-container" style="display:none; padding:20px; overflow-y:auto;">
+    <div style="max-width:1050px; margin:0 auto; width:100%;">
+      <div class="box">
+        <h3>Dodaj część do magazynu</h3>
+        <div style="display:grid; grid-template-columns: 2fr 1.5fr 1fr auto; gap:10px; align-items:end;">
+          <div><label>Nazwa części</label><input id="npName" placeholder="np. Rolka dociskowa"></div>
+          <div><label>Nr katalogowy (Art.-Nr)</label><input id="npNum" placeholder="np. S-11885807"></div>
+          <div><label>Stan sztuk</label><input id="npStock" type="number" value="1"></div>
+          <button class="btn btn-green" onclick="saveNewPart()">Zapisz</button>
+        </div>
+      </div>
+      <div class="box">
+        <h3>Katalog części zamiennych</h3>
+        <table class="table-custom">
+          <thead><tr><th>Nazwa części</th><th>Nr katalogowy</th><th>Stan</th><th>Akcja</th></tr></thead>
+          <tbody id="partsCatalogList"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalDispatchOrder">
+    <div class="modal-window">
+      <h3 style="color:#38bdf8; margin-bottom:10px;">Wystaw nowe zlecenie serwisowe</h3>
+      <label style="font-size:0.8rem; color:#94a3b8;">Wybierz Klienta / Zakład:</label>
+      <select id="dispatchClientSelect" onchange="loadTemplatesForDispatch(this.value)"></select>
+
+      <label style="font-size:0.8rem; color:#94a3b8; margin-top:10px; display:block;">Wybierz Linię / Maszynę z katalogu tego klienta:</label>
+      <select id="dispatchTemplateSelect"></select>
+
+      <div class="grid" style="margin-top:10px;">
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8;">Numer Zlecenia (Auto):</label>
+          <input id="dispatchOrderNum" readonly style="color:#38bdf8; font-weight:bold;">
+        </div>
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8;">Data w kalendarzu:</label>
+          <input type="date" id="dispatchOrderDate">
+        </div>
+      </div>
+
+      <div style="margin-top:10px;">
+        <label style="font-size:0.8rem; color:#94a3b8;">Technik odpowiedzialny:</label>
+        <input id="dispatchTechnician" value="Arkadiusz Z.">
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+        <button class="btn" style="background:#475569;" onclick="closeModal('modalDispatchOrder')">Anuluj</button>
+        <button class="btn btn-purple" onclick="executeDispatchOrder()">Wystaw Zlecenie</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalCreateTemplate">
+    <div class="modal-window">
+      <h3 style="color:#38bdf8;">Nowa Maszyna / Linia w katalogu Klienta</h3>
+      <div style="margin-top:6px;">
+        <label style="font-size:0.8rem; color:#94a3b8;">Nazwa maszyny / linii:</label>
+        <input id="tplMachineName" placeholder="Wpisz nazwę maszyny lub linii...">
+      </div>
+      <div class="modal-scrollable" id="tplModulesList" style="max-height:280px; overflow-y:auto; margin-top:10px;"></div>
+      <div style="margin-top:10px;">
+        <button class="btn" style="background:#0284c7; width:100%;" onclick="addModuleBlockToTemplateBuilder()">+ Dodaj kolejny moduł</button>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px; border-top:1px solid #23385d; padding-top:10px;">
+        <button class="btn" style="background:#475569;" onclick="closeModal('modalCreateTemplate')">Anuluj</button>
+        <button class="btn btn-purple" onclick="saveTemplateToClient()">Zapisz do katalogu Klienta</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalProblem">
+    <div class="modal-window">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h3 style="color:#fbbf24; margin:0;">⚠️ Probleme / Usterka & Potrzebne Części</h3>
+        <button class="btn btn-del" style="padding:2px 8px; font-size:0.75rem;" onclick="removeProblemFromItem()">Usuń problem</button>
+      </div>
+      <p id="problemTaskTitle" style="font-size:0.85rem; color:#94a3b8; margin-bottom:10px;"></p>
+      
+      <label style="font-size:0.8rem; color:#cbd5e1;">Problem (Opis usterki):</label>
+      <input id="probDesc" placeholder="Wpisz opis usterki...">
+
+      <label style="font-size:0.8rem; color:#cbd5e1; margin-top:8px; display:block;">Restarbeit (Praca do wykonania):</label>
+      <input id="probRest" placeholder="Wpisz wymagane czynności naprawcze...">
+
+      <div class="grid" style="margin-top:8px;">
+        <div>
+          <label style="font-size:0.8rem; color:#cbd5e1;">Technik:</label>
+          <input id="probAuthor" value="Arkadiusz Z.">
+        </div>
+        <div>
+          <label style="font-size:0.8rem; color:#cbd5e1;">Status usterki:</label>
+          <select id="probStatus">
+            <option value="open">🔴 Otwarte (Wymaga naprawy)</option>
+            <option value="resolved">🟢 Rozwiązane (Naprawione)</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top:14px; border-top:1px solid #23385d; padding-top:10px;">
+        <label style="font-size:0.8rem; color:#38bdf8; font-weight:700;">📦 Wyszukaj lub wybierz część zamienną do naprawy:</label>
+        
+        <div style="display:grid; grid-template-columns: 2fr 1fr auto; gap:6px; margin-top:4px;">
+          <div class="part-search-box">
+            <input type="text" id="probPartSearchInput" placeholder="🔍 Wpisz nazwę lub numer Art.-Nr..." oninput="onProbPartSearch(this.value)">
+            <input type="hidden" id="probSelectedPartId">
+            <div class="part-results-dropdown" id="probSearchResultsDropdown"></div>
+          </div>
+          <input id="probPartQty" type="number" value="1" min="1" placeholder="Sztuk">
+          <button class="btn btn-amber" onclick="addSearchedPartToProblem()">+ Przypisz</button>
+        </div>
+        <div id="probSelectedPartInfo" style="font-size:0.75rem; color:#10b981; margin-top:4px; display:none;"></div>
+        
+        <div id="probPartsAttachedList" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:4px;"></div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+        <button class="btn" style="background:#475569;" onclick="closeModal('modalProblem')">Anuluj</button>
+        <button class="btn btn-amber" onclick="saveProblemToItem()">Zapisz usterkę</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalNote">
+    <div class="modal-window" style="max-width:500px;">
+      <h3 style="color:#38bdf8; margin-bottom:10px;">💬 Notatka techniczna</h3>
+      <textarea id="taskNoteInput" style="height:110px;" placeholder="Wpisz uwagi techniczne, pomiary..."></textarea>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+        <button class="btn" style="background:#475569;" onclick="closeModal('modalNote')">Anuluj</button>
+        <button class="btn" onclick="saveTaskNote()">Zapisz</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalParts">
+    <div class="modal-window" style="max-width:500px;">
+      <h3 style="color:#38bdf8; margin-bottom:10px;">🔧 Części zamienne</h3>
+      <label style="font-size:0.8rem; color:#94a3b8;">Wybierz z magazynu:</label>
+      <div style="display:flex; gap:6px; margin-top:4px;">
+        <select id="selectRegularPart" style="flex:2;"></select>
+        <input id="selectRegularQty" type="number" value="1" min="1" style="flex:1;" placeholder="Szt.">
+        <button class="btn" onclick="assignRegularPart()">+ Dodaj</button>
+      </div>
+      <div id="regularPartsContainer" style="margin-top:10px; font-size:0.85rem; color:#94a3b8;"></div>
+      <div style="display:flex; justify-content:flex-end; margin-top:14px;">
+        <button class="btn" style="background:#475569;" onclick="closeModal('modalParts')">Zamknij</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalAddModToOrder">
+    <div class="modal-window" style="max-width:500px;">
+      <h3 style="color:#38bdf8; margin-bottom:8px;">Dodaj kolejny moduł do zlecenia</h3>
+      <label style="font-size:0.8rem; color:#94a3b8;">Nazwa modułu:</label>
+      <input id="aoNewModName" placeholder="Wpisz nazwę modułu...">
+      <label style="font-size:0.8rem; color:#94a3b8; margin-top:8px; display:block;">Punkty kontrolne (każda linijka to punkt):</label>
+      <textarea id="aoNewModTasks" style="height:110px;" placeholder="Wpisz czynności do sprawdzenia..."></textarea>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+        <button class="btn" style="background:#475569;" onclick="closeModal('modalAddModToOrder')">Anuluj</button>
+        <button class="btn btn-green" onclick="saveNewModuleToActiveOrder()">Dodaj moduł</button>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="hiddenPhotoInput" accept="image/*" style="display:none;" onchange="handlePhotoUpload(event)">
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyASIxdDjVRgGZnc-PjgXbRDHRVv2L3qNUM",
+      authDomain: "service-21527.firebaseapp.com",
+      projectId: "service-21527",
+      storageBucket: "service-21527.firebasestorage.app",
+      messagingSenderId: "609818317583",
+      appId: "1:609818317583:web:14c2e0b49e26dc093247a1"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let clients = [], templates = [], activeOrders = [], times = [], parts = [];
+    let currentOrderId = null, currentClientId = null, activeTaskIdx = null;
+    let tempProblemParts = [];
+    let timerInterval = null, timerSeconds = 0, isPaused = false;
+    let currentCalendarDate = new Date();
+
+    function switchTab(t) {
+      document.getElementById('viewOrders').style.display = t === 'orders' ? 'flex' : 'none';
+      document.getElementById('viewCalendar').style.display = t === 'calendar' ? 'flex' : 'none';
+      document.getElementById('viewData').style.display = t === 'data' ? 'flex' : 'none';
+      document.getElementById('viewTimes').style.display = t === 'times' ? 'block' : 'none';
+      document.getElementById('viewParts').style.display = t === 'parts' ? 'block' : 'none';
+
+      document.getElementById('btnTabOrders').className = 'tab-btn' + (t === 'orders' ? ' active' : '');
+      document.getElementById('btnTabCalendar').className = 'tab-btn' + (t === 'calendar' ? ' active' : '');
+      document.getElementById('btnTabData').className = 'tab-btn' + (t === 'data' ? ' active' : '');
+      document.getElementById('btnTabTimes').className = 'tab-btn' + (t === 'times' ? ' active' : '');
+      document.getElementById('btnTabParts').className = 'tab-btn' + (t === 'parts' ? ' active' : '');
+
+      if (t === 'calendar') renderCalendar();
+    }
+
+    db.collection("clients").orderBy("name").onSnapshot(snap => {
+      clients = [];
+      snap.forEach(d => clients.push({ id: d.id, ...d.data() }));
+      if (clients.length === 0) seedInitialClients();
+      renderClientsList();
+    });
+
+    db.collection("templates").orderBy("createdAt", "desc").onSnapshot(snap => {
+      templates = [];
+      snap.forEach(d => templates.push({ id: d.id, ...d.data() }));
+      if (currentClientId) renderClientTemplates(currentClientId);
+    });
+
+    db.collection("active_orders").orderBy("createdAt", "desc").onSnapshot(snap => {
+      activeOrders = [];
+      snap.forEach(d => activeOrders.push({ id: d.id, ...d.data() }));
+      renderActiveOrdersSidebar();
+      renderCalendar();
+      if (currentOrderId) loadActiveOrder(currentOrderId);
+    });
+
+    db.collection("times").orderBy("date", "desc").onSnapshot(snap => {
+      times = [];
+      snap.forEach(d => times.push({ id: d.id, ...d.data() }));
+      renderTimesTable();
+    });
+
+    db.collection("parts").orderBy("name").onSnapshot(snap => {
+      parts = [];
+      snap.forEach(d => parts.push({ id: d.id, ...d.data() }));
+      renderPartsCatalog();
+      updatePartsDropdowns();
+    });
+
+    function seedInitialClients() {
+      db.collection("clients").add({ name: "KFF Fulda", location: "Fulda" });
+      db.collection("clients").add({ name: "Nestlé Schwerin", location: "Schwerin" });
+      db.collection("clients").add({ name: "Panem Backstube", location: "Bleicherode" });
+    }
+
+    function renderActiveOrdersSidebar(filterText = '') {
+      const sb = document.getElementById('ordersSidebar');
+      sb.innerHTML = '';
+      
+      const filtered = activeOrders.filter(o => {
+        const text = `${o.orderNum || ''} ${o.client || ''} ${o.machine || ''}`.toLowerCase();
+        return text.includes(filterText.toLowerCase());
+      });
+
+      if (!filtered.length) {
+        sb.innerHTML = '<div style="color:#64748b; font-size:0.8rem; text-align:center; padding:10px;">Brak pasujących zleceń.</div>';
+        return;
+      }
+
+      filtered.forEach(o => {
+        const d = document.createElement('div');
+        d.className = 'card ' + (o.id === currentOrderId ? 'act' : '');
+        d.onclick = () => loadActiveOrder(o.id);
+        
+        const countDone = (o.items || []).filter(x => x.done).length;
+        const total = (o.items || []).length;
+        const pct = total ? Math.round((countDone / total) * 100) : 0;
+
+        d.innerHTML = `
+          <button class="card-del-btn" title="Usuń zlecenie" onclick="event.stopPropagation(); deleteOrderDirect('${o.id}')">✕</button>
+          <div style="font-size:0.75rem; color:#38bdf8; font-weight:700;">${o.orderNum || '-'}</div>
+          <b style="color:#fff; font-size:0.9rem;">${o.client || 'Klient'}</b>
+          <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">${o.machine || 'Linia'}</div>
+          <div style="font-size:0.72rem; color:#cbd5e1; margin-top:2px;">📅 ${o.date || 'Brak daty'}</div>
+          <div style="font-size:0.75rem; color:#10b981; margin-top:4px;">Postęp: ${pct}% (${countDone}/${total})</div>
+        `;
+        sb.appendChild(d);
+      });
+    }
+
+    function filterOrdersList(val) {
+      renderActiveOrdersSidebar(val);
+    }
+
+    function loadActiveOrder(id) {
+      currentOrderId = id;
+      const o = activeOrders.find(x => x.id === id);
+      if (!o) return;
+      document.getElementById('orderEmptyState').style.display = 'none';
+      document.getElementById('activeOrderView').style.display = 'block';
+
+      document.getElementById('activeOrderClientHeader').innerText = o.client || 'Klient';
+      document.getElementById('activeOrderLineHeader').innerText = o.machine || 'Linia';
+      document.getElementById('aoOrderNum').value = o.orderNum || '';
+      document.getElementById('aoOrderDate').value = o.date || '';
+      document.getElementById('aoOrderTitle').value = o.title || '';
+      document.getElementById('activeOrderTechnicianDisplay').innerText = 'Technik: ' + (o.technician || 'Arkadiusz Z.');
+
+      renderOrderModulesAndTasks(o.items || []);
+      renderActiveOrdersSidebar(document.getElementById('orderSearchInput').value || '');
+    }
+
+    function updateActiveOrderField(k, v) {
+      if (currentOrderId) db.collection("active_orders").doc(currentOrderId).update({ [k]: v });
+    }
+
+    function deleteOrderDirect(id) {
+      if (!confirm('Na pewno trwale usunąć to zlecenie z archiwum?')) return;
+      db.collection("active_orders").doc(id).delete().then(() => {
+        if (currentOrderId === id) {
+          currentOrderId = null;
+          document.getElementById('activeOrderView').style.display = 'none';
+          document.getElementById('orderEmptyState').style.display = 'block';
+        }
+      });
+    }
+
+    function deleteActiveOrder() {
+      if (currentOrderId) deleteOrderDirect(currentOrderId);
+    }
+
+    function toggleTaskDone(idx) {
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      let items = o.items || [];
+      items[idx].done = !items[idx].done;
+      db.collection("active_orders").doc(currentOrderId).update({ items });
+    }
+
+    function renderOrderModulesAndTasks(items) {
+      const box = document.getElementById('activeOrderModules');
+      box.innerHTML = '';
+
+      const countDone = items.filter(x => x.done).length;
+      const total = items.length;
+      const pct = total ? Math.round((countDone / total) * 100) : 0;
+      document.getElementById('aoProgressBar').style.width = pct + '%';
+      document.getElementById('aoProgressTxt').innerText = `${pct}% (${countDone}/${total} wykonane)`;
+
+      if (!items.length) {
+        box.innerHTML = '<div style="color:#64748b; padding:10px;">Brak zadań w tym zleceniu. Kliknij „+ Dodaj Moduł”.</div>';
+        return;
+      }
+
+      const grouped = {};
+      items.forEach((it, idx) => {
+        const g = it.group || 'Moduł Główny';
+        if (!grouped[g]) grouped[g] = [];
+        grouped[g].push({ ...it, originalIdx: idx });
+      });
+
+      for (const groupName in grouped) {
+        const gTasks = grouped[groupName];
+        const gDone = gTasks.filter(x => x.done).length;
+        const modCard = document.createElement('div');
+        modCard.className = 'chk-mod-container';
+
+        let headerHtml = `
+          <div class="chk-mod-header">
+            <div>
+              <div class="chk-mod-title">📦 ${groupName}</div>
+              <div style="font-size:0.75rem; color:#94a3b8;">${gTasks.length} zadań (wykonano: ${gDone})</div>
+            </div>
+            <button class="btn btn-green no-print" style="padding:2px 8px; font-size:0.75rem;" onclick="markAllInOrderGroup('${groupName}')">✓ Zaznacz wszystkie</button>
+          </div>
+        `;
+
+        let rowsHtml = '<div class="chk-mod-list">';
+        gTasks.forEach(it => {
+          const hasProblem = it.problem && it.problem.desc;
+          const probStatusClass = (it.problem && it.problem.status === 'resolved') ? 'resolved' : '';
+          const hasNote = it.note && it.note.trim() !== '';
+          const photosCount = (it.photos || []).length;
+          const partsCount = (it.parts || []).length;
+
+          let problemHtml = '';
+          if (hasProblem) {
+            let pPartsHtml = '';
+            (it.problem.parts || []).forEach(p => {
+              pPartsHtml += `<span class="prob-parts-tag">🔩 ${p.name} (${p.qty} szt.)</span>`;
+            });
+
+            problemHtml = `
+              <div class="problem-snippet">
+                <span class="prob-dot ${probStatusClass}"></span>
+                <b>Restarbeit:</b> ${it.problem.rest || '-'}<br>
+                <span style="color:#94a3b8;"><b>Problem:</b> ${it.problem.desc} (${it.problem.date || ''}) ${it.problem.author || ''}</span>
+                <div style="margin-top:4px;">${pPartsHtml}</div>
+              </div>
+            `;
+          }
+
+          let noteHtml = hasNote ? `<div style="font-size:0.8rem; color:#38bdf8; margin-top:4px;">💬 ${it.note}</div>` : '';
+          
+          let photosHtml = '';
+          if (photosCount > 0) {
+            photosHtml = '<div style="display:flex; gap:6px; margin-top:6px;">';
+            it.photos.forEach(src => {
+              photosHtml += `<img src="${src}" style="width:45px; height:45px; object-fit:cover; border-radius:3px; cursor:pointer;" onclick="window.open('${src}')">`;
+            });
+            photosHtml += '</div>';
+          }
+
+          const checkIcon = it.done ? '<span style="color:#10b981; font-weight:800; margin-right:6px;">✓</span>' : '';
+
+          rowsHtml += `
+            <div class="task-card-row ${it.done ? 'done' : ''}">
+              <div class="task-left-box">
+                <div class="task-main-text" onclick="toggleTaskDone(${it.originalIdx})">
+                  ${checkIcon}${it.text}
+                </div>
+                ${problemHtml}
+                ${noteHtml}
+                ${photosHtml}
+
+                <div class="task-sub-toolbar no-print">
+                  <span class="sub-icon" title="Dodaj zdjęcie" onclick="triggerPhoto(${it.originalIdx})">
+                    📷 ${photosCount ? `<span class="badge-counter">${photosCount}</span>` : ''}
+                  </span>
+                  <span class="sub-icon" title="Usterka (Probleme) & Części" style="color:#fbbf24;" onclick="openProblemModal(${it.originalIdx})">
+                    ⚠️ ${hasProblem ? '<span class="badge-counter">!</span>' : ''}
+                  </span>
+                  <span class="sub-icon" title="Notatka" onclick="openNoteModal(${it.originalIdx})">
+                    💬 ${hasNote ? '•' : ''}
+                  </span>
+                  <span class="sub-icon" title="Części" onclick="openRegularPartsModal(${it.originalIdx})">
+                    🔧 ${partsCount ? `<span class="badge-counter">${partsCount}</span>` : ''}
+                  </span>
+                </div>
+              </div>
+
+              <div class="no-print" style="display:flex; align-items:center; gap:8px;">
+                <span class="status-badge ${it.done ? 'ok' : 'open'}" onclick="toggleTaskDone(${it.originalIdx})">
+                  ${it.done ? '✓ Wykonano' : 'Do zrobienia'}
+                </span>
+                <span style="cursor:pointer; color:#64748b;" onclick="deleteTaskFromOrder(${it.originalIdx})">✕</span>
+              </div>
+            </div>
+          `;
+        });
+        rowsHtml += '</div>';
+
+        modCard.innerHTML = headerHtml + rowsHtml;
+        box.appendChild(modCard);
+      }
+    }
+
+    function markAllInOrderGroup(groupName) {
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      let items = o.items || [];
+      const current = items.filter(it => (it.group || 'Moduł Główny') === groupName);
+      const allDone = current.every(it => it.done);
+      items.forEach(it => {
+        if ((it.group || 'Moduł Główny') === groupName) it.done = !allDone;
+      });
+      db.collection("active_orders").doc(currentOrderId).update({ items });
+    }
+
+    function deleteTaskFromOrder(idx) {
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      let items = o.items || [];
+      items.splice(idx, 1);
+      db.collection("active_orders").doc(currentOrderId).update({ items });
+    }
+
+    function openAddModuleToActiveOrder() {
+      document.getElementById('aoNewModName').value = '';
+      document.getElementById('aoNewModTasks').value = '';
+      openModal('modalAddModToOrder');
+    }
+
+    function saveNewModuleToActiveOrder() {
+      const modName = document.getElementById('aoNewModName').value.trim() || 'Nowy Moduł';
+      const raw = document.getElementById('aoNewModTasks').value.trim();
+      if (!raw) return alert('Wpisz punkty do sprawdzenia!');
+      const lines = raw.split('
+').map(l => l.trim()).filter(l => l.length > 0);
+
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      let items = o.items || [];
+      lines.forEach(line => {
+        items.push({ group: modName, text: line, done: false, photos: [], note: '', parts: [], problem: null });
+      });
+
+      db.collection("active_orders").doc(currentOrderId).update({ items }).then(() => {
+        closeModal('modalAddModToOrder');
+      });
+    }
+
+    const monthNamesPl = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+
+    function changeCalendarMonth(delta) {
+      currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const grid = document.getElementById('calendarDaysGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      const year = currentCalendarDate.getFullYear();
+      const month = currentCalendarDate.getMonth();
+      document.getElementById('calendarMonthTitle').innerText = `${monthNamesPl[month]} ${year}`;
+
+      const firstDayOfMonth = new Date(year, month, 1);
+      const lastDayOfMonth = new Date(year, month + 1, 0);
+
+      let startDayOfWeek = firstDayOfMonth.getDay() - 1;
+      if (startDayOfWeek === -1) startDayOfWeek = 6;
+
+      const totalDays = lastDayOfMonth.getDate();
+      const prevMonthLastDay = new Date(year, month, 0).getDate();
+
+      const today = new Date();
+      const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+
+      for (let i = startDayOfWeek - 1; i >= 0; i--) {
+        const d = prevMonthLastDay - i;
+        const cell = document.createElement('div');
+        cell.className = 'cal-cell other-month';
+        cell.innerHTML = `<div class="cal-date-num">${d}</div>`;
+        grid.appendChild(cell);
+      }
+
+      for (let day = 1; day <= totalDays; day++) {
+        const cell = document.createElement('div');
+        const isToday = isCurrentMonth && today.getDate() === day;
+        cell.className = 'cal-cell' + (isToday ? ' today' : '');
+
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        cell.innerHTML = `<div class="cal-date-num">${day}</div>`;
+
+        const dayOrders = activeOrders.filter(o => o.date === dateStr);
+        dayOrders.forEach(ord => {
+          const pill = document.createElement('div');
+          pill.className = 'cal-event-pill';
+          pill.title = `${ord.orderNum} - ${ord.client} - ${ord.machine}`;
+          pill.innerText = `${ord.client}: ${ord.machine}`;
+          pill.onclick = () => {
+            switchTab('orders');
+            loadActiveOrder(ord.id);
+          };
+          cell.appendChild(pill);
+        });
+
+        grid.appendChild(cell);
+      }
+
+      const cellsCount = startDayOfWeek + totalDays;
+      const remainingCells = (cellsCount % 7 === 0) ? 0 : 7 - (cellsCount % 7);
+      for (let day = 1; day <= remainingCells; day++) {
+        const cell = document.createElement('div');
+        cell.className = 'cal-cell other-month';
+        cell.innerHTML = `<div class="cal-date-num">${day}</div>`;
+        grid.appendChild(cell);
+      }
+    }
+
+    function renderClientsList() {
+      const box = document.getElementById('clientsListSidebar');
+      box.innerHTML = '';
+      clients.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'card ' + (c.id === currentClientId ? 'act' : '');
+        div.onclick = () => selectClientInData(c.id);
+        const count = templates.filter(t => t.clientId === c.id).length;
+        div.innerHTML = `
+          <button class="card-del-btn" title="Usuń klienta" onclick="event.stopPropagation(); deleteClientDirect('${c.id}')">✕</button>
+          <b>${c.name}</b>
+          <div style="font-size:0.75rem; color:#94a3b8; margin-top:2px;">${c.location || ''} &bull; ${count} maszyn</div>
+        `;
+        box.appendChild(div);
+      });
+      updateDispatchClientsDropdown();
+    }
+
+    function addNewClientPrompt() {
+      const name = prompt("Nazwa nowego Klienta / Firmy (np. KFF Fulda, Nestlé):");
+      if (!name) return;
+      const loc = prompt("Lokalizacja zakładu (np. Fulda, Schwerin):") || "";
+      db.collection("clients").add({ name, location: loc });
+    }
+
+    function deleteClientDirect(id) {
+      if (!confirm('Usunąć tego Klienta z katalogu?')) return;
+      db.collection("clients").doc(id).delete().then(() => {
+        if (currentClientId === id) {
+          currentClientId = null;
+          document.getElementById('dataClientView').style.display = 'none';
+          document.getElementById('dataClientViewEmpty').style.display = 'block';
+        }
+      });
+    }
+
+    function selectClientInData(id) {
+      currentClientId = id;
+      const c = clients.find(x => x.id === id);
+      if (!c) return;
+      document.getElementById('dataClientViewEmpty').style.display = 'none';
+      document.getElementById('dataClientView').style.display = 'block';
+      document.getElementById('dataActiveClientName').innerText = `${c.name} (${c.location || ''})`;
+      renderClientTemplates(id);
+      renderClientsList();
+    }
+
+    function renderClientTemplates(clientId) {
+      const box = document.getElementById('clientTemplatesContainer');
+      box.innerHTML = '';
+      const clientTpls = templates.filter(t => t.clientId === clientId);
+      if (!clientTpls.length) {
+        box.innerHTML = '<div style="color:#64748b; padding:20px 0;">Brak maszyn w katalogu tego Klienta. Kliknij fioletowy przycisk u góry, aby dodać maszynę z checklistą.</div>';
+        return;
+      }
+
+      clientTpls.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'box';
+        let modulesPreview = '';
+        const groups = {};
+        (t.items || []).forEach(it => {
+          const g = it.group || 'Moduł';
+          groups[g] = (groups[g] || 0) + 1;
+        });
+
+        for (const g in groups) {
+          modulesPreview += `<span style="background:#0f172a; border:1px solid #283955; padding:3px 8px; border-radius:3px; font-size:0.75rem; margin-right:6px; color:#38bdf8;">📦 ${g} (${groups[g]} zadań)</span>`;
+        }
+
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <b style="font-size:1rem; color:#fff;">${t.machine}</b>
+              <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">Łącznie punktów kontrolnych: ${(t.items||[]).length}</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-purple" onclick="dispatchDirectFromTemplate('${t.id}')">Wystaw zlecenie z tej maszyny</button>
+              <button class="btn btn-del" onclick="deleteTemplate('${t.id}')">✕ Usuń</button>
+            </div>
+          </div>
+          <div style="margin-top:10px;">${modulesPreview}</div>
+        `;
+        box.appendChild(div);
+      });
+    }
+
+    function deleteTemplate(id) {
+      if (!confirm('Usunąć tę maszynę z katalogu?')) return;
+      db.collection("templates").doc(id).delete();
+    }
+
+    let tplModCount = 0;
+    function openTemplateCreatorModal() {
+      if (!currentClientId) return alert('Wybierz najpierw klienta!');
+      document.getElementById('tplMachineName').value = '';
+      const box = document.getElementById('tplModulesList');
+      box.innerHTML = '';
+      tplModCount = 0;
+      addModuleBlockToTemplateBuilder();
+      openModal('modalCreateTemplate');
+    }
+
+    function addModuleBlockToTemplateBuilder(defName = '', defTasks = '') {
+      tplModCount++;
+      const box = document.getElementById('tplModulesList');
+      const div = document.createElement('div');
+      div.className = 'module-builder-row';
+      div.id = 'tplMod_' + tplModCount;
+      div.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <b style="color:#38bdf8; font-size:0.8rem;">Moduł #${tplModCount}</b>
+          <button class="btn btn-del" style="padding:1px 6px; font-size:0.7rem;" onclick="document.getElementById('tplMod_${tplModCount}').remove()">✕</button>
+        </div>
+        <input class="tpl-m-name" value="${defName}" placeholder="Wpisz nazwę modułu (np. Magazynek 1)..." style="margin-top:4px;">
+        <textarea class="tpl-m-tasks" style="height:65px; margin-top:4px;" placeholder="Wpisz punkty kontrolne (każda linijka to punkt)...">${defTasks}</textarea>
+      `;
+      box.appendChild(div);
+    }
+
+    function saveTemplateToClient() {
+      const machine = document.getElementById('tplMachineName').value.trim();
+      if (!machine) return alert('Wpisz nazwę maszyny / linii!');
+      const rows = document.querySelectorAll('.module-builder-row');
+      if (!rows.length) return alert('Dodaj przynajmniej jeden moduł!');
+
+      const items = [];
+      rows.forEach(r => {
+        const mName = r.querySelector('.tpl-m-name').value.trim() || 'Moduł';
+        const tasks = r.querySelector('.tpl-m-tasks').value.trim();
+        const lines = tasks.split('
+').map(l => l.trim()).filter(l => l.length > 0);
+        lines.forEach(l => {
+          items.push({ group: mName, text: l, done: false, photos: [], note: '', parts: [], problem: null });
+        });
+      });
+
+      if (!items.length) return alert('Wpisz przynajmniej jeden punkt kontrolny!');
+
+      db.collection("templates").add({
+        clientId: currentClientId,
+        machine: machine,
+        items: items,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => closeModal('modalCreateTemplate'));
+    }
+
+    function generateNextOrderNumber() {
+      const year = new Date().getFullYear();
+      const count = (activeOrders.length + 1).toString().padStart(3, '0');
+      const randomSuffix = Math.floor(10 + Math.random() * 90);
+      return `AUF-${year}-${count}${randomSuffix}`;
+    }
+
+    function updateDispatchClientsDropdown() {
+      const sel = document.getElementById('dispatchClientSelect');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">-- Wybierz Klienta --</option>';
+      clients.forEach(c => sel.innerHTML += `<option value="${c.id}">${c.name} (${c.location||''})</option>`);
+    }
+
+    function loadTemplatesForDispatch(cId) {
+      const sel = document.getElementById('dispatchTemplateSelect');
+      sel.innerHTML = '<option value="">-- Wybierz Maszynę --</option>';
+      const filtered = templates.filter(t => t.clientId === cId);
+      filtered.forEach(t => sel.innerHTML += `<option value="${t.id}">${t.machine} (${(t.items||[]).length} zadań)</option>`);
+    }
+
+    function openOrderDispatchModal() {
+      updateDispatchClientsDropdown();
+      document.getElementById('dispatchOrderNum').value = generateNextOrderNumber();
+      const todayStr = new Date().toISOString().split('T')[0];
+      document.getElementById('dispatchOrderDate').value = todayStr;
+      openModal('modalDispatchOrder');
+    }
+
+    function executeDispatchOrder() {
+      const cId = document.getElementById('dispatchClientSelect').value;
+      const tId = document.getElementById('dispatchTemplateSelect').value;
+      const orderNum = document.getElementById('dispatchOrderNum').value.trim() || generateNextOrderNumber();
+      const orderDate = document.getElementById('dispatchOrderDate').value || new Date().toISOString().split('T')[0];
+      const tech = document.getElementById('dispatchTechnician').value.trim() || 'Arkadiusz Z.';
+      if (!cId || !tId) return alert('Wybierz klienta i maszynę!');
+
+      const client = clients.find(x => x.id === cId);
+      const template = templates.find(x => x.id === tId);
+
+      const clonedItems = JSON.parse(JSON.stringify(template.items || []));
+      clonedItems.forEach(it => { it.done = false; it.problem = null; it.photos = []; it.parts = []; });
+
+      db.collection("active_orders").add({
+        clientId: cId,
+        client: client.name,
+        machine: template.machine,
+        title: "Przegląd okresowy",
+        orderNum: orderNum,
+        date: orderDate,
+        technician: tech,
+        items: clonedItems,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(docRef => {
+        closeModal('modalDispatchOrder');
+        switchTab('orders');
+        loadActiveOrder(docRef.id);
+      });
+    }
+
+    function dispatchDirectFromTemplate(tId) {
+      const template = templates.find(x => x.id === tId);
+      const client = clients.find(x => x.id === template.clientId);
+      const clonedItems = JSON.parse(JSON.stringify(template.items || []));
+      clonedItems.forEach(it => { it.done = false; it.problem = null; it.photos = []; it.parts = []; });
+
+      const autoNum = generateNextOrderNumber();
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      db.collection("active_orders").add({
+        clientId: client.id,
+        client: client.name,
+        machine: template.machine,
+        title: "Przegląd okresowy",
+        orderNum: autoNum,
+        date: todayStr,
+        technician: 'Arkadiusz Z.',
+        items: clonedItems,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(docRef => {
+        switchTab('orders');
+        loadActiveOrder(docRef.id);
+      });
+    }
+
+    function openProblemModal(idx) {
+      activeTaskIdx = idx;
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      const it = o.items[idx];
+      document.getElementById('problemTaskTitle').innerText = 'Zadanie: ' + it.text;
+      const p = it.problem || {};
+      document.getElementById('probDesc').value = p.desc || '';
+      document.getElementById('probRest').value = p.rest || '';
+      document.getElementById('probAuthor').value = p.author || 'Arkadiusz Z.';
+      document.getElementById('probStatus').value = p.status || 'open';
+
+      document.getElementById('probPartSearchInput').value = '';
+      document.getElementById('probSelectedPartId').value = '';
+      document.getElementById('probSearchResultsDropdown').style.display = 'none';
+      document.getElementById('probSelectedPartInfo').style.display = 'none';
+      document.getElementById('probPartQty').value = '1';
+
+      tempProblemParts = JSON.parse(JSON.stringify(p.parts || []));
+      renderAttachedProblemParts();
+      openModal('modalProblem');
+    }
+
+    function onProbPartSearch(query) {
+      const dropdown = document.getElementById('probSearchResultsDropdown');
+      const q = query.trim().toLowerCase();
+      if (!q) {
+        dropdown.style.display = 'none';
+        return;
+      }
+
+      const matches = parts.filter(p => {
+        const nameMatch = (p.name || '').toLowerCase().includes(q);
+        const numMatch = (p.num || '').toLowerCase().includes(q);
+        return nameMatch || numMatch;
+      });
+
+      dropdown.innerHTML = '';
+      if (!matches.length) {
+        dropdown.innerHTML = '<div style="padding:6px 10px; font-size:0.75rem; color:#64748b;">Nie znaleziono części o tym symbolu.</div>';
+      } else {
+        matches.forEach(m => {
+          const item = document.createElement('div');
+          item.className = 'part-result-item';
+          item.innerHTML = `<span><b>${m.name}</b> <small style="color:#94a3b8;">(${m.num || 'brak nr'})</small></span><span style="color:#38bdf8;">Stan: ${m.stock}</span>`;
+          item.onclick = () => selectPartFromSearch(m);
+          dropdown.appendChild(item);
+        });
+      }
+      dropdown.style.display = 'block';
+    }
+
+    function selectPartFromSearch(part) {
+      document.getElementById('probSelectedPartId').value = part.id;
+      document.getElementById('probPartSearchInput').value = `${part.name} (${part.num || '-'})`;
+      document.getElementById('probSearchResultsDropdown').style.display = 'none';
+      
+      const info = document.getElementById('probSelectedPartInfo');
+      info.innerText = `Wybrano: ${part.name} | Nr kat: ${part.num || '-'} | Magazyn: ${part.stock} szt.`;
+      info.style.display = 'block';
+    }
+
+    function addSearchedPartToProblem() {
+      const pId = document.getElementById('probSelectedPartId').value;
+      const qty = parseInt(document.getElementById('probPartQty').value) || 1;
+      if (!pId) return alert('Wyszukaj i kliknij część z listy podpowiedzi!');
+      const part = parts.find(x => x.id === pId);
+      tempProblemParts.push({ id: part.id, name: part.name, num: part.num || '', qty });
+      
+      document.getElementById('probPartSearchInput').value = '';
+      document.getElementById('probSelectedPartId').value = '';
+      document.getElementById('probSelectedPartInfo').style.display = 'none';
+      document.getElementById('probPartQty').value = '1';
+      renderAttachedProblemParts();
+    }
+
+    function renderAttachedProblemParts() {
+      const box = document.getElementById('probPartsAttachedList');
+      box.innerHTML = '';
+      if (!tempProblemParts.length) {
+        box.innerHTML = '<span style="font-size:0.75rem; color:#64748b;">Brak przypisanych części do tej awarii.</span>';
+        return;
+      }
+      tempProblemParts.forEach((part, idx) => {
+        box.innerHTML += `
+          <span class="prob-parts-tag">
+            ${part.name} (${part.qty} szt.) 
+            <b style="cursor:pointer; color:#ef4444; margin-left:4px;" onclick="removePartFromProblemList(${idx})">✕</b>
+          </span>
+        `;
+      });
+    }
+
+    function removePartFromProblemList(idx) {
+      tempProblemParts.splice(idx, 1);
+      renderAttachedProblemParts();
+    }
+
+    function saveProblemToItem() {
+      const desc = document.getElementById('probDesc').value.trim();
+      const rest = document.getElementById('probRest').value.trim();
+      const author = document.getElementById('probAuthor').value.trim();
+      const status = document.getElementById('probStatus').value;
+      if (!desc && !rest) return alert('Wpisz usterkę lub pracę do wykonania!');
+
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('pl-PL');
+
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      let items = o.items || [];
+      items[activeTaskIdx].problem = {
+        desc, rest, author, status, date: dateStr, parts: tempProblemParts
+      };
+
+      db.collection("active_orders").doc(currentOrderId).update({ items }).then(() => closeModal('modalProblem'));
+    }
+
+    function removeProblemFromItem() {
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      let items = o.items || [];
+      items[activeTaskIdx].problem = null;
+      db.collection("active_orders").doc(currentOrderId).update({ items }).then(() => closeModal('modalProblem'));
+    }
+
+    function formatTimeDisplay(totalSeconds) {
+      const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+      const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+      const s = String(totalSeconds % 60).padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+
+    function startWorkTimer() {
+      if (timerInterval) return;
+      isPaused = false;
+      document.getElementById('btnTimerStart').style.opacity = '0.5';
+      timerInterval = setInterval(() => {
+        if (!isPaused) {
+          timerSeconds++;
+          document.getElementById('timerClock').innerText = formatTimeDisplay(timerSeconds);
+        }
+      }, 1000);
+    }
+
+    function pauseWorkTimer() {
+      if (!timerInterval) return;
+      isPaused = !isPaused;
+      document.getElementById('btnTimerPause').innerText = isPaused ? '▶ Wznów pracę' : '⏸ Przerwa';
+      document.getElementById('btnTimerPause').className = isPaused ? 'btn btn-green' : 'btn btn-amber';
+    }
+
+    function stopAndSaveWorkTimer() {
+      if (timerSeconds === 0) return alert('Czas pracy wynosi 0!');
+      clearInterval(timerInterval);
+      timerInterval = null;
+
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      const hoursDecimal = (timerSeconds / 3600).toFixed(2);
+      const now = new Date();
+
+      db.collection("times").add({
+        date: now.toLocaleDateString('pl-PL') + ' ' + now.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'}),
+        technician: o.technician || 'Arkadiusz Z.',
+        orderTitle: `${o.orderNum || ''} - ${o.client} - ${o.machine}`,
+        hours: hoursDecimal + ' h',
+        pause: isPaused ? 'Tak' : 'Standardowa',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        alert(`Zapisano do Zeitnachweis: ${hoursDecimal} h!`);
+        timerSeconds = 0;
+        document.getElementById('timerClock').innerText = '00:00:00';
+        document.getElementById('btnTimerStart').style.opacity = '1';
+      });
+    }
+
+    function renderTimesTable() {
+      const tb = document.getElementById('timesTableBody');
+      tb.innerHTML = '';
+      if (!times.length) {
+        tb.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b;">Brak zapisanych godzin pracy.</td></tr>';
+        return;
+      }
+      times.forEach(t => {
+        tb.innerHTML += `
+          <tr>
+            <td>${t.date || '-'}</td>
+            <td><b>${t.technician || 'Technik'}</b></td>
+            <td>${t.orderTitle || '-'}</td>
+            <td style="color:#38bdf8; font-weight:700;">${t.hours}</td>
+            <td>${t.pause || '-'}</td>
+            <td><button class="btn btn-del" style="padding:1px 6px; font-size:0.7rem;" onclick="deleteTimeEntry('${t.id}')">✕</button></td>
+          </tr>
+        `;
+      });
+    }
+
+    function deleteTimeEntry(id) {
+      if (confirm('Usunąć ten wpis?')) db.collection("times").doc(id).delete();
+    }
+
+    function openManualTimeModal() {
+      const tech = prompt("Technik:", "Arkadiusz Z.");
+      if (!tech) return;
+      const ord = prompt("Zlecenie / Maszyna (lub nr zlecenia):", "KFF Fulda - Linia Schubert 1212");
+      const hrs = prompt("Przepracowane godziny (np. 4.5):", "4.0");
+      if (!hrs) return;
+      const now = new Date();
+      db.collection("times").add({
+        date: now.toLocaleDateString('pl-PL'),
+        technician: tech,
+        orderTitle: ord,
+        hours: hrs + ' h',
+        pause: '30 min',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    function triggerPhoto(idx) {
+      activeTaskIdx = idx;
+      document.getElementById('hiddenPhotoInput').click();
+    }
+
+    function handlePhotoUpload(e) {
+      const f = e.target.files[0];
+      if (!f || activeTaskIdx === null || !currentOrderId) return;
+      const r = new FileReader();
+      r.onload = ev => {
+        const im = new Image();
+        im.onload = () => {
+          const cv = document.createElement('canvas');
+          let mx = 800, w = im.width, h = im.height;
+          if (w > mx) { h = Math.round(h * mx / w); w = mx; }
+          cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(im, 0, 0, w, h);
+          const u = cv.toDataURL('image/jpeg', 0.65);
+
+          const o = activeOrders.find(x => x.id === currentOrderId);
+          let items = o.items || [];
+          if (!items[activeTaskIdx].photos) items[activeTaskIdx].photos = [];
+          items[activeTaskIdx].photos.push(u);
+          db.collection("active_orders").doc(currentOrderId).update({ items });
+        };
+        im.src = ev.target.result;
+      };
+      r.readAsDataURL(f);
+      e.target.value = '';
+    }
+
+    function openNoteModal(idx) {
+      activeTaskIdx = idx;
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      document.getElementById('taskNoteInput').value = o.items[idx].note || '';
+      openModal('modalNote');
+    }
+
+    function saveTaskNote() {
+      const n = document.getElementById('taskNoteInput').value.trim();
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      let items = o.items || [];
+      items[activeTaskIdx].note = n;
+      db.collection("active_orders").doc(currentOrderId).update({ items }).then(() => closeModal('modalNote'));
+    }
+
+    function openRegularPartsModal(idx) {
+      activeTaskIdx = idx;
+      updatePartsDropdowns();
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      const it = o.items[idx];
+      const box = document.getElementById('regularPartsContainer');
+      const pList = it.parts || [];
+      box.innerHTML = pList.length ? '' : 'Brak przypisanych części.';
+      pList.forEach((p, pIdx) => {
+        box.innerHTML += `
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px; background:#0b1329; padding:4px 8px; border-radius:3px;">
+            <span>${p.name} (${p.num || '-'}) - ${p.qty} szt.</span>
+            <b style="cursor:color:#ef4444;" onclick="removeRegularPart(${pIdx})">✕</b>
+          </div>
+        `;
+      });
+      openModal('modalParts');
+    }
+
+    function assignRegularPart() {
+      const pId = document.getElementById('selectRegularPart').value;
+      const qty = parseInt(document.getElementById('selectRegularQty').value) || 1;
+      if (!pId) return alert('Wybierz część!');
+      const part = parts.find(x => x.id === pId);
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      let items = o.items || [];
+      if (!items[activeTaskIdx].parts) items[activeTaskIdx].parts = [];
+      items[activeTaskIdx].parts.push({ id: part.id, name: part.name, num: part.num || '', qty });
+      db.collection("active_orders").doc(currentOrderId).update({ items }).then(() => openRegularPartsModal(activeTaskIdx));
+    }
+
+    function removeRegularPart(pIdx) {
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      let items = o.items || [];
+      items[activeTaskIdx].parts.splice(pIdx, 1);
+      db.collection("active_orders").doc(currentOrderId).update({ items }).then(() => openRegularPartsModal(activeTaskIdx));
+    }
+
+    function updatePartsDropdowns() {
+      const sel = document.getElementById('selectRegularPart');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">-- Wybierz część z magazynu --</option>';
+      parts.forEach(p => sel.innerHTML += `<option value="${p.id}">${p.name} (${p.num || '-'}) [Stan: ${p.stock}]</option>`);
+    }
+
+    function saveNewPart() {
+      const name = document.getElementById('npName').value.trim();
+      const num = document.getElementById('npNum').value.trim();
+      const stock = parseInt(document.getElementById('npStock').value) || 0;
+      if (!name) return alert('Wpisz nazwę części!');
+      db.collection("parts").add({ name, num, stock }).then(() => {
+        document.getElementById('npName').value = '';
+        document.getElementById('npNum').value = '';
+        document.getElementById('npStock').value = '1';
+      });
+    }
+
+    function renderPartsCatalog() {
+      const tb = document.getElementById('partsCatalogList');
+      if (!tb) return;
+      tb.innerHTML = '';
+      if (!parts.length) {
+        tb.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">Katalog części jest pusty</td></tr>';
+        return;
+      }
+      parts.forEach(p => {
+        tb.innerHTML += `
+          <tr>
+            <td><b>${p.name}</b></td><td>${p.num || '-'}</td>
+            <td><input type="number" value="${p.stock}" style="width:60px; padding:2px;" onchange="db.collection('parts').doc('${p.id}').update({stock: parseInt(this.value)||0})"> szt.</td>
+            <td><button class="btn btn-del" style="padding:2px 6px; font-size:0.75rem;" onclick="if(confirm('Usunąć część?'))db.collection('parts').doc('${p.id}').delete()">Usuń</button></td>
+          </tr>
+        `;
+      });
+    }
+
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+  </script>
+</body>
+</html>
