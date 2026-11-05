@@ -32,7 +32,10 @@
     .btn-gray { background: #475569; }
 
     .view-container { display: flex; flex: 1; width: 100%; height: calc(100vh - 48px); overflow: hidden; }
-    .sidebar { width: 340px; background: #111c33; border-right: 1px solid #1e2e4a; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .sidebar { width: 330px; background: #0c1527; border-right: 2px solid #1e2e4a; overflow-y: auto; padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; }
+    .card { background: #152238; border: 1px solid #223758; padding: 12px; border-radius: 6px; cursor: pointer; position: relative; transition: all 0.15s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    .card:hover { border-color: #38bdf8; background: #1a2a46; transform: translateY(-1px); }
+    .card.act { border-color: #38bdf8; background: #1c3156; box-shadow: 0 0 0 1px #38bdf8; }
     .content { flex: 1; padding: 18px; overflow-y: auto; }
     
     .card { background: #16243d; border: 1px solid #23385d; padding: 10px; border-radius: 6px; cursor: pointer; position: relative; }
@@ -160,12 +163,15 @@
   <!-- ==================== 1. WIDOK: ZLECENIA MASZYN (CZYSTE ZLECENIA, BEZ DOJAZDÓW!) ==================== -->
   <div id="viewOrders" class="view-container">
     <div class="sidebar no-print">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-        <span style="font-size:0.75rem; color:#94a3b8; font-weight:700;">ZLECENIA MASZYN:</span>
-        <select id="orderStatusFilter" onchange="filterOrdersList()" style="width:auto; padding:2px 6px; font-size:0.75rem; margin-top:0;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid #1e355b; padding-bottom:6px;">
+        <div>
+          <span style="font-size:0.7rem; color:#94a3b8; font-weight:bold; text-transform:uppercase;">Zlecenia:</span>
+          <b id="sidebarClientNameDisplay" style="color:#38bdf8; font-size:0.78rem; display:block;"></b>
+        </div>
+        <select id="orderStatusFilter" onchange="filterOrdersList()" style="width:auto; padding:3px 6px; font-size:0.75rem; margin:0; background:#0c1527; border:1px solid #283e66; color:#fff; border-radius:4px;">
+          <option value="active" selected>Aktywne</option>
+          <option value="done">Zakończone</option>
           <option value="all">Wszystkie</option>
-          <option value="active" selected>Tylko Aktywne</option>
-          <option value="done">Tylko Zakończone</option>
         </select>
       </div>
       <input type="text" id="orderSearchInput" placeholder="🔍 Szukaj zlecenia..." oninput="filterOrdersList()" style="margin-bottom:8px; padding:5px 8px; font-size:0.8rem;">
@@ -890,6 +896,8 @@
       const statusFilter = document.getElementById('orderStatusFilter') ? document.getElementById('orderStatusFilter').value : 'active';
 
       const activeClient = clients.find(c => c.id === selectedClientId);
+      const sideClientLbl = document.getElementById('sidebarClientNameDisplay');
+      if (sideClientLbl) sideClientLbl.innerText = activeClient ? activeClient.name : 'Wszyscy';
       const filtered = activeOrders.filter(o => {
         if (selectedClientId && o.clientId && o.clientId !== selectedClientId) return false;
         if (activeClient && !o.clientId && o.client && o.client !== activeClient.name) return false;
@@ -918,15 +926,14 @@
 
         d.innerHTML = `
           <button class="card-del-btn" title="Usuń zlecenie" onclick="event.stopPropagation(); deleteOrderDirect('${o.id}')">✕</button>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; padding-right:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; padding-right:20px;">
             <b style="font-size:0.75rem; color:#38bdf8;">${o.orderNum || '-'}</b>
             ${statusBadge}
           </div>
-          <b style="color:#fff; font-size:0.88rem;">${o.client || 'Klient'}</b>
-          <div style="font-size:0.78rem; color:#94a3b8; margin-top:2px;">${o.machine || o.title || '-'}</div>
-          <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:#cbd5e1; margin-top:4px;">
+          <div style="color:#fff; font-size:0.92rem; font-weight:700;">⚙️ ${o.machine || o.title || 'Maszyna'}</div>
+          <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:#94a3b8; margin-top:6px; border-top:1px solid #243550; padding-top:4px;">
             <span>📅 ${o.date || 'Brak daty'} (${o.kw ? 'KW ' + o.kw : '-'})</span>
-            <span style="color:#10b981; font-weight:bold;">SERWIS MASZYNY</span>
+            <span style="color:#38bdf8;">${o.title || 'Przegląd'}</span>
           </div>
         `;
         sb.appendChild(d);
