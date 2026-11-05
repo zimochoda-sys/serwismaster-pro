@@ -16,12 +16,15 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: #0b1329; color: #f8fafc; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-    header { background: #1e293b; padding: 0 16px; height: 48px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; }
+    header { background: #1e293b; padding: 0 16px; height: 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; position: relative; z-index: 100; }
     .brand { font-weight: 800; font-size: 1.15rem; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+    
     .nav-tabs { display: flex; gap: 4px; height: 100%; align-items: center; }
     .tab-btn { background: transparent; color: #94a3b8; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.82rem; display: flex; align-items: center; gap: 5px; }
     .tab-btn:hover { color: #fff; background: #334155; }
     .tab-btn.active { background: #0284c7; color: #fff; }
+
+    .header-right { display: flex; align-items: center; gap: 8px; }
 
     .btn { background: #0284c7; color: #fff; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; }
     .btn:hover { opacity: 0.9; }
@@ -31,16 +34,20 @@
     .btn-del { background: #ef4444; }
     .btn-gray { background: #475569; }
 
-    .view-container { display: flex; flex: 1; width: 100%; height: calc(100vh - 48px); overflow: hidden; }
+    /* MENU ADMINISTRATORA ROZWIJANE */
+    .admin-menu-dropdown { position: relative; display: inline-block; }
+    .admin-menu-content { display: none; position: absolute; right: 0; top: 100%; background: #16243d; min-width: 210px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); border: 1px solid #2a4365; border-radius: 6px; z-index: 150; padding: 6px 0; margin-top: 4px; }
+    .admin-menu-content a, .admin-menu-content button { color: #f8fafc; padding: 8px 14px; text-decoration: none; display: flex; align-items: center; gap: 8px; font-size: 0.82rem; background: transparent; border: none; width: 100%; text-align: left; cursor: pointer; }
+    .admin-menu-content a:hover, .admin-menu-content button:hover { background: #1f3558; color: #38bdf8; }
+    .admin-menu-dropdown:hover .admin-menu-content { display: block; }
+
+    .view-container { display: flex; flex: 1; width: 100%; height: calc(100vh - 50px); overflow: hidden; }
     .sidebar { width: 330px; background: #0c1527; border-right: 2px solid #1e2e4a; overflow-y: auto; padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; }
+    .content { flex: 1; padding: 18px; overflow-y: auto; }
+    
     .card { background: #152238; border: 1px solid #223758; padding: 12px; border-radius: 6px; cursor: pointer; position: relative; transition: all 0.15s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     .card:hover { border-color: #38bdf8; background: #1a2a46; transform: translateY(-1px); }
     .card.act { border-color: #38bdf8; background: #1c3156; box-shadow: 0 0 0 1px #38bdf8; }
-    .content { flex: 1; padding: 18px; overflow-y: auto; }
-    
-    .card { background: #16243d; border: 1px solid #23385d; padding: 10px; border-radius: 6px; cursor: pointer; position: relative; }
-    .card:hover { border-color: #38bdf8; }
-    .card.act { border-color: #38bdf8; background: #1b2e50; }
     .card.is-done { border-left: 4px solid #10b981; opacity: 0.85; }
     .card.is-active { border-left: 4px solid #38bdf8; }
     .card-del-btn { position: absolute; top: 6px; right: 6px; background: #ef4444; color: #fff; border: none; width: 20px; height: 20px; border-radius: 3px; cursor: pointer; font-weight: bold; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; }
@@ -57,6 +64,18 @@
     .badge-status { font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 3px; display: inline-block; }
     .badge-status.active { background: #0284c7; color: #fff; }
     .badge-status.done { background: #047857; color: #ecfdf5; }
+
+    /* DASHBOARD OKRĘGOWY */
+    .dash-summary-row { display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 16px; }
+    .donut-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 10px; }
+    .donut-center-text { position: absolute; text-align: center; pointer-events: none; }
+    .donut-center-num { font-size: 1.6rem; font-weight: 800; color: #38bdf8; }
+    .donut-center-lbl { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; }
+
+    .dash-kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .dash-kpi-tile { background: #0e192e; border: 1px solid #1e355b; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; justify-content: center; }
+    .dash-kpi-tile-val { font-size: 1.5rem; font-weight: 800; margin-top: 4px; }
+    .dash-kpi-tile-lbl { font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
 
     /* CHECKLISTY */
     .chk-mod-container { background: #131e33; border: 1px solid #25395c; border-radius: 6px; margin-bottom: 14px; overflow: hidden; }
@@ -108,15 +127,6 @@
     .table-custom th, .table-custom td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #23385d; }
     .table-custom th { color: #94a3b8; }
 
-    /* KALENDARZ MIESIĘCZNY OD 1 DO 31 */
-    .month-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; flex: 1; overflow-y: auto; }
-    .month-day-cell { background: #131f36; border: 1px solid #223556; border-radius: 4px; padding: 6px; min-height: 95px; display: flex; flex-direction: column; }
-    .month-day-cell.today { border-color: #38bdf8; background: #162846; }
-    .month-day-cell.weekend { background: #0d1627; }
-    .month-day-header { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: bold; border-bottom: 1px solid #1e2e4a; padding-bottom: 3px; margin-bottom: 4px; }
-    .month-day-event { background: #1d2d47; border-left: 3px solid #0284c7; padding: 2px 5px; font-size: 0.7rem; border-radius: 2px; margin-bottom: 3px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .month-day-event.done { border-left-color: #10b981; }
-
     /* PODGLĄD PDF */
     .pdf-preview-sheet { background: #ffffff; color: #000000; padding: 36px 42px; border-radius: 4px; max-width: 820px; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.6); font-family: "Segoe UI", Arial, sans-serif; }
     .pdf-preview-sheet h2 { color: #0f172a; border-bottom: 2px solid #0284c7; padding-bottom: 6px; font-size: 1.3rem; margin-bottom: 12px; }
@@ -143,30 +153,132 @@
   <header class="no-print">
     <div class="brand">⚙️ SerwisMaster Pro</div>
     <div class="nav-tabs">
-      <button class="tab-btn active" id="btnTabOrders" onclick="switchTab('orders')">📋 Zlecenia Maszyn</button>
-      <button class="tab-btn" id="btnTabZeit" onclick="switchTab('zeit')">⏱️ Godziny Pracy & Diety (Zeitnachweis)</button>
-      <button class="tab-btn" id="btnTabCalendar" onclick="switchTab('calendar')">🗓️ Kalendarz Miesiąca</button>
-      <button class="tab-btn" id="btnTabData" onclick="switchTab('data')">📂 Katalog Danych (Maszyny & Moduły)</button>
-      <button class="tab-btn" id="btnTabDash" onclick="switchTab('dash')">📊 Usterki & Restarbeit</button>
-      <button class="tab-btn" id="btnTabParts" onclick="switchTab('parts')">📦 Magazyn Części</button>
+      <button class="tab-btn active" id="btnTabDash" onclick="switchTab('dash')">📊 Dashboard</button>
+      <button class="tab-btn" id="btnTabOrders" onclick="switchTab('orders')">📋 Zlecenia</button>
+      <button class="tab-btn" id="btnTabZeit" onclick="switchTab('zeit')">⏱️ Godziny & Diety</button>
+      <button class="tab-btn" id="btnTabData" onclick="switchTab('data')">📂 Maszyny & Moduły</button>
+      <button class="tab-btn" id="btnTabParts" onclick="switchTab('parts')">📦 Magazyn</button>
     </div>
-    <div style="display:flex; gap:8px; align-items:center;">
+
+    <div class="header-right">
+      <!-- WYBÓR KLIENTA W GŁÓWNYM PASKU -->
       <div style="display:flex; align-items:center; gap:6px; background:#0d182b; padding:3px 8px; border-radius:4px; border:1px solid #283e66;">
         <span style="font-size:0.75rem; color:#94a3b8; font-weight:bold;">🏢 Klient:</span>
         <select id="globalClientSelector" onchange="onGlobalClientChanged(this.value)" style="background:transparent; border:none; color:#38bdf8; font-weight:bold; font-size:0.82rem; margin:0; padding:2px; cursor:pointer; outline:none;"></select>
       </div>
+
+      <!-- PRZEŁĄCZNIK ZALOGOWANEGO UŻYTKOWNIKA -->
       <div style="display:flex; align-items:center; gap:6px; background:#0d182b; padding:3px 8px; border-radius:4px; border:1px solid #283e66;">
-        <span style="font-size:0.75rem; color:#94a3b8; font-weight:bold;">👤 Użytkownik:</span>
+        <span style="font-size:0.75rem; color:#94a3b8; font-weight:bold;">👤</span>
         <select id="activeUserSelector" onchange="onSwitchActiveUser(this.value)" style="background:transparent; border:none; color:#10b981; font-weight:bold; font-size:0.82rem; margin:0; padding:2px; cursor:pointer; outline:none;"></select>
       </div>
-      <button class="btn btn-purple" style="padding:4px 8px; font-size:0.75rem;" onclick="handleOpenManageUsersAuth()" title="Zarządzanie pracownikami i uprawnieniami">👥 Zespół</button>
-      <button class="btn btn-gray" style="padding:4px 8px; font-size:0.75rem;" onclick="openPasswordSettingsModal()">🔑 Hasło</button>
+
+      <!-- ROZWIJANE SUBMENU DLA ADMINISTRATORA -->
+      <div class="admin-menu-dropdown" id="adminMenuDropdownWrapper">
+        <button class="btn btn-gray" style="padding:4px 8px; font-size:0.78rem;">⚙️ Admin ▼</button>
+        <div class="admin-menu-content">
+          <button onclick="handleOpenManageUsersAuth()">👥 Zespół & Uprawnienia</button>
+          <button onclick="addNewClientPrompt()">🏢 Dodaj nowego klienta</button>
+          <button onclick="openPasswordSettingsModal()">🔑 Zmień hasło główne</button>
+        </div>
+      </div>
+
       <button class="btn btn-purple" onclick="openOrderDispatchModal()">+ Zlecenie</button>
     </div>
   </header>
 
-  <!-- ==================== 1. WIDOK: ZLECENIA MASZYN (CZYSTE ZLECENIA, BEZ DOJAZDÓW!) ==================== -->
-  <div id="viewOrders" class="view-container">
+  <!-- ==================== 0. WIDOK: NOWOCZESNY DASHBOARD (WYKRES PIERŚCIENIOWY & KPI KLIENTA) ==================== -->
+  <div id="viewDash" class="view-container" style="flex-direction:column; padding:18px; overflow-y:auto;">
+    <div style="max-width:1150px; margin:0 auto; width:100%;">
+      
+      <!-- NAGŁÓWEK DASHBOARDU -->
+      <div class="box" style="margin-bottom:14px; background:#16243d; border:1px solid #2b456e;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div>
+            <div style="font-size:0.75rem; color:#94a3b8; font-weight:bold; text-transform:uppercase;">PULPIT GŁÓWNY ZAKŁADU:</div>
+            <h2 id="dashClientTitle" style="color:#38bdf8; font-size:1.35rem; margin-top:2px;">Wszystkie maszyny</h2>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-green" onclick="switchTab('orders')">📋 Zobacz zlecenia</button>
+            <button class="btn btn-purple" onclick="openOrderDispatchModal()">+ Wystaw nowe zlecenie</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- GŁÓWNY PANEL: WYKRES PIERŚCIENIOWY (DONUT) + KAFELKI KPI -->
+      <div class="dash-summary-row">
+        <!-- WYKRES PIERŚCIENIOWY LIVE -->
+        <div class="box" style="margin-bottom:0; display:flex; flex-direction:column; justify-content:center;">
+          <h3 style="margin-bottom:8px;">Stan Punktów Kontrolnych</h3>
+          <div class="donut-wrap">
+            <svg width="180" height="180" viewBox="0 0 180 180">
+              <circle cx="90" cy="90" r="70" fill="transparent" stroke="#1f3354" stroke-width="22"></circle>
+              <!-- Segment OK (zielony) -->
+              <circle id="donutCircleOk" cx="90" cy="90" r="70" fill="transparent" stroke="#10b981" stroke-width="22" stroke-dasharray="0 440" stroke-dashoffset="110" transform="rotate(-90 90 90)"></circle>
+              <!-- Segment Defect (czerwony) -->
+              <circle id="donutCircleDefect" cx="90" cy="90" r="70" fill="transparent" stroke="#ef4444" stroke-width="22" stroke-dasharray="0 440" stroke-dashoffset="110" transform="rotate(-90 90 90)"></circle>
+              <!-- Segment Open (pomarańczowy) -->
+              <circle id="donutCircleOpen" cx="90" cy="90" r="70" fill="transparent" stroke="#f59e0b" stroke-width="22" stroke-dasharray="0 440" stroke-dashoffset="110" transform="rotate(-90 90 90)"></circle>
+            </svg>
+            <div class="donut-center-text">
+              <div class="donut-center-num" id="donutTotalTasksNum">0</div>
+              <div class="donut-center-lbl">Punktów</div>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-around; margin-top:8px; font-size:0.75rem;">
+            <span style="color:#10b981;">🟢 Sprawdzone: <b id="dashLegendOk">0</b></span>
+            <span style="color:#f59e0b;">🟠 Do zrobienia: <b id="dashLegendOpen">0</b></span>
+            <span style="color:#ef4444;">🔴 Usterki: <b id="dashLegendDefects">0</b></span>
+          </div>
+        </div>
+
+        <!-- KAFELKI KPI KLIENTA -->
+        <div class="box" style="margin-bottom:0; display:flex; flex-direction:column; justify-content:center;">
+          <h3 style="margin-bottom:8px;">Zlecenia & Urządzenia</h3>
+          <div class="dash-kpi-grid">
+            <div class="dash-kpi-tile">
+              <span class="dash-kpi-tile-lbl">Aktywne zlecenia:</span>
+              <span class="dash-kpi-tile-val" style="color:#38bdf8;" id="dashKpiActiveOrders">0</span>
+            </div>
+            <div class="dash-kpi-tile">
+              <span class="dash-kpi-tile-lbl">Zakończone serwisy:</span>
+              <span class="dash-kpi-tile-val" style="color:#10b981;" id="dashKpiDoneOrders">0</span>
+            </div>
+            <div class="dash-kpi-tile">
+              <span class="dash-kpi-tile-lbl">Maszyny w katalogu:</span>
+              <span class="dash-kpi-tile-val" style="color:#fbbf24;" id="dashKpiMachinesCount">0</span>
+            </div>
+            <div class="dash-kpi-tile">
+              <span class="dash-kpi-tile-lbl">Otwarte wady (Rest):</span>
+              <span class="dash-kpi-tile-val" style="color:#ef4444;" id="dashKpiOpenDefects">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLICA USTEREK I PRAC DO WYKONANIA (REST-ARBEIT) DLA TEGO KLIENTA -->
+      <div class="box">
+        <h3>
+          <span>⚠️ Usterki & Restarbeit w toku (dla wybranego zakładu)</span>
+          <select id="dashFilterSelect" onchange="renderDashboardProblems()" style="width:auto; font-size:0.78rem; padding:2px 8px; margin:0;">
+            <option value="open">Tylko Otwarte (Wymagają naprawy)</option>
+            <option value="all">Wszystkie wady</option>
+            <option value="resolved">Tylko Rozwiązane</option>
+          </select>
+        </h3>
+        <table class="table-custom">
+          <thead>
+            <tr><th>Status</th><th>Maszyna / Linia</th><th>Punkt kontrolny</th><th>Usterka</th><th>Restarbeit (Czynność)</th><th>Części</th><th>Technik</th><th>Akcja</th></tr>
+          </thead>
+          <tbody id="dashProblemsTableBody"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== 1. WIDOK: ZLECENIA MASZYN (CZYSTE ZLECENIA) ==================== -->
+  <div id="viewOrders" class="view-container" style="display:none;">
     <div class="sidebar no-print">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid #1e355b; padding-bottom:6px;">
         <div>
@@ -186,7 +298,7 @@
     <div class="content">
       <div id="orderEmptyState" style="text-align:center; margin-top:120px; color:#94a3b8;">
         <h2>Wybierz zlecenie z listy po lewej lub kliknij „+ Wystaw zlecenie”</h2>
-        <p style="font-size:0.85rem; color:#64748b; margin-top:6px;">Zlecenia dotyczą wyłącznie prac serwisowych i przeglądów maszyn na obiekcie. Cały czas pracy (Anreise, Abreise, godziny i diety) rejestrujesz w zakładce <b>⏱️ Godziny Pracy & Diety</b>.</p>
+        <p style="font-size:0.85rem; color:#64748b; margin-top:6px;">Zlecenia dotyczą wyłącznie prac serwisowych i przeglądów maszyn na obiekcie. Cały czas pracy (Anreise, Abreise, godziny i diety) rejestrujesz w zakładce <b>⏱️ Godziny & Diety</b>.</p>
       </div>
 
       <div id="activeOrderView" style="display:none; max-width:980px; margin:0 auto;">
@@ -254,7 +366,7 @@
     </div>
   </div>
 
-  <!-- ==================== 2. ZEITNACHWEIS & DIETY NIEMIECKIE W EURO (€) ==================== -->
+  <!-- ==================== 2. ZEITNACHWEIS & DIETY ==================== -->
   <div id="viewZeit" class="view-container" style="display:none; flex-direction:column; padding:18px; overflow-y:auto;">
     <div style="max-width:1150px; margin:0 auto; width:100%;">
       
@@ -282,7 +394,7 @@
         </div>
       </div>
 
-      <!-- MIESIĘCZNY PASEK PODSUMOWANIA (GODZINY I DIETA W EURO ZA CAŁY MIESIĄC) -->
+      <!-- MIESIĘCZNY PASEK PODSUMOWANIA -->
       <div class="zeit-summary-kpi">
         <div class="zeit-kpi-item">
           <span class="zeit-kpi-lbl">ROBOCZOGODZINY W MIESIĄCU:</span>
@@ -302,46 +414,19 @@
         </div>
       </div>
 
-      <!-- KARTY DNI MIESIĄCA (ZEITNACHWEIS DZIEŃ PO DNIU) -->
+      <!-- KARTY DNI MIESIĄCA -->
       <div class="box">
         <h3>Ewidencja Dni Pracy i Rozliczenie Diety w Miesiącu</h3>
         <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
-          💡 Wszystkie stawki diet wyliczane są według oficjalnych <strong>niemieckich stawek delegacyjnych BMF i wypłacane w EURO (€)</strong> dla każdego kraju docelowego (Niemcy, Szwajcaria, Polska, Austria, Włochy itd.). 
-          <strong>Zasada kontrolna:</strong> w jednym dniu dieta naliczana jest <u>dokładnie raz na dobę</u> (nie ma podwójnego naliczania, jeśli tego samego dnia masz dojazd i pracę!).
+          💡 Wszystkie stawki diet wyliczane są według oficjalnych <strong>niemieckich stawek delegacyjnych BMF i wypłacane w EURO (€)</strong>. 
+          <strong>Zasada kontrolna:</strong> w jednym dniu dieta naliczana jest <u>dokładnie raz na dobę</u>.
         </p>
         <div id="zeitDaysCardsContainer"></div>
       </div>
     </div>
   </div>
 
-  <!-- ==================== 3. WIDOK: KALENDARZ MIESIĄCA (1 DO 31) ==================== -->
-  <div id="viewCalendar" class="view-container" style="display:none; flex-direction:column; padding:16px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <h2 id="calMonthViewTitle" style="color:#38bdf8; font-size:1.2rem;">Miesiąc: Listopad 2026</h2>
-        <div style="display:flex; gap:4px;">
-          <button class="btn btn-gray" style="padding:4px 8px;" onclick="changeMonthView(-1)">◀ Poprzedni</button>
-          <button class="btn btn-gray" style="padding:4px 8px;" onclick="currentMonthViewDate = new Date(); renderMonthCalendar();">Dziś</button>
-          <button class="btn btn-gray" style="padding:4px 8px;" onclick="changeMonthView(1)">Następny ▶</button>
-        </div>
-      </div>
-      <button class="btn btn-purple" onclick="openOrderDispatchModal()">+ Wystaw zlecenie</button>
-    </div>
-
-    <div style="display:grid; grid-template-columns: repeat(7, 1fr); gap:6px; margin-bottom:4px; text-align:center; font-weight:bold; font-size:0.75rem; color:#94a3b8;">
-      <div style="background:#152238; padding:4px; border-radius:3px;">Poniedziałek</div>
-      <div style="background:#152238; padding:4px; border-radius:3px;">Wtorek</div>
-      <div style="background:#152238; padding:4px; border-radius:3px;">Środa</div>
-      <div style="background:#152238; padding:4px; border-radius:3px;">Czwartek</div>
-      <div style="background:#152238; padding:4px; border-radius:3px;">Piątek</div>
-      <div style="background:#152238; padding:4px; border-radius:3px;">Sobota</div>
-      <div style="background:#152238; padding:4px; border-radius:3px;">Niedziela</div>
-    </div>
-    
-    <div class="month-calendar-grid" id="monthCalendarCellsGrid"></div>
-  </div>
-
-  <!-- ==================== 4. WIDOK: KATALOG DANYCH (CZYSTY, PEŁNOEKRANOWY WIDOK MASZYN I MODUŁÓW) ==================== -->
+  <!-- ==================== 3. WIDOK: KATALOG DANYCH ==================== -->
   <div id="viewData" class="view-container" style="display:none; flex-direction:column; padding:18px; overflow-y:auto;">
     <div style="max-width:1150px; margin:0 auto; width:100%;">
       <div class="box" style="margin-bottom:14px; border:1px solid #334155; background:#16243d;">
@@ -364,27 +449,7 @@
     </div>
   </div>
 
-  <!-- ==================== 5. WIDOK: DASHBOARD USTEREK (REST-ARBEIT) ==================== -->
-  <div id="viewDash" class="view-container" style="display:none; flex-direction:column; padding:18px; overflow-y:auto;">
-    <div class="box" style="flex:1;">
-      <h3>
-        <span>⚠️ Tablica Usterek Maszyn & Prac do wykonania (Restarbeit)</span>
-        <select id="dashFilterSelect" onchange="renderDashboardProblems()" style="width:auto; font-size:0.78rem; padding:2px 8px; margin:0;">
-          <option value="open">Tylko Otwarte (Wymagają naprawy)</option>
-          <option value="all">Wszystkie usterki</option>
-          <option value="resolved">Tylko Rozwiązane</option>
-        </select>
-      </h3>
-      <table class="table-custom">
-        <thead>
-          <tr><th>Status</th><th>Klient / Maszyna</th><th>Punkt kontrolny</th><th>Usterka</th><th>Restarbeit (Czynność)</th><th>Części</th><th>Technik</th><th>Akcja</th></tr>
-        </thead>
-        <tbody id="dashProblemsTableBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ==================== 6. WIDOK: MAGAZYN CZĘŚCI ==================== -->
+  <!-- ==================== 4. WIDOK: MAGAZYN CZĘŚCI ==================== -->
   <div id="viewParts" class="view-container" style="display:none; padding:20px; overflow-y:auto;">
     <div style="max-width:1050px; margin:0 auto; width:100%;">
       <div class="box">
@@ -407,6 +472,98 @@
   </div>
 
   <!-- ==================== MODALE ==================== -->
+
+  <!-- MODAL: DODANIE MODUŁU NA STAŁE W OTWARTYM ZLECENIU I SZABLONIE -->
+  <div class="modal-overlay" id="modalAddModToOrderAndTemplate">
+    <div class="modal-window" style="max-width:540px;">
+      <h3 style="color:#38bdf8; margin-bottom:8px;">➕ Dodaj Moduł do Zlecenia i Maszyny</h3>
+      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:10px;">
+        Ten moduł zostanie dodany do <b>bieżącego zlecenia</b> oraz <b>zapisany na stałe w kartotece maszyny</b> w Katalogu Danych. Każde kolejne zlecenie będzie go już zawierało.
+      </p>
+      
+      <div class="entry-modal-field">
+        <label style="font-size:0.8rem; color:#cbd5e1;">Nazwa nowego modułu:</label>
+        <input id="newModOrderName" placeholder="np. Magazynek 3, Stacja zgrzewania, F304...">
+      </div>
+
+      <div class="entry-modal-field" style="margin-top:8px;">
+        <label style="font-size:0.8rem; color:#cbd5e1;">Punkty kontrolne (każda linijka to jedno zadanie):</label>
+        <textarea id="newModOrderTasks" style="height:110px;" placeholder="1. Sprawdź luz i napięcie łańcucha&#10;2. Kontrola wycieków pneumatyki&#10;3. Czyszczenie i smarowanie"></textarea>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px; border-top:1px solid #23385d; padding-top:10px;">
+        <button class="btn btn-gray" onclick="closeModal('modalAddModToOrderAndTemplate')">Anuluj</button>
+        <button class="btn btn-green" onclick="executeAddModuleToOrderAndTemplate()">Zapisz moduł na stałe</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ZARZĄDZANIE PRACOWNIKAMI I UPRAWNIENIAMI (TYLKO DLA ADMINA) -->
+  <div class="modal-overlay" id="modalManageUsers">
+    <div class="modal-window" style="max-width:720px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #23385d; padding-bottom:8px; margin-bottom:12px;">
+        <div>
+          <h3 style="color:#38bdf8; margin:0;">👥 Zarządzanie Pracownikami & Uprawnieniami</h3>
+          <span style="font-size:0.75rem; color:#94a3b8;">Administrator przydziela uprawnienia i kontroluje dostęp</span>
+        </div>
+        <button class="btn btn-green" style="padding:3px 8px; font-size:0.75rem;" onclick="openAddNewUserPrompt()">+ Dodaj pracownika</button>
+      </div>
+
+      <div class="modal-scrollable" style="max-height:360px;">
+        <table class="table-custom">
+          <thead>
+            <tr><th>Pracownik</th><th>Rola</th><th>Kod PIN</th><th>Uprawnienia</th><th>Akcja</th></tr>
+          </thead>
+          <tbody id="usersManagementTableBody"></tbody>
+        </table>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px; border-top:1px solid #23385d; padding-top:10px;">
+        <button class="btn btn-gray" onclick="closeModal('modalManageUsers')">Zamknij</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NOWY PRACOWNIK / EDYCJA -->
+  <div class="modal-overlay" id="modalEditUser">
+    <div class="modal-window" style="max-width:440px;">
+      <h3 style="color:#38bdf8; margin-bottom:8px;" id="editUserModalTitle">Dodaj Pracownika</h3>
+      <input type="hidden" id="editUserDocId">
+
+      <div class="entry-modal-field">
+        <label style="font-size:0.8rem; color:#cbd5e1;">Imię i nazwisko technika:</label>
+        <input id="editUserNameInput" placeholder="np. Jan Kowalski">
+      </div>
+
+      <div class="grid" style="margin-top:8px;">
+        <div class="entry-modal-field">
+          <label style="font-size:0.8rem; color:#cbd5e1;">Rola w systemie:</label>
+          <select id="editUserRoleSelect">
+            <option value="technician" selected>Technik (Własne godziny & serwis)</option>
+            <option value="admin">Administrator (Pełne uprawnienia)</option>
+          </select>
+        </div>
+        <div class="entry-modal-field">
+          <label style="font-size:0.8rem; color:#cbd5e1;">Osobisty kod PIN:</label>
+          <input id="editUserPinInput" placeholder="np. 4 cyfry" value="1234">
+        </div>
+      </div>
+
+      <div style="margin-top:10px; background:#0d182b; padding:10px; border-radius:4px; border:1px solid #23385d;">
+        <b style="font-size:0.8rem; color:#fbbf24;">Uprawnienia dodatkowe:</b>
+        <div style="margin-top:6px; display:flex; flex-direction:column; gap:4px; font-size:0.78rem; color:#cbd5e1;">
+          <label><input type="checkbox" id="permEditTemplates" style="width:auto;"> Może modyfikować szablony maszyn</label>
+          <label><input type="checkbox" id="permDeleteOrders" style="width:auto;"> Może usuwać zlecenia</label>
+          <label><input type="checkbox" id="permViewAllTimes" style="width:auto;"> Może przeglądać godziny innych techników</label>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+        <button class="btn btn-gray" onclick="closeModal('modalEditUser')">Anuluj</button>
+        <button class="btn btn-green" onclick="saveUserToFirestore()">Zapisz pracownika</button>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: NOWY / EDYCJA WPISU CZASU PRACY / ANREISE / ABREISE (ZEITNACHWEIS) -->
   <div class="modal-overlay" id="modalAddZeitEntry">
@@ -513,100 +670,6 @@
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
         <button class="btn btn-gray" onclick="closeModal('modalAddZeitEntry')">Anuluj</button>
         <button class="btn btn-green" onclick="saveZeitEntry()">Zapisz zmiany</button>
-      </div>
-    </div>
-  </div>
-
-  
-  <!-- MODAL: DODANIE MODUŁU NA STAŁE W OTWARTYM ZLECENIU I SZABLONIE -->
-  <div class="modal-overlay" id="modalAddModToOrderAndTemplate">
-    <div class="modal-window" style="max-width:540px;">
-      <h3 style="color:#38bdf8; margin-bottom:8px;">➕ Dodaj Moduł do Zlecenia i Maszyny</h3>
-      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:10px;">
-        Ten moduł zostanie dodany do <b>bieżącego zlecenia</b> oraz <b>zapisany na stałe w kartotece maszyny</b> w Katalogu Danych. Każde kolejne zlecenie będzie go już zawierało.
-      </p>
-      
-      <div class="entry-modal-field">
-        <label style="font-size:0.8rem; color:#cbd5e1;">Nazwa nowego modułu:</label>
-        <input id="newModOrderName" placeholder="np. Magazynek 3, Stacja zgrzewania, F304...">
-      </div>
-
-      <div class="entry-modal-field" style="margin-top:8px;">
-        <label style="font-size:0.8rem; color:#cbd5e1;">Punkty kontrolne (każda linijka to jedno zadanie):</label>
-        <textarea id="newModOrderTasks" style="height:110px;" placeholder="1. Sprawdź luz i napięcie łańcucha&#10;2. Kontrola wycieków pneumatyki&#10;3. Czyszczenie i smarowanie"></textarea>
-      </div>
-
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px; border-top:1px solid #23385d; padding-top:10px;">
-        <button class="btn btn-gray" onclick="closeModal('modalAddModToOrderAndTemplate')">Anuluj</button>
-        <button class="btn btn-green" onclick="executeAddModuleToOrderAndTemplate()">Zapisz moduł na stałe</button>
-      </div>
-    </div>
-  </div>
-
-  
-  <!-- MODAL: ZARZĄDZANIE PRACOWNIKAMI I UPRAWNIENIAMI (TYLKO DLA ADMINA) -->
-  <div class="modal-overlay" id="modalManageUsers">
-    <div class="modal-window" style="max-width:720px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #23385d; padding-bottom:8px; margin-bottom:12px;">
-        <div>
-          <h3 style="color:#38bdf8; margin:0;">👥 Zarządzanie Pracownikami & Uprawnieniami</h3>
-          <span style="font-size:0.75rem; color:#94a3b8;">Administrator przydziela uprawnienia i kontroluje dostęp</span>
-        </div>
-        <button class="btn btn-green" style="padding:3px 8px; font-size:0.75rem;" onclick="openAddNewUserPrompt()">+ Dodaj pracownika</button>
-      </div>
-
-      <div class="modal-scrollable" style="max-height:360px;">
-        <table class="table-custom">
-          <thead>
-            <tr><th>Pracownik</th><th>Rola</th><th>Kod PIN</th><th>Uprawnienia</th><th>Akcja</th></tr>
-          </thead>
-          <tbody id="usersManagementTableBody"></tbody>
-        </table>
-      </div>
-
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px; border-top:1px solid #23385d; padding-top:10px;">
-        <button class="btn btn-gray" onclick="closeModal('modalManageUsers')">Zamknij</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: NOWY PRACOWNIK / EDYCJA -->
-  <div class="modal-overlay" id="modalEditUser">
-    <div class="modal-window" style="max-width:440px;">
-      <h3 style="color:#38bdf8; margin-bottom:8px;" id="editUserModalTitle">Dodaj Pracownika</h3>
-      <input type="hidden" id="editUserDocId">
-
-      <div class="entry-modal-field">
-        <label style="font-size:0.8rem; color:#cbd5e1;">Imię i nazwisko technika:</label>
-        <input id="editUserNameInput" placeholder="np. Jan Kowalski">
-      </div>
-
-      <div class="grid" style="margin-top:8px;">
-        <div class="entry-modal-field">
-          <label style="font-size:0.8rem; color:#cbd5e1;">Rola w systemie:</label>
-          <select id="editUserRoleSelect">
-            <option value="technician" selected>Technik (Własne godziny & serwis)</option>
-            <option value="admin">Administrator (Pełne uprawnienia)</option>
-          </select>
-        </div>
-        <div class="entry-modal-field">
-          <label style="font-size:0.8rem; color:#cbd5e1;">Osobisty kod PIN:</label>
-          <input id="editUserPinInput" placeholder="np. 4 cyfry" value="1234">
-        </div>
-      </div>
-
-      <div style="margin-top:10px; background:#0d182b; padding:10px; border-radius:4px; border:1px solid #23385d;">
-        <b style="font-size:0.8rem; color:#fbbf24;">Uprawnienia dodatkowe:</b>
-        <div style="margin-top:6px; display:flex; flex-direction:column; gap:4px; font-size:0.78rem; color:#cbd5e1;">
-          <label><input type="checkbox" id="permEditTemplates" style="width:auto;"> Może modyfikować szablony maszyn</label>
-          <label><input type="checkbox" id="permDeleteOrders" style="width:auto;"> Może usuwać zlecenia</label>
-          <label><input type="checkbox" id="permViewAllTimes" style="width:auto;"> Może przeglądać godziny innych techników</label>
-        </div>
-      </div>
-
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
-        <button class="btn btn-gray" onclick="closeModal('modalEditUser')">Anuluj</button>
-        <button class="btn btn-green" onclick="saveUserToFirestore()">Zapisz pracownika</button>
       </div>
     </div>
   </div>
@@ -811,12 +874,10 @@
     let currentUserId = localStorage.getItem('serwismaster_active_user_id') || '';
     let tempDefects = [];
     let currentZeitMonthDate = new Date();
-    let currentMonthViewDate = new Date();
     
     let currentAdminPassword = "1234";
     let pendingAuthAction = null;
 
-    // POBIERZ AKTUALNEGO ZALOGOWANEGO UŻYTKOWNIKA
     function getActiveUser() {
       return users.find(u => u.id === currentUserId) || users.find(u => u.role === 'admin') || {
         name: 'Arkadiusz Zimochod',
@@ -845,21 +906,29 @@
       localStorage.setItem('serwismaster_active_user_id', currentUserId);
       updateActiveUserDropdown();
       renderZeitnachweisView();
+      renderDashboardOverview();
     }
 
     function updateActiveUserDropdown() {
       const sel = document.getElementById('activeUserSelector');
-      if (!sel) return;
-      sel.innerHTML = '';
-      users.forEach(u => {
-        const isSel = (u.id === currentUserId);
-        sel.innerHTML += `<option value="${u.id}" ${isSel ? 'selected' : ''}>${u.name} (${u.role === 'admin' ? 'Admin' : 'Technik'})</option>`;
-      });
+      const adminMenu = document.getElementById('adminMenuDropdownWrapper');
+      const curUser = getActiveUser();
 
-      // Zaktualizuj też filtr w Karcie Czasu Pracy
+      if (sel) {
+        sel.innerHTML = '';
+        users.forEach(u => {
+          const isSel = (u.id === currentUserId);
+          sel.innerHTML += `<option value="${u.id}" ${isSel ? 'selected' : ''}>${u.name} (${u.role === 'admin' ? 'Admin' : 'Technik'})</option>`;
+        });
+      }
+
+      // Ukryj menu admina jeśli użytkownik to nie admin
+      if (adminMenu) {
+        adminMenu.style.display = (curUser.role === 'admin') ? 'inline-block' : 'none';
+      }
+
       const filterSel = document.getElementById('zeitTechFilterSelect');
       const filterBox = document.getElementById('zeitTechnicianFilterBox');
-      const curUser = getActiveUser();
 
       if (filterSel) {
         const prevVal = filterSel.value;
@@ -870,205 +939,33 @@
         filterSel.value = prevVal || 'ALL';
       }
 
-      // Jeśli zwykły technik bez uprawnień, ukryj filtr innych i wymuś jego profil
       if (filterBox) {
-        if (curUser.role !== 'admin' && !curUser.permViewAllTimes) {
-          filterBox.style.display = 'none';
-        } else {
-          filterBox.style.display = 'flex';
-        }
+        filterBox.style.display = (curUser.role === 'admin' || curUser.permViewAllTimes) ? 'flex' : 'none';
       }
     }
 
     // ==========================================
-    // 1. DODAWANIE MODUŁU NA STAŁE W OTWARTYM ZLECENIU I SZABLONIE
+    // 1. ZMIANA KLIENTA (Z NATYCHMIASTOWYM CZYSZCZENIEM EKRANU ZLECENIA)
     // ==========================================
-    function handleAddModuleToActiveOrderAuth() {
-      if (!currentOrderId) return;
-      const o = activeOrders.find(x => x.id === currentOrderId);
-      if (o.status === 'done') return alert('Zlecenie jest zamknięte!');
-
-      requireAuth('🔒 Dodanie Modułu na Stałe', 'Dopisanie modułu na stałe do maszyny wymaga hasła autoryzacji:', () => {
-        document.getElementById('newModOrderName').value = '';
-        document.getElementById('newModOrderTasks').value = '';
-        openModal('modalAddModToOrderAndTemplate');
-      });
-    }
-
-    function executeAddModuleToOrderAndTemplate() {
-      const modName = document.getElementById('newModOrderName').value.trim();
-      const rawTasks = document.getElementById('newModOrderTasks').value.trim();
-
-      if (!modName) return alert('Wpisz nazwę modułu!');
-      if (!rawTasks) return alert('Wpisz przynajmniej jeden punkt kontrolny!');
-
-      const lines = rawTasks.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      const o = activeOrders.find(x => x.id === currentOrderId);
-      let items = o.items || [];
-
-      // Dopisanie do bieżącego zlecenia
-      lines.forEach(line => {
-        items.push({
-          group: modName,
-          text: line,
-          done: false,
-          photos: [],
-          note: '',
-          parts: [],
-          defects: []
-        });
-      });
-
-      // 1. Zapisz w bieżącym zleceniu
-      db.collection("active_orders").doc(currentOrderId).update({ items }).then(() => {
-        // 2. Dopisujemy TRWALE do szablonu maszyny w `templates`!
-        if (o.machine) {
-          const tpl = templates.find(t => t.machine === o.machine);
-          if (tpl) {
-            let tplItems = tpl.items || [];
-            lines.forEach(line => {
-              tplItems.push({
-                group: modName,
-                text: line,
-                done: false,
-                photos: [],
-                note: '',
-                parts: [],
-                defects: []
-              });
-            });
-            db.collection("templates").doc(tpl.id).update({ items: tplItems });
-          }
-        }
-        closeModal('modalAddModToOrderAndTemplate');
-        alert(`Moduł "${modName}" został pomyślnie dodany do tego zlecenia oraz na stałe do kartoteki maszyny!`);
-      });
-    }
-
-    // ==========================================
-    // 2. ZARZĄDZANIE PRACOWNIKAMI I UPRAWNIENIAMI
-    // ==========================================
-    function handleOpenManageUsersAuth() {
-      const curUser = getActiveUser();
-      if (curUser.role !== 'admin') {
-        requireAuth('🔒 Panel Administratora', 'Dostęp do zarządzania zespołem wymaga hasła:', () => {
-          renderUsersManagementTable();
-          openModal('modalManageUsers');
-        });
-      } else {
-        renderUsersManagementTable();
-        openModal('modalManageUsers');
-      }
-    }
-
-    function renderUsersManagementTable() {
-      const tb = document.getElementById('usersManagementTableBody');
-      if (!tb) return;
-      tb.innerHTML = '';
-
-      users.forEach(u => {
-        const perms = [];
-        if (u.role === 'admin') perms.push('<span style="color:#fbbf24; font-weight:bold;">Pełne prawa administratora</span>');
-        else {
-          if (u.permEditTemplates) perms.push('Edycja maszyn');
-          if (u.permDeleteOrders) perms.push('Usuwanie zleceń');
-          if (u.permViewAllTimes) perms.push('Podgląd godzin innych');
-          if (!perms.length) perms.push('Standardowe (własne godziny i zlecenia)');
-        }
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><b>${u.name}</b></td>
-          <td><span class="badge-status ${u.role === 'admin' ? 'active' : 'done'}">${u.role === 'admin' ? 'ADMIN' : 'TECHNIK'}</span></td>
-          <td><code>${u.pin || '----'}</code></td>
-          <td style="font-size:0.75rem; color:#94a3b8;">${perms.join(', ')}</td>
-          <td>
-            <button class="btn btn-amber" style="padding:1px 6px; font-size:0.7rem;" onclick="openEditUserModal('${u.id}')">✏️</button>
-            ${u.role !== 'admin' ? `<button class="btn btn-del" style="padding:1px 6px; font-size:0.7rem;" onclick="deleteUserFromFirestore('${u.id}')">✕</button>` : ''}
-          </td>
-        `;
-        tb.appendChild(tr);
-      });
-    }
-
-    function openAddNewUserPrompt() {
-      document.getElementById('editUserDocId').value = '';
-      document.getElementById('editUserModalTitle').innerText = 'Dodaj Nowego Pracownika';
-      document.getElementById('editUserNameInput').value = '';
-      document.getElementById('editUserRoleSelect').value = 'technician';
-      document.getElementById('editUserPinInput').value = '1234';
-      document.getElementById('permEditTemplates').checked = false;
-      document.getElementById('permDeleteOrders').checked = false;
-      document.getElementById('permViewAllTimes').checked = false;
-      openModal('modalEditUser');
-    }
-
-    function openEditUserModal(id) {
-      const u = users.find(x => x.id === id);
-      if (!u) return;
-
-      document.getElementById('editUserDocId').value = u.id;
-      document.getElementById('editUserModalTitle').innerText = `Edycja Pracownika: ${u.name}`;
-      document.getElementById('editUserNameInput').value = u.name || '';
-      document.getElementById('editUserRoleSelect').value = u.role || 'technician';
-      document.getElementById('editUserPinInput').value = u.pin || '1234';
-      document.getElementById('permEditTemplates').checked = !!u.permEditTemplates;
-      document.getElementById('permDeleteOrders').checked = !!u.permDeleteOrders;
-      document.getElementById('permViewAllTimes').checked = !!u.permViewAllTimes;
-      openModal('modalEditUser');
-    }
-
-    function saveUserToFirestore() {
-      const docId = document.getElementById('editUserDocId').value;
-      const name = document.getElementById('editUserNameInput').value.trim();
-      const role = document.getElementById('editUserRoleSelect').value;
-      const pin = document.getElementById('editUserPinInput').value.trim() || '1234';
-      const permEditTemplates = document.getElementById('permEditTemplates').checked;
-      const permDeleteOrders = document.getElementById('permDeleteOrders').checked;
-      const permViewAllTimes = document.getElementById('permViewAllTimes').checked;
-
-      if (!name) return alert('Wpisz imię i nazwisko pracownika!');
-
-      const payload = {
-        name: name,
-        role: role,
-        pin: pin,
-        permEditTemplates: permEditTemplates,
-        permDeleteOrders: permDeleteOrders,
-        permViewAllTimes: permViewAllTimes,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      };
-
-      if (docId) {
-        db.collection("users").doc(docId).update(payload).then(() => {
-          closeModal('modalEditUser');
-          renderUsersManagementTable();
-        });
-      } else {
-        payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-        db.collection("users").add(payload).then(() => {
-          closeModal('modalEditUser');
-          renderUsersManagementTable();
-        });
-      }
-    }
-
-    function deleteUserFromFirestore(id) {
-      if (confirm('Czy na pewno chcesz usunąć tego pracownika z systemu?')) {
-        db.collection("users").doc(id).delete().then(() => {
-          renderUsersManagementTable();
-        });
-      }
-    }
-
-
     function onGlobalClientChanged(cId) {
       selectedClientId = cId;
       localStorage.setItem('serwismaster_active_client_id', cId);
       currentClientId = cId;
+
+      // KLUCZOWA POPRAWKA: Jeśli otwarte zlecenie nie należy do nowo wybranego klienta, ZAMKNIJ JE Z GŁÓWNEGO EKRANU!
+      if (currentOrderId) {
+        const openedOrder = activeOrders.find(o => o.id === currentOrderId);
+        const curClientObj = clients.find(c => c.id === cId);
+        if (openedOrder && curClientObj && openedOrder.client !== curClientObj.name && openedOrder.clientId !== cId) {
+          currentOrderId = null;
+          document.getElementById('activeOrderView').style.display = 'none';
+          document.getElementById('orderEmptyState').style.display = 'block';
+        }
+      }
+
       filterOrdersList();
       renderDashboardProblems();
-      renderMonthCalendar();
+      renderDashboardOverview();
       if (document.getElementById('viewData').style.display !== 'none') {
         selectClientInData(cId);
       }
@@ -1092,7 +989,6 @@
       }
     }
 
-    // OFICJALNE NIEMIECKIE STAWKI DIET BMF DLA PRACOWNIKÓW (WYPŁACANE W EURO €)
     const BMF_DIET_RATES_EUR = {
       DE: { name: "Niemcy", part: 14.00, full: 28.00 },
       CH: { name: "Szwajcaria", part: 43.00, full: 64.00 },
@@ -1114,32 +1010,108 @@
     }
 
     function switchTab(t) {
+      document.getElementById('viewDash').style.display = t === 'dash' ? 'flex' : 'none';
       document.getElementById('viewOrders').style.display = t === 'orders' ? 'flex' : 'none';
       document.getElementById('viewZeit').style.display = t === 'zeit' ? 'flex' : 'none';
-      document.getElementById('viewCalendar').style.display = t === 'calendar' ? 'flex' : 'none';
       document.getElementById('viewData').style.display = t === 'data' ? 'flex' : 'none';
-      document.getElementById('viewDash').style.display = t === 'dash' ? 'flex' : 'none';
       document.getElementById('viewParts').style.display = t === 'parts' ? 'block' : 'none';
 
+      document.getElementById('btnTabDash').className = 'tab-btn' + (t === 'dash' ? ' active' : '');
       document.getElementById('btnTabOrders').className = 'tab-btn' + (t === 'orders' ? ' active' : '');
       document.getElementById('btnTabZeit').className = 'tab-btn' + (t === 'zeit' ? ' active' : '');
-      document.getElementById('btnTabCalendar').className = 'tab-btn' + (t === 'calendar' ? ' active' : '');
       document.getElementById('btnTabData').className = 'tab-btn' + (t === 'data' ? ' active' : '');
-      document.getElementById('btnTabDash').className = 'tab-btn' + (t === 'dash' ? ' active' : '');
       document.getElementById('btnTabParts').className = 'tab-btn' + (t === 'parts' ? ' active' : '');
 
+      if (t === 'dash') {
+        renderDashboardOverview();
+        renderDashboardProblems();
+      }
+      if (t === 'orders') filterOrdersList();
       if (t === 'zeit') renderZeitnachweisView();
-      if (t === 'calendar') renderMonthCalendar();
-      if (t === 'dash') renderDashboardProblems();
       if (t === 'data' && selectedClientId) selectClientInData(selectedClientId);
     }
 
-        // NASŁUCHIWANIE BAZY UŻYTKOWNIKÓW / PRACOWNIKÓW
+    // ==========================================
+    // 0. NOWOCZESNY DASHBOARD Z WYKRESEM OKRĘGOWYM (DONUT)
+    // ==========================================
+    function renderDashboardOverview() {
+      const activeClient = clients.find(c => c.id === selectedClientId);
+      const titleElem = document.getElementById('dashClientTitle');
+      if (titleElem) {
+        titleElem.innerText = activeClient ? `${activeClient.name} (${activeClient.location || ''})` : 'Wszyscy Klienci';
+      }
+
+      // Maszyny wybranego klienta
+      const clientTpls = templates.filter(t => !selectedClientId || t.clientId === selectedClientId);
+      document.getElementById('dashKpiMachinesCount').innerText = clientTpls.length;
+
+      // Zlecenia wybranego klienta
+      const clientOrders = activeOrders.filter(o => {
+        if (selectedClientId && o.clientId && o.clientId !== selectedClientId) return false;
+        if (activeClient && !o.clientId && o.client && o.client !== activeClient.name) return false;
+        return true;
+      });
+
+      const activeOrdCount = clientOrders.filter(o => o.status !== 'done').length;
+      const doneOrdCount = clientOrders.filter(o => o.status === 'done').length;
+      document.getElementById('dashKpiActiveOrders').innerText = activeOrdCount;
+      document.getElementById('dashKpiDoneOrders').innerText = doneOrdCount;
+
+      // Punkty kontrolne, usterki i statusy
+      let totalTasks = 0;
+      let okCount = 0;
+      let openCount = 0;
+      let defectsCount = 0;
+
+      clientOrders.forEach(ord => {
+        (ord.items || []).forEach(it => {
+          totalTasks++;
+          const defs = it.defects || [];
+          const hasOpenDefects = defs.some(d => d.status !== 'resolved');
+          
+          if (it.done) {
+            okCount++;
+          } else if (hasOpenDefects) {
+            defectsCount++;
+          } else {
+            openCount++;
+          }
+        });
+      });
+
+      document.getElementById('dashKpiOpenDefects').innerText = defectsCount;
+      document.getElementById('donutTotalTasksNum').innerText = totalTasks;
+      document.getElementById('dashLegendOk').innerText = okCount;
+      document.getElementById('dashLegendOpen').innerText = openCount;
+      document.getElementById('dashLegendDefects').innerText = defectsCount;
+
+      // Rysowanie wykresu pierścieniowego SVG (obwód r=70 to ~440px)
+      const circumference = 2 * Math.PI * 70; // ~439.8
+      if (totalTasks === 0) {
+        document.getElementById('donutCircleOk').setAttribute('stroke-dasharray', `0 ${circumference}`);
+        document.getElementById('donutCircleDefect').setAttribute('stroke-dasharray', `0 ${circumference}`);
+        document.getElementById('donutCircleOpen').setAttribute('stroke-dasharray', `0 ${circumference}`);
+      } else {
+        const okLen = (okCount / totalTasks) * circumference;
+        const defLen = (defectsCount / totalTasks) * circumference;
+        const openLen = (openCount / totalTasks) * circumference;
+
+        document.getElementById('donutCircleOk').setAttribute('stroke-dasharray', `${okLen} ${circumference}`);
+        document.getElementById('donutCircleOk').setAttribute('stroke-dashoffset', `0`);
+
+        document.getElementById('donutCircleDefect').setAttribute('stroke-dasharray', `${defLen} ${circumference}`);
+        document.getElementById('donutCircleDefect').setAttribute('stroke-dashoffset', `${-okLen}`);
+
+        document.getElementById('donutCircleOpen').setAttribute('stroke-dasharray', `${openLen} ${circumference}`);
+        document.getElementById('donutCircleOpen').setAttribute('stroke-dashoffset', `${-(okLen + defLen)}`);
+      }
+    }
+
+    // NASŁUCHIWANIE BAZY
     db.collection("users").orderBy("name").onSnapshot(snap => {
       users = [];
       snap.forEach(d => users.push({ id: d.id, ...d.data() }));
       if (users.length === 0) {
-        // Inicjalizacja domyślnych pracowników
         db.collection("users").add({
           name: "Arkadiusz Zimochod",
           role: "admin",
@@ -1163,6 +1135,7 @@
       }
       updateActiveUserDropdown();
       renderZeitnachweisView();
+      renderDashboardOverview();
     });
 
     db.collection("settings").doc("security").onSnapshot(doc => {
@@ -1175,25 +1148,24 @@
       clients = [];
       snap.forEach(d => clients.push({ id: d.id, ...d.data() }));
       updateGlobalClientDropdown();
-      renderClientsList();
       updateDispatchClientsDropdown();
-      if (selectedClientId) {
-        filterOrdersList();
-        renderDashboardProblems();
-        renderMonthCalendar();
-      }
+      filterOrdersList();
+      renderDashboardOverview();
+      renderDashboardProblems();
     });
 
     db.collection("templates").orderBy("createdAt", "desc").onSnapshot(snap => {
       templates = [];
       snap.forEach(d => templates.push({ id: d.id, ...d.data() }));
       if (currentClientId) renderClientTemplates(currentClientId);
+      renderDashboardOverview();
     });
 
     db.collection("active_orders").orderBy("createdAt", "desc").onSnapshot(snap => {
       activeOrders = [];
       snap.forEach(d => activeOrders.push({ id: d.id, ...d.data() }));
       filterOrdersList();
+      renderDashboardOverview();
       renderDashboardProblems();
       if (currentOrderId) loadActiveOrder(currentOrderId);
     });
@@ -1287,6 +1259,7 @@
       const activeClient = clients.find(c => c.id === selectedClientId);
       const sideClientLbl = document.getElementById('sidebarClientNameDisplay');
       if (sideClientLbl) sideClientLbl.innerText = activeClient ? activeClient.name : 'Wszyscy';
+      
       const filtered = activeOrders.filter(o => {
         if (selectedClientId && o.clientId && o.clientId !== selectedClientId) return false;
         if (activeClient && !o.clientId && o.client && o.client !== activeClient.name) return false;
@@ -1298,7 +1271,7 @@
       });
 
       if (!filtered.length) {
-        sb.innerHTML = '<div style="color:#64748b; font-size:0.8rem; text-align:center; padding:12px;">Brak zleceń maszyn.</div>';
+        sb.innerHTML = '<div style="color:#64748b; font-size:0.8rem; text-align:center; padding:12px;">Brak zleceń w tej kategorii.</div>';
         return;
       }
 
@@ -1367,23 +1340,34 @@
       filterOrdersList();
     }
 
+    // KLUCZOWA POPRAWKA ZAKOŃCZENIA: ZLECENIE NATYCHMIAST ZNIKA Z GŁÓWNEGO EKRANU!
     function handleToggleOrderStatusClick() {
       if (!currentOrderId) return;
       const o = activeOrders.find(x => x.id === currentOrderId);
+      
       if (o.status === 'done') {
         requireAuth('🔓 Odblokowanie zlecenia', 'Zlecenie jest zamknięte. Wpisz hasło autoryzacji:', () => {
           db.collection("active_orders").doc(currentOrderId).update({ status: 'active' });
         });
       } else {
-        if (confirm("Czy na pewno chcesz zamknąć to zlecenie? Wszystkie otwarte wady (Restarbeit) przejdą automatycznie do historii tej maszyny i pojawią się w kolejnym zleceniu.")) {
-          // Synchronizuj niezamknięte wady z szablonem maszyny
+        if (confirm("Czy na pewno chcesz zamknąć to zlecenie? Zostanie ono przeniesione do zakończonych, a otwarte wady przejdą do kartoteki maszyny.")) {
           syncUnresolvedDefectsToMachineTemplate(o);
-          db.collection("active_orders").doc(currentOrderId).update({ status: 'done' });
+          
+          db.collection("active_orders").doc(currentOrderId).update({ status: 'done' }).then(() => {
+            // Natychmiast zdejmij z głównego ekranu roboczego, jeśli filtr to 'active'
+            const curFilter = document.getElementById('orderStatusFilter').value;
+            if (curFilter === 'active') {
+              currentOrderId = null;
+              document.getElementById('activeOrderView').style.display = 'none';
+              document.getElementById('orderEmptyState').style.display = 'block';
+            }
+            filterOrdersList();
+            renderDashboardOverview();
+          });
         }
       }
     }
 
-    // PRZENIESIENIE OTWARTEJ WADY DO KARTOTEKI MASZYNY
     function syncUnresolvedDefectsToMachineTemplate(order) {
       if (!order.machine || !order.items) return;
       const tpl = templates.find(t => t.machine === order.machine);
@@ -1453,7 +1437,7 @@
     }
 
     // ==========================================
-    // CHECKLISTA: ROZWIĄZANA USTERKA CAŁKOWICIE ZNIKA Z EKRANU ROBOCZEGO
+    // CHECKLISTA: ROZWIĄZANA USTERKA ZNIKA Z EKRANU ROBOCZEGO
     // ==========================================
     function toggleTaskDone(idx) {
       const o = activeOrders.find(x => x.id === currentOrderId);
@@ -1802,6 +1786,8 @@
       sel.innerHTML = '';
       clients.forEach(c => sel.innerHTML += `<option value="${c.name}">${c.name} (${c.location||''})</option>`);
       document.getElementById('zeDate').value = new Date().toISOString().split('T')[0];
+      const curUser = getActiveUser();
+      document.getElementById('zeTechnician').value = curUser.name || 'Arkadiusz Zimochod';
       document.getElementById('zeDesc').value = 'Prace konserwacyjne / Przegląd maszyny';
       document.getElementById('zeStart').value = '06:00';
       document.getElementById('zeEnd').value = '15:45';
@@ -1813,7 +1799,6 @@
       openModal('modalAddZeitEntry');
     }
 
-    // EDYCJA ISTNIEJĄCEGO WPISU CZASU (BEZ KASOWANIA!)
     function openEditZeitEntryModal(id) {
       const ent = zeitEntries.find(z => z.id === id);
       if (!ent) return;
@@ -1837,7 +1822,6 @@
       
       updateDietRatesDisplay();
 
-      // Ustaw radio diety
       if (ent.dietAmount === 28.00 || (ent.dietType && ent.dietType.includes('Pełna'))) {
         document.getElementById('radioDietFull').checked = true;
       } else if (ent.dietAmount === 14.00 || (ent.dietType && ent.dietType.includes('Częściowa'))) {
@@ -1882,7 +1866,6 @@
       const countryCode = document.getElementById('zeCountry').value;
       const kw = getWeekNumber(new Date(date)).week;
 
-      // OBLICZENIE DIETY W EURO DLA TEGO WPISU WEDŁUG KRAJU
       const dietRadio = document.querySelector('input[name="zeDietRadio"]:checked').value;
       const cData = BMF_DIET_RATES_EUR[countryCode] || BMF_DIET_RATES_EUR.DE;
       let chosenDietAmount = 0;
@@ -1918,13 +1901,11 @@
       };
 
       if (editingId) {
-        // EDYCJA ISTNIEJĄCEGO WPISU
         db.collection("zeitnachweis").doc(editingId).update(payload).then(() => {
           closeModal('modalAddZeitEntry');
           renderZeitnachweisView();
         });
       } else {
-        // NOWY WPIS
         payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
         db.collection("zeitnachweis").add(payload).then(() => {
           closeModal('modalAddZeitEntry');
@@ -1943,13 +1924,25 @@
       const monthNamesPl = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
       document.getElementById('zeitMonthDisplayTitle').innerText = `⏱️ Karta Czasu Pracy & Diety: ${monthNamesPl[month]} ${year}`;
 
+      const curUser = getActiveUser();
+      const techFilter = document.getElementById('zeitTechFilterSelect') ? document.getElementById('zeitTechFilterSelect').value : 'ALL';
+
       const monthEntries = zeitEntries.filter(z => {
         if (!z.date) return false;
         const d = new Date(z.date);
-        return d.getFullYear() === year && d.getMonth() === month;
+        if (d.getFullYear() !== year || d.getMonth() !== month) return false;
+
+        if (curUser.role !== 'admin' && !curUser.permViewAllTimes) {
+          return z.technician === curUser.name;
+        }
+
+        if (techFilter !== 'ALL' && z.technician !== techFilter) {
+          return false;
+        }
+
+        return true;
       });
 
-      // GRUPOWANIE PO DNIACH (DLA JEDNEJ DIETY NA DOBĘ)
       const daysGrouped = {};
       monthEntries.forEach(item => {
         if (!daysGrouped[item.date]) {
@@ -2055,86 +2048,9 @@
     }
 
     // ==========================================
-    // 3. KALENDARZ MIESIĘCZNY (OD 1 DO 31)
-    // ==========================================
-    function changeMonthView(delta) {
-      currentMonthViewDate.setMonth(currentMonthViewDate.getMonth() + delta);
-      renderMonthCalendar();
-    }
-
-    function renderMonthCalendar() {
-      const grid = document.getElementById('monthCalendarCellsGrid');
-      if (!grid) return;
-      grid.innerHTML = '';
-
-      const year = currentMonthViewDate.getFullYear();
-      const month = currentMonthViewDate.getMonth();
-      const monthNamesPl = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
-      document.getElementById('calMonthViewTitle').innerText = `Miesiąc: ${monthNamesPl[month]} ${year}`;
-
-      const firstDay = new Date(year, month, 1);
-      const lastDay = new Date(year, month + 1, 0);
-      const daysCount = lastDay.getDate();
-
-      let startDayOfWeek = firstDay.getDay() - 1;
-      if (startDayOfWeek === -1) startDayOfWeek = 6;
-
-      for (let i = 0; i < startDayOfWeek; i++) {
-        const emptyCell = document.createElement('div');
-        emptyCell.style.background = 'transparent';
-        grid.appendChild(emptyCell);
-      }
-
-      const today = new Date();
-      const isCurMonth = today.getFullYear() === year && today.getMonth() === month;
-
-      for (let day = 1; day <= daysCount; day++) {
-        const dObj = new Date(year, month, day);
-        const dayOfWeekIndex = (dObj.getDay() + 6) % 7;
-        const isWeekend = dayOfWeekIndex === 5 || dayOfWeekIndex === 6;
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const isToday = isCurMonth && today.getDate() === day;
-
-        const cell = document.createElement('div');
-        cell.className = 'month-day-cell' + (isToday ? ' today' : (isWeekend ? ' weekend' : ''));
-
-        const activeClient = clients.find(c => c.id === selectedClientId);
-        const dayOrders = activeOrders.filter(o => {
-          if (o.date !== dateStr) return false;
-          if (selectedClientId && o.clientId && o.clientId !== selectedClientId) return false;
-          if (activeClient && !o.clientId && o.client && o.client !== activeClient.name) return false;
-          return true;
-        });
-        let eventsHtml = '';
-        dayOrders.forEach(ord => {
-          const isDone = ord.status === 'done';
-          const cls = isDone ? 'month-day-event done' : 'month-day-event';
-          eventsHtml += `
-            <div class="${cls}" onclick="switchTab('orders'); loadActiveOrder('${ord.id}');">
-              ${isDone ? '✓ ' : ''}${ord.client}: ${ord.machine || ord.title}
-            </div>
-          `;
-        });
-
-        cell.innerHTML = `
-          <div class="month-day-header">
-            <span>Dzień ${day}</span>
-            <span style="color:#38bdf8;">${dayOrders.length ? dayOrders.length + ' zlec.' : ''}</span>
-          </div>
-          <div style="flex:1; overflow-y:auto;">${eventsHtml}</div>
-        `;
-        grid.appendChild(cell);
-      }
-    }
-
-    // ==========================================
-    // 4. KATALOG DANYCH: MODYFIKACJA MASZYN I MODUŁÓW PO AUTORYZACJI
+    // 3. KATALOG DANYCH: MODYFIKACJA MASZYN I MODUŁÓW PO AUTORYZACJI
     // ==========================================
     let editorModCount = 0;
-
-    function renderClientsList() {
-      // Lista boczna usunięta - korzystamy wyłącznie z selektora u góry
-    }
 
     function selectClientInData(id) {
       currentClientId = id;
@@ -2336,17 +2252,6 @@
       db.collection("clients").add({ name, location: loc });
     }
 
-    function deleteClientDirect(id) {
-      if (!confirm('Usunąć tego Klienta z katalogu?')) return;
-      db.collection("clients").doc(id).delete().then(() => {
-        if (currentClientId === id) {
-          currentClientId = null;
-          document.getElementById('dataClientView').style.display = 'none';
-          document.getElementById('dataClientViewEmpty').style.display = 'block';
-        }
-      });
-    }
-
     function deleteTemplate(id) {
       if (!confirm('Usunąć ten szablon z katalogu?')) return;
       db.collection("templates").doc(id).delete();
@@ -2450,6 +2355,10 @@
 
     function openOrderDispatchModal() {
       updateDispatchClientsDropdown();
+      if (selectedClientId) {
+        document.getElementById('dispatchClientSelect').value = selectedClientId;
+        loadTemplatesForDispatch(selectedClientId);
+      }
       document.getElementById('dispatchOrderNum').value = generateNextOrderNumber();
       const todayStr = new Date().toISOString().split('T')[0];
       document.getElementById('dispatchOrderDate').value = todayStr;
@@ -2463,7 +2372,8 @@
       const tId = document.getElementById('dispatchTemplateSelect').value;
       const orderNum = document.getElementById('dispatchOrderNum').value.trim() || generateNextOrderNumber();
       const orderDate = document.getElementById('dispatchOrderDate').value || new Date().toISOString().split('T')[0];
-      const tech = document.getElementById('dispatchTechnician').value.trim() || 'Arkadiusz Zimochod';
+      const curUser = getActiveUser();
+      const tech = curUser.name || 'Arkadiusz Zimochod';
       if (!cId || !tId) return alert('Wybierz klienta i maszynę!');
 
       const client = clients.find(x => x.id === cId);
@@ -2473,7 +2383,6 @@
       const clonedItems = JSON.parse(JSON.stringify(template.items || []));
       clonedItems.forEach(it => { 
         it.done = false; 
-        // Jeśli w szablonie były oczekujące usterki z poprzedniego serwisu, przenieś je!
         it.defects = it.pendingDefects ? JSON.parse(JSON.stringify(it.pendingDefects)) : [];
         it.photos = []; 
         it.parts = []; 
@@ -2515,6 +2424,7 @@
       const autoNum = generateNextOrderNumber();
       const todayStr = new Date().toISOString().split('T')[0];
       const kwInfo = getWeekNumber(new Date(todayStr));
+      const curUser = getActiveUser();
 
       db.collection("active_orders").add({
         type: "service",
@@ -2527,7 +2437,7 @@
         date: todayStr,
         kw: kwInfo.week,
         year: kwInfo.year,
-        technician: 'Arkadiusz Zimochod',
+        technician: curUser.name || 'Arkadiusz Zimochod',
         specialNotes: "",
         items: clonedItems,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -2688,7 +2598,7 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
               <td>${isResolved ? '<span style="color:#10b981; font-weight:bold;">🟢 Rozwiązana</span>' : '<span style="color:#ef4444; font-weight:bold;">🔴 Wymaga naprawy</span>'}</td>
-              <td><b>${o.client}</b><br><small style="color:#94a3b8;">${o.machine}</small></td>
+              <td><b>${o.machine || o.title}</b></td>
               <td>${it.text}</td>
               <td style="color:#fbbf24; font-weight:600;">${df.desc || '-'}</td>
               <td><b>${df.rest || '-'}</b></td>
@@ -2704,11 +2614,10 @@
       });
 
       if (!tbody.children.length) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#64748b; padding:14px;">Brak usterek.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#64748b; padding:14px;">Brak usterek dla tego klienta.</td></tr>';
       }
     }
 
-    // BEZPOŚREDNIE PRZEJŚCIE Z TABELI USTEREK DO TRÓJKĄTA
     function jumpDirectToProblemModal(orderId, taskIdx) {
       switchTab('orders');
       loadActiveOrder(orderId);
