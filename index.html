@@ -42,8 +42,8 @@
     .card.is-active { border-left: 4px solid #38bdf8; }
     .card-del-btn { position: absolute; top: 6px; right: 6px; background: #ef4444; color: #fff; border: none; width: 20px; height: 20px; border-radius: 3px; cursor: pointer; font-weight: bold; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; }
 
-    .box { background: #152238; border: 1px solid #23385d; border-radius: 6px; padding: 16px; margin-bottom: 14px; }
-    .box h3 { color: #38bdf8; font-size: 0.95rem; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .box { background: #152238; border: 1px solid #2a4365; border-radius: 8px; padding: 18px; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); }
+    .box h3 { color: #38bdf8; font-size: 1rem; font-weight: 700; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e355b; padding-bottom: 8px; }
     input, select, textarea { width: 100%; background: #0c1527; border: 1px solid #283e66; color: #fff; padding: 7px 10px; border-radius: 4px; margin-top: 4px; font-size: 0.88rem; }
     input:disabled, select:disabled, textarea:disabled { background: #1e293b; color: #94a3b8; cursor: not-allowed; border-color: #334155; }
     textarea { height: 75px; resize: vertical; }
@@ -319,28 +319,26 @@
     <div class="month-calendar-grid" id="monthCalendarCellsGrid"></div>
   </div>
 
-  <!-- ==================== 4. WIDOK: KATALOG DANYCH (PEŁNA EDYCJA MODUŁÓW PO HASLE) ==================== -->
-  <div id="viewData" class="view-container" style="display:none;">
-    <div class="sidebar no-print">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <b style="font-size:0.85rem; color:#94a3b8;">KLIENCI / ZAKŁADY:</b>
-        <button class="btn btn-green" style="padding:2px 8px; font-size:0.75rem;" onclick="addNewClientPrompt()">+ Dodaj Klienta</button>
-      </div>
-      <div id="clientsListSidebar"></div>
-    </div>
-    <div class="content">
-      <div id="dataClientViewEmpty" style="text-align:center; margin-top:120px; color:#94a3b8;">
-        <h2>Wybierz Klienta z lewego menu, aby modyfikować katalog jego maszyn i modułów</h2>
-      </div>
-      <div id="dataClientView" style="display:none; max-width:980px; margin:0 auto;">
-        <div class="box">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="margin:0;">Katalog Maszyn: <span id="dataActiveClientName" style="color:#fff;"></span></h3>
-            <button class="btn btn-purple" onclick="openTemplateCreatorModal()">+ Utwórz nowy szablon maszyny</button>
+  <!-- ==================== 4. WIDOK: KATALOG DANYCH (CZYSTY, PEŁNOEKRANOWY WIDOK MASZYN I MODUŁÓW) ==================== -->
+  <div id="viewData" class="view-container" style="display:none; flex-direction:column; padding:18px; overflow-y:auto;">
+    <div style="max-width:1150px; margin:0 auto; width:100%;">
+      <div class="box" style="margin-bottom:14px; border:1px solid #334155; background:#16243d;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div>
+            <div style="font-size:0.75rem; color:#94a3b8; font-weight:bold; text-transform:uppercase;">KATALOG MASZYN I LINII PRODUKCYJNYCH DLA:</div>
+            <h2 id="dataActiveClientName" style="color:#38bdf8; font-size:1.35rem; margin-top:2px;">Wybierz klienta u góry</h2>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-green" onclick="addNewClientPrompt()">+ Dodaj nowego klienta / zakład</button>
+            <button class="btn btn-purple" onclick="openTemplateCreatorModal()">+ Dodaj maszynę do tego klienta</button>
           </div>
         </div>
-        <div id="clientTemplatesContainer"></div>
       </div>
+
+      <div id="dataClientViewEmpty" style="text-align:center; margin-top:60px; color:#94a3b8; display:none;">
+        <h3>Brak wybranego klienta. Wybierz zakład z listy rozwijanej u góry strony.</h3>
+      </div>
+      <div id="clientTemplatesContainer"></div>
     </div>
   </div>
 
@@ -1739,32 +1737,22 @@
     let editorModCount = 0;
 
     function renderClientsList() {
-      const box = document.getElementById('clientsListSidebar');
-      if (!box) return;
-      box.innerHTML = '';
-      clients.forEach(c => {
-        const div = document.createElement('div');
-        div.className = 'card ' + (c.id === currentClientId ? 'act' : '');
-        div.onclick = () => selectClientInData(c.id);
-        const count = templates.filter(t => t.clientId === c.id).length;
-        div.innerHTML = `
-          <button class="card-del-btn" title="Usuń klienta" onclick="event.stopPropagation(); deleteClientDirect('${c.id}')">✕</button>
-          <b>${c.name}</b>
-          <div style="font-size:0.75rem; color:#94a3b8; margin-top:2px;">${c.location || ''} &bull; ${count} maszyn</div>
-        `;
-        box.appendChild(div);
-      });
+      // Lista boczna usunięta - korzystamy wyłącznie z selektora u góry
     }
 
     function selectClientInData(id) {
       currentClientId = id;
       const c = clients.find(x => x.id === id);
-      if (!c) return;
-      document.getElementById('dataClientViewEmpty').style.display = 'none';
-      document.getElementById('dataClientView').style.display = 'block';
-      document.getElementById('dataActiveClientName').innerText = `${c.name} (${c.location || ''})`;
+      const emptyBox = document.getElementById('dataClientViewEmpty');
+      const titleElem = document.getElementById('dataActiveClientName');
+      if (!c) {
+        if (emptyBox) emptyBox.style.display = 'block';
+        if (titleElem) titleElem.innerText = 'Wybierz klienta u góry';
+        return;
+      }
+      if (emptyBox) emptyBox.style.display = 'none';
+      if (titleElem) titleElem.innerText = `${c.name} (${c.location || ''})`;
       renderClientTemplates(id);
-      renderClientsList();
     }
 
     function renderClientTemplates(clientId) {
