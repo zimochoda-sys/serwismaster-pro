@@ -175,8 +175,8 @@
 
       <!-- ROZWIJANE SUBMENU DLA ADMINISTRATORA -->
       <div class="admin-menu-dropdown" id="adminMenuDropdownWrapper">
-        <button class="btn btn-gray" style="padding:4px 8px; font-size:0.78rem;">⚙️ Admin ▼</button>
-        <div class="admin-menu-content">
+        <button class="btn btn-gray" style="padding:4px 8px; font-size:0.78rem;" onclick="toggleAdminMenu(event)">⚙️ Admin ▼</button>
+        <div class="admin-menu-content" id="adminMenuContentDropdown">
           <button onclick="handleOpenManageUsersAuth()">👥 Zespół & Uprawnienia</button>
           <button onclick="addNewClientPrompt()">🏢 Dodaj nowego klienta</button>
           <button onclick="openPasswordSettingsModal()">🔑 Zmień hasło główne</button>
@@ -447,9 +447,10 @@
             <div style="font-size:0.75rem; color:#94a3b8; font-weight:bold; text-transform:uppercase;">KATALOG MASZYN I LINII PRODUKCYJNYCH DLA:</div>
             <h2 id="dataActiveClientName" style="color:#38bdf8; font-size:1.35rem; margin-top:2px;">Wybierz klienta u góry</h2>
           </div>
-          <div style="display:flex; gap:8px;">
-            <button class="btn btn-green" onclick="addNewClientPrompt()">+ Dodaj nowego klienta / zakład</button>
-            <button class="btn btn-purple" onclick="openTemplateCreatorModal()">+ Dodaj maszynę do tego klienta</button>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-amber" onclick="openEditClientModal()">✏️ Zmień nazwę / dane klienta</button>
+            <button class="btn btn-green" onclick="addNewClientPrompt()">+ Dodaj nowego klienta</button>
+            <button class="btn btn-purple" onclick="openTemplateCreatorModal()">+ Dodaj maszynę do klienta</button>
           </div>
         </div>
       </div>
