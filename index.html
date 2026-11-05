@@ -151,12 +151,17 @@
       <button class="tab-btn" id="btnTabParts" onclick="switchTab('parts')">📦 Magazyn Części</button>
     </div>
     <div style="display:flex; gap:8px; align-items:center;">
-      <div style="display:flex; align-items:center; gap:6px; background:#0d182b; padding:3px 10px; border-radius:4px; border:1px solid #283e66;">
+      <div style="display:flex; align-items:center; gap:6px; background:#0d182b; padding:3px 8px; border-radius:4px; border:1px solid #283e66;">
         <span style="font-size:0.75rem; color:#94a3b8; font-weight:bold;">🏢 Klient:</span>
         <select id="globalClientSelector" onchange="onGlobalClientChanged(this.value)" style="background:transparent; border:none; color:#38bdf8; font-weight:bold; font-size:0.82rem; margin:0; padding:2px; cursor:pointer; outline:none;"></select>
       </div>
+      <div style="display:flex; align-items:center; gap:6px; background:#0d182b; padding:3px 8px; border-radius:4px; border:1px solid #283e66;">
+        <span style="font-size:0.75rem; color:#94a3b8; font-weight:bold;">👤 Użytkownik:</span>
+        <select id="activeUserSelector" onchange="onSwitchActiveUser(this.value)" style="background:transparent; border:none; color:#10b981; font-weight:bold; font-size:0.82rem; margin:0; padding:2px; cursor:pointer; outline:none;"></select>
+      </div>
+      <button class="btn btn-purple" style="padding:4px 8px; font-size:0.75rem;" onclick="handleOpenManageUsersAuth()" title="Zarządzanie pracownikami i uprawnieniami">👥 Zespół</button>
       <button class="btn btn-gray" style="padding:4px 8px; font-size:0.75rem;" onclick="openPasswordSettingsModal()">🔑 Hasło</button>
-      <button class="btn btn-purple" onclick="openOrderDispatchModal()">+ Wystaw zlecenie</button>
+      <button class="btn btn-purple" onclick="openOrderDispatchModal()">+ Zlecenie</button>
     </div>
   </header>
 
@@ -221,9 +226,14 @@
         <!-- LISTA KONTROLNA -->
         <div id="serviceChecklistSection">
           <div class="box">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <h3 style="margin:0;">Protokół Punktów Kontrolnych</h3>
-              <span style="font-size:0.75rem; color:#f59e0b; font-weight:600;">🔒 Lista bieżąca (edycja szablonu w Katalogu Danych)</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+              <div>
+                <h3 style="margin:0;">Protokół Punktów Kontrolnych</h3>
+                <span style="font-size:0.75rem; color:#94a3b8;">Odznaczaj punkty, zgłaszaj usterki ⚠️ lub dodaj nowy moduł</span>
+              </div>
+              <div class="no-print">
+                <button class="btn btn-amber" style="padding:4px 10px; font-size:0.75rem;" onclick="handleAddModuleToActiveOrderAuth()">➕ Dodaj moduł na stałe (Hasło)</button>
+              </div>
             </div>
             <div style="margin-top:10px;">
               <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
@@ -260,7 +270,13 @@
             </div>
           </div>
 
-          <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div id="zeitTechnicianFilterBox" style="display:flex; align-items:center; gap:6px; background:#0d182b; padding:4px 8px; border-radius:4px; border:1px solid #1c2e4d;">
+              <span style="font-size:0.75rem; color:#94a3b8; font-weight:bold;">Filtr technika:</span>
+              <select id="zeitTechFilterSelect" onchange="renderZeitnachweisView()" style="background:transparent; border:none; color:#38bdf8; font-size:0.8rem; margin:0; padding:0; cursor:pointer; outline:none;">
+                <option value="ALL">Wszyscy pracownicy</option>
+              </select>
+            </div>
             <button class="btn btn-purple" onclick="openAddDayEntryModal()">+ Dodaj czynność (Anreise / Praca / Abreise)</button>
           </div>
         </div>
@@ -501,6 +517,100 @@
     </div>
   </div>
 
+  
+  <!-- MODAL: DODANIE MODUŁU NA STAŁE W OTWARTYM ZLECENIU I SZABLONIE -->
+  <div class="modal-overlay" id="modalAddModToOrderAndTemplate">
+    <div class="modal-window" style="max-width:540px;">
+      <h3 style="color:#38bdf8; margin-bottom:8px;">➕ Dodaj Moduł do Zlecenia i Maszyny</h3>
+      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:10px;">
+        Ten moduł zostanie dodany do <b>bieżącego zlecenia</b> oraz <b>zapisany na stałe w kartotece maszyny</b> w Katalogu Danych. Każde kolejne zlecenie będzie go już zawierało.
+      </p>
+      
+      <div class="entry-modal-field">
+        <label style="font-size:0.8rem; color:#cbd5e1;">Nazwa nowego modułu:</label>
+        <input id="newModOrderName" placeholder="np. Magazynek 3, Stacja zgrzewania, F304...">
+      </div>
+
+      <div class="entry-modal-field" style="margin-top:8px;">
+        <label style="font-size:0.8rem; color:#cbd5e1;">Punkty kontrolne (każda linijka to jedno zadanie):</label>
+        <textarea id="newModOrderTasks" style="height:110px;" placeholder="1. Sprawdź luz i napięcie łańcucha&#10;2. Kontrola wycieków pneumatyki&#10;3. Czyszczenie i smarowanie"></textarea>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px; border-top:1px solid #23385d; padding-top:10px;">
+        <button class="btn btn-gray" onclick="closeModal('modalAddModToOrderAndTemplate')">Anuluj</button>
+        <button class="btn btn-green" onclick="executeAddModuleToOrderAndTemplate()">Zapisz moduł na stałe</button>
+      </div>
+    </div>
+  </div>
+
+  
+  <!-- MODAL: ZARZĄDZANIE PRACOWNIKAMI I UPRAWNIENIAMI (TYLKO DLA ADMINA) -->
+  <div class="modal-overlay" id="modalManageUsers">
+    <div class="modal-window" style="max-width:720px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #23385d; padding-bottom:8px; margin-bottom:12px;">
+        <div>
+          <h3 style="color:#38bdf8; margin:0;">👥 Zarządzanie Pracownikami & Uprawnieniami</h3>
+          <span style="font-size:0.75rem; color:#94a3b8;">Administrator przydziela uprawnienia i kontroluje dostęp</span>
+        </div>
+        <button class="btn btn-green" style="padding:3px 8px; font-size:0.75rem;" onclick="openAddNewUserPrompt()">+ Dodaj pracownika</button>
+      </div>
+
+      <div class="modal-scrollable" style="max-height:360px;">
+        <table class="table-custom">
+          <thead>
+            <tr><th>Pracownik</th><th>Rola</th><th>Kod PIN</th><th>Uprawnienia</th><th>Akcja</th></tr>
+          </thead>
+          <tbody id="usersManagementTableBody"></tbody>
+        </table>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px; border-top:1px solid #23385d; padding-top:10px;">
+        <button class="btn btn-gray" onclick="closeModal('modalManageUsers')">Zamknij</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NOWY PRACOWNIK / EDYCJA -->
+  <div class="modal-overlay" id="modalEditUser">
+    <div class="modal-window" style="max-width:440px;">
+      <h3 style="color:#38bdf8; margin-bottom:8px;" id="editUserModalTitle">Dodaj Pracownika</h3>
+      <input type="hidden" id="editUserDocId">
+
+      <div class="entry-modal-field">
+        <label style="font-size:0.8rem; color:#cbd5e1;">Imię i nazwisko technika:</label>
+        <input id="editUserNameInput" placeholder="np. Jan Kowalski">
+      </div>
+
+      <div class="grid" style="margin-top:8px;">
+        <div class="entry-modal-field">
+          <label style="font-size:0.8rem; color:#cbd5e1;">Rola w systemie:</label>
+          <select id="editUserRoleSelect">
+            <option value="technician" selected>Technik (Własne godziny & serwis)</option>
+            <option value="admin">Administrator (Pełne uprawnienia)</option>
+          </select>
+        </div>
+        <div class="entry-modal-field">
+          <label style="font-size:0.8rem; color:#cbd5e1;">Osobisty kod PIN:</label>
+          <input id="editUserPinInput" placeholder="np. 4 cyfry" value="1234">
+        </div>
+      </div>
+
+      <div style="margin-top:10px; background:#0d182b; padding:10px; border-radius:4px; border:1px solid #23385d;">
+        <b style="font-size:0.8rem; color:#fbbf24;">Uprawnienia dodatkowe:</b>
+        <div style="margin-top:6px; display:flex; flex-direction:column; gap:4px; font-size:0.78rem; color:#cbd5e1;">
+          <label><input type="checkbox" id="permEditTemplates" style="width:auto;"> Może modyfikować szablony maszyn</label>
+          <label><input type="checkbox" id="permDeleteOrders" style="width:auto;"> Może usuwać zlecenia</label>
+          <label><input type="checkbox" id="permViewAllTimes" style="width:auto;"> Może przeglądać godziny innych techników</label>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+        <button class="btn btn-gray" onclick="closeModal('modalEditUser')">Anuluj</button>
+        <button class="btn btn-green" onclick="saveUserToFirestore()">Zapisz pracownika</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: ZMIANA HASŁA -->
   <div class="modal-overlay" id="modalChangePassword">
     <div class="modal-window" style="max-width:420px;">
@@ -695,14 +805,262 @@
     const db = firebase.firestore();
 
     let clients = [], templates = [], activeOrders = [], parts = [], zeitEntries = [];
+    let users = [];
     let currentOrderId = null, currentClientId = null, activeTaskIdx = null;
     let selectedClientId = localStorage.getItem('serwismaster_active_client_id') || '';
+    let currentUserId = localStorage.getItem('serwismaster_active_user_id') || '';
     let tempDefects = [];
     let currentZeitMonthDate = new Date();
     let currentMonthViewDate = new Date();
     
     let currentAdminPassword = "1234";
     let pendingAuthAction = null;
+
+    // POBIERZ AKTUALNEGO ZALOGOWANEGO UŻYTKOWNIKA
+    function getActiveUser() {
+      return users.find(u => u.id === currentUserId) || users.find(u => u.role === 'admin') || {
+        name: 'Arkadiusz Zimochod',
+        role: 'admin',
+        pin: '1234',
+        permEditTemplates: true,
+        permDeleteOrders: true,
+        permViewAllTimes: true
+      };
+    }
+
+    function onSwitchActiveUser(uId) {
+      const targetUser = users.find(u => u.id === uId);
+      if (!targetUser) return;
+
+      if (targetUser.role === 'admin' || targetUser.pin) {
+        const enteredPin = prompt(`Podaj kod PIN dla ${targetUser.name}:`);
+        if (enteredPin !== targetUser.pin && enteredPin !== currentAdminPassword) {
+          alert('Nieprawidłowy kod PIN!');
+          updateActiveUserDropdown();
+          return;
+        }
+      }
+
+      currentUserId = targetUser.id;
+      localStorage.setItem('serwismaster_active_user_id', currentUserId);
+      updateActiveUserDropdown();
+      renderZeitnachweisView();
+    }
+
+    function updateActiveUserDropdown() {
+      const sel = document.getElementById('activeUserSelector');
+      if (!sel) return;
+      sel.innerHTML = '';
+      users.forEach(u => {
+        const isSel = (u.id === currentUserId);
+        sel.innerHTML += `<option value="${u.id}" ${isSel ? 'selected' : ''}>${u.name} (${u.role === 'admin' ? 'Admin' : 'Technik'})</option>`;
+      });
+
+      // Zaktualizuj też filtr w Karcie Czasu Pracy
+      const filterSel = document.getElementById('zeitTechFilterSelect');
+      const filterBox = document.getElementById('zeitTechnicianFilterBox');
+      const curUser = getActiveUser();
+
+      if (filterSel) {
+        const prevVal = filterSel.value;
+        filterSel.innerHTML = '<option value="ALL">Wszyscy pracownicy</option>';
+        users.forEach(u => {
+          filterSel.innerHTML += `<option value="${u.name}">${u.name}</option>`;
+        });
+        filterSel.value = prevVal || 'ALL';
+      }
+
+      // Jeśli zwykły technik bez uprawnień, ukryj filtr innych i wymuś jego profil
+      if (filterBox) {
+        if (curUser.role !== 'admin' && !curUser.permViewAllTimes) {
+          filterBox.style.display = 'none';
+        } else {
+          filterBox.style.display = 'flex';
+        }
+      }
+    }
+
+    // ==========================================
+    // 1. DODAWANIE MODUŁU NA STAŁE W OTWARTYM ZLECENIU I SZABLONIE
+    // ==========================================
+    function handleAddModuleToActiveOrderAuth() {
+      if (!currentOrderId) return;
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      if (o.status === 'done') return alert('Zlecenie jest zamknięte!');
+
+      requireAuth('🔒 Dodanie Modułu na Stałe', 'Dopisanie modułu na stałe do maszyny wymaga hasła autoryzacji:', () => {
+        document.getElementById('newModOrderName').value = '';
+        document.getElementById('newModOrderTasks').value = '';
+        openModal('modalAddModToOrderAndTemplate');
+      });
+    }
+
+    function executeAddModuleToOrderAndTemplate() {
+      const modName = document.getElementById('newModOrderName').value.trim();
+      const rawTasks = document.getElementById('newModOrderTasks').value.trim();
+
+      if (!modName) return alert('Wpisz nazwę modułu!');
+      if (!rawTasks) return alert('Wpisz przynajmniej jeden punkt kontrolny!');
+
+      const lines = rawTasks.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      let items = o.items || [];
+
+      // Dopisanie do bieżącego zlecenia
+      lines.forEach(line => {
+        items.push({
+          group: modName,
+          text: line,
+          done: false,
+          photos: [],
+          note: '',
+          parts: [],
+          defects: []
+        });
+      });
+
+      // 1. Zapisz w bieżącym zleceniu
+      db.collection("active_orders").doc(currentOrderId).update({ items }).then(() => {
+        // 2. Dopisujemy TRWALE do szablonu maszyny w `templates`!
+        if (o.machine) {
+          const tpl = templates.find(t => t.machine === o.machine);
+          if (tpl) {
+            let tplItems = tpl.items || [];
+            lines.forEach(line => {
+              tplItems.push({
+                group: modName,
+                text: line,
+                done: false,
+                photos: [],
+                note: '',
+                parts: [],
+                defects: []
+              });
+            });
+            db.collection("templates").doc(tpl.id).update({ items: tplItems });
+          }
+        }
+        closeModal('modalAddModToOrderAndTemplate');
+        alert(`Moduł "${modName}" został pomyślnie dodany do tego zlecenia oraz na stałe do kartoteki maszyny!`);
+      });
+    }
+
+    // ==========================================
+    // 2. ZARZĄDZANIE PRACOWNIKAMI I UPRAWNIENIAMI
+    // ==========================================
+    function handleOpenManageUsersAuth() {
+      const curUser = getActiveUser();
+      if (curUser.role !== 'admin') {
+        requireAuth('🔒 Panel Administratora', 'Dostęp do zarządzania zespołem wymaga hasła:', () => {
+          renderUsersManagementTable();
+          openModal('modalManageUsers');
+        });
+      } else {
+        renderUsersManagementTable();
+        openModal('modalManageUsers');
+      }
+    }
+
+    function renderUsersManagementTable() {
+      const tb = document.getElementById('usersManagementTableBody');
+      if (!tb) return;
+      tb.innerHTML = '';
+
+      users.forEach(u => {
+        const perms = [];
+        if (u.role === 'admin') perms.push('<span style="color:#fbbf24; font-weight:bold;">Pełne prawa administratora</span>');
+        else {
+          if (u.permEditTemplates) perms.push('Edycja maszyn');
+          if (u.permDeleteOrders) perms.push('Usuwanie zleceń');
+          if (u.permViewAllTimes) perms.push('Podgląd godzin innych');
+          if (!perms.length) perms.push('Standardowe (własne godziny i zlecenia)');
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><b>${u.name}</b></td>
+          <td><span class="badge-status ${u.role === 'admin' ? 'active' : 'done'}">${u.role === 'admin' ? 'ADMIN' : 'TECHNIK'}</span></td>
+          <td><code>${u.pin || '----'}</code></td>
+          <td style="font-size:0.75rem; color:#94a3b8;">${perms.join(', ')}</td>
+          <td>
+            <button class="btn btn-amber" style="padding:1px 6px; font-size:0.7rem;" onclick="openEditUserModal('${u.id}')">✏️</button>
+            ${u.role !== 'admin' ? `<button class="btn btn-del" style="padding:1px 6px; font-size:0.7rem;" onclick="deleteUserFromFirestore('${u.id}')">✕</button>` : ''}
+          </td>
+        `;
+        tb.appendChild(tr);
+      });
+    }
+
+    function openAddNewUserPrompt() {
+      document.getElementById('editUserDocId').value = '';
+      document.getElementById('editUserModalTitle').innerText = 'Dodaj Nowego Pracownika';
+      document.getElementById('editUserNameInput').value = '';
+      document.getElementById('editUserRoleSelect').value = 'technician';
+      document.getElementById('editUserPinInput').value = '1234';
+      document.getElementById('permEditTemplates').checked = false;
+      document.getElementById('permDeleteOrders').checked = false;
+      document.getElementById('permViewAllTimes').checked = false;
+      openModal('modalEditUser');
+    }
+
+    function openEditUserModal(id) {
+      const u = users.find(x => x.id === id);
+      if (!u) return;
+
+      document.getElementById('editUserDocId').value = u.id;
+      document.getElementById('editUserModalTitle').innerText = `Edycja Pracownika: ${u.name}`;
+      document.getElementById('editUserNameInput').value = u.name || '';
+      document.getElementById('editUserRoleSelect').value = u.role || 'technician';
+      document.getElementById('editUserPinInput').value = u.pin || '1234';
+      document.getElementById('permEditTemplates').checked = !!u.permEditTemplates;
+      document.getElementById('permDeleteOrders').checked = !!u.permDeleteOrders;
+      document.getElementById('permViewAllTimes').checked = !!u.permViewAllTimes;
+      openModal('modalEditUser');
+    }
+
+    function saveUserToFirestore() {
+      const docId = document.getElementById('editUserDocId').value;
+      const name = document.getElementById('editUserNameInput').value.trim();
+      const role = document.getElementById('editUserRoleSelect').value;
+      const pin = document.getElementById('editUserPinInput').value.trim() || '1234';
+      const permEditTemplates = document.getElementById('permEditTemplates').checked;
+      const permDeleteOrders = document.getElementById('permDeleteOrders').checked;
+      const permViewAllTimes = document.getElementById('permViewAllTimes').checked;
+
+      if (!name) return alert('Wpisz imię i nazwisko pracownika!');
+
+      const payload = {
+        name: name,
+        role: role,
+        pin: pin,
+        permEditTemplates: permEditTemplates,
+        permDeleteOrders: permDeleteOrders,
+        permViewAllTimes: permViewAllTimes,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      if (docId) {
+        db.collection("users").doc(docId).update(payload).then(() => {
+          closeModal('modalEditUser');
+          renderUsersManagementTable();
+        });
+      } else {
+        payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        db.collection("users").add(payload).then(() => {
+          closeModal('modalEditUser');
+          renderUsersManagementTable();
+        });
+      }
+    }
+
+    function deleteUserFromFirestore(id) {
+      if (confirm('Czy na pewno chcesz usunąć tego pracownika z systemu?')) {
+        db.collection("users").doc(id).delete().then(() => {
+          renderUsersManagementTable();
+        });
+      }
+    }
+
 
     function onGlobalClientChanged(cId) {
       selectedClientId = cId;
@@ -775,6 +1133,37 @@
       if (t === 'dash') renderDashboardProblems();
       if (t === 'data' && selectedClientId) selectClientInData(selectedClientId);
     }
+
+        // NASŁUCHIWANIE BAZY UŻYTKOWNIKÓW / PRACOWNIKÓW
+    db.collection("users").orderBy("name").onSnapshot(snap => {
+      users = [];
+      snap.forEach(d => users.push({ id: d.id, ...d.data() }));
+      if (users.length === 0) {
+        // Inicjalizacja domyślnych pracowników
+        db.collection("users").add({
+          name: "Arkadiusz Zimochod",
+          role: "admin",
+          pin: "1234",
+          permEditTemplates: true,
+          permDeleteOrders: true,
+          permViewAllTimes: true
+        });
+        db.collection("users").add({
+          name: "Lukas Goldbach",
+          role: "technician",
+          pin: "0000",
+          permEditTemplates: false,
+          permDeleteOrders: false,
+          permViewAllTimes: false
+        });
+      }
+      if (!currentUserId && users.length) {
+        currentUserId = users[0].id;
+        localStorage.setItem('serwismaster_active_user_id', currentUserId);
+      }
+      updateActiveUserDropdown();
+      renderZeitnachweisView();
+    });
 
     db.collection("settings").doc("security").onSnapshot(doc => {
       if (doc.exists && doc.data().adminPassword) {
