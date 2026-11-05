@@ -147,7 +147,11 @@
       <button class="tab-btn" id="btnTabDash" onclick="switchTab('dash')">📊 Usterki & Restarbeit</button>
       <button class="tab-btn" id="btnTabParts" onclick="switchTab('parts')">📦 Magazyn Części</button>
     </div>
-    <div style="display:flex; gap:6px; align-items:center;">
+    <div style="display:flex; gap:8px; align-items:center;">
+      <div style="display:flex; align-items:center; gap:6px; background:#0d182b; padding:3px 10px; border-radius:4px; border:1px solid #283e66;">
+        <span style="font-size:0.75rem; color:#94a3b8; font-weight:bold;">🏢 Klient:</span>
+        <select id="globalClientSelector" onchange="onGlobalClientChanged(this.value)" style="background:transparent; border:none; color:#38bdf8; font-weight:bold; font-size:0.82rem; margin:0; padding:2px; cursor:pointer; outline:none;"></select>
+      </div>
       <button class="btn btn-gray" style="padding:4px 8px; font-size:0.75rem;" onclick="openPasswordSettingsModal()">🔑 Hasło</button>
       <button class="btn btn-purple" onclick="openOrderDispatchModal()">+ Wystaw zlecenie</button>
     </div>
@@ -688,12 +692,43 @@
 
     let clients = [], templates = [], activeOrders = [], parts = [], zeitEntries = [];
     let currentOrderId = null, currentClientId = null, activeTaskIdx = null;
+    let selectedClientId = localStorage.getItem('serwismaster_active_client_id') || '';
     let tempDefects = [];
     let currentZeitMonthDate = new Date();
     let currentMonthViewDate = new Date();
     
     let currentAdminPassword = "1234";
     let pendingAuthAction = null;
+
+    function onGlobalClientChanged(cId) {
+      selectedClientId = cId;
+      localStorage.setItem('serwismaster_active_client_id', cId);
+      currentClientId = cId;
+      filterOrdersList();
+      renderDashboardProblems();
+      renderMonthCalendar();
+      if (document.getElementById('viewData').style.display !== 'none') {
+        selectClientInData(cId);
+      }
+    }
+
+    function updateGlobalClientDropdown() {
+      const sel = document.getElementById('globalClientSelector');
+      if (!sel) return;
+      sel.innerHTML = '';
+      if (!clients.length) {
+        sel.innerHTML = '<option value="">-- Brak klientów --</option>';
+        return;
+      }
+      clients.forEach(c => {
+        sel.innerHTML += `<option value="${c.id}" ${c.id === selectedClientId ? 'selected' : ''}>${c.name} (${c.location || ''})</option>`;
+      });
+      if (!selectedClientId && clients.length) {
+        selectedClientId = clients[0].id;
+        localStorage.setItem('serwismaster_active_client_id', selectedClientId);
+        sel.value = selectedClientId;
+      }
+    }
 
     // OFICJALNE NIEMIECKIE STAWKI DIET BMF DLA PRACOWNIKÓW (WYPŁACANE W EURO €)
     const BMF_DIET_RATES_EUR = {
@@ -734,6 +769,7 @@
       if (t === 'zeit') renderZeitnachweisView();
       if (t === 'calendar') renderMonthCalendar();
       if (t === 'dash') renderDashboardProblems();
+      if (t === 'data' && selectedClientId) selectClientInData(selectedClientId);
     }
 
     db.collection("settings").doc("security").onSnapshot(doc => {
@@ -745,8 +781,14 @@
     db.collection("clients").orderBy("name").onSnapshot(snap => {
       clients = [];
       snap.forEach(d => clients.push({ id: d.id, ...d.data() }));
+      updateGlobalClientDropdown();
       renderClientsList();
       updateDispatchClientsDropdown();
+      if (selectedClientId) {
+        filterOrdersList();
+        renderDashboardProblems();
+        renderMonthCalendar();
+      }
     });
 
     db.collection("templates").orderBy("createdAt", "desc").onSnapshot(snap => {
@@ -849,7 +891,10 @@
       const query = (document.getElementById('orderSearchInput') ? document.getElementById('orderSearchInput').value : '').toLowerCase();
       const statusFilter = document.getElementById('orderStatusFilter') ? document.getElementById('orderStatusFilter').value : 'active';
 
+      const activeClient = clients.find(c => c.id === selectedClientId);
       const filtered = activeOrders.filter(o => {
+        if (selectedClientId && o.clientId && o.clientId !== selectedClientId) return false;
+        if (activeClient && !o.clientId && o.client && o.client !== activeClient.name) return false;
         const matchesQuery = `${o.orderNum || ''} ${o.client || ''} ${o.machine || ''} ${o.title || ''}`.toLowerCase().includes(query);
         const isDone = o.status === 'done';
         if (statusFilter === 'active' && isDone) return false;
@@ -1659,7 +1704,13 @@
         const cell = document.createElement('div');
         cell.className = 'month-day-cell' + (isToday ? ' today' : (isWeekend ? ' weekend' : ''));
 
-        const dayOrders = activeOrders.filter(o => o.date === dateStr);
+        const activeClient = clients.find(c => c.id === selectedClientId);
+        const dayOrders = activeOrders.filter(o => {
+          if (o.date !== dateStr) return false;
+          if (selectedClientId && o.clientId && o.clientId !== selectedClientId) return false;
+          if (activeClient && !o.clientId && o.client && o.client !== activeClient.name) return false;
+          return true;
+        });
         let eventsHtml = '';
         dayOrders.forEach(ord => {
           const isDone = ord.status === 'done';
@@ -2236,7 +2287,10 @@
       tbody.innerHTML = '';
 
       const filterVal = document.getElementById('dashFilterSelect').value;
+      const activeClient = clients.find(c => c.id === selectedClientId);
       activeOrders.forEach(o => {
+        if (selectedClientId && o.clientId && o.clientId !== selectedClientId) return;
+        if (activeClient && !o.clientId && o.client && o.client !== activeClient.name) return;
         (o.items || []).forEach((it, itIdx) => {
           const defects = it.defects || (it.problem ? [it.problem] : []);
           defects.forEach((df, dfIdx) => {
