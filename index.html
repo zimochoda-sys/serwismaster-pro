@@ -236,20 +236,32 @@
         <div class="box" style="margin-bottom:0; display:flex; flex-direction:column; justify-content:center;">
           <h3 style="margin-bottom:8px;">Zlecenia & Urządzenia</h3>
           <div class="dash-kpi-grid">
-            <div class="dash-kpi-tile">
-              <span class="dash-kpi-tile-lbl">Aktywne zlecenia:</span>
+            <div class="dash-kpi-tile" style="cursor:pointer;" onclick="openOrdersFiltered('active')" title="Kliknij, aby otworzyć aktywne zlecenia">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="dash-kpi-tile-lbl">Aktywne zlecenia:</span>
+                <span style="font-size:0.75rem; color:#38bdf8;">Otwórz ➔</span>
+              </div>
               <span class="dash-kpi-tile-val" style="color:#38bdf8;" id="dashKpiActiveOrders">0</span>
             </div>
-            <div class="dash-kpi-tile">
-              <span class="dash-kpi-tile-lbl">Zakończone serwisy:</span>
+            <div class="dash-kpi-tile" style="cursor:pointer;" onclick="openOrdersFiltered('done')" title="Kliknij, aby otworzyć zakończone serwisy">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="dash-kpi-tile-lbl">Zakończone serwisy:</span>
+                <span style="font-size:0.75rem; color:#10b981;">Otwórz ➔</span>
+              </div>
               <span class="dash-kpi-tile-val" style="color:#10b981;" id="dashKpiDoneOrders">0</span>
             </div>
-            <div class="dash-kpi-tile">
-              <span class="dash-kpi-tile-lbl">Maszyny w katalogu:</span>
+            <div class="dash-kpi-tile" style="cursor:pointer;" onclick="switchTab('data')" title="Kliknij, aby przejść do katalogu maszyn">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="dash-kpi-tile-lbl">Maszyny w katalogu:</span>
+                <span style="font-size:0.75rem; color:#fbbf24;">Otwórz ➔</span>
+              </div>
               <span class="dash-kpi-tile-val" style="color:#fbbf24;" id="dashKpiMachinesCount">0</span>
             </div>
-            <div class="dash-kpi-tile">
-              <span class="dash-kpi-tile-lbl">Otwarte wady (Rest):</span>
+            <div class="dash-kpi-tile" style="cursor:pointer;" onclick="openProblemsFiltered('open')" title="Kliknij, aby zobaczyć otwarte wady">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="dash-kpi-tile-lbl">Otwarte wady (Rest):</span>
+                <span style="font-size:0.75rem; color:#ef4444;">Zobacz ➔</span>
+              </div>
               <span class="dash-kpi-tile-val" style="color:#ef4444;" id="dashKpiOpenDefects">0</span>
             </div>
           </div>
@@ -974,19 +986,15 @@
     function updateGlobalClientDropdown() {
       const sel = document.getElementById('globalClientSelector');
       if (!sel) return;
-      sel.innerHTML = '';
-      if (!clients.length) {
-        sel.innerHTML = '<option value="">-- Brak klientów --</option>';
-        return;
-      }
+      sel.innerHTML = '<option value="ALL">🏢 Wszyscy Klienci</option>';
       clients.forEach(c => {
         sel.innerHTML += `<option value="${c.id}" ${c.id === selectedClientId ? 'selected' : ''}>${c.name} (${c.location || ''})</option>`;
       });
-      if (!selectedClientId && clients.length) {
-        selectedClientId = clients[0].id;
-        localStorage.setItem('serwismaster_active_client_id', selectedClientId);
-        sel.value = selectedClientId;
+      if (!selectedClientId) {
+        selectedClientId = 'ALL';
+        localStorage.setItem('serwismaster_active_client_id', 'ALL');
       }
+      sel.value = selectedClientId;
     }
 
     const BMF_DIET_RATES_EUR = {
@@ -1034,22 +1042,44 @@
     // ==========================================
     // 0. NOWOCZESNY DASHBOARD Z WYKRESEM OKRĘGOWYM (DONUT)
     // ==========================================
+        // KLIKALNE KAFELKI Z DASHBOARDU
+    function openOrdersFiltered(status) {
+      switchTab('orders');
+      const sel = document.getElementById('orderStatusFilter');
+      if (sel) sel.value = status;
+      filterOrdersList();
+    }
+
+    function openProblemsFiltered(status) {
+      switchTab('dash');
+      const sel = document.getElementById('dashFilterSelect');
+      if (sel) sel.value = status;
+      renderDashboardProblems();
+      const table = document.getElementById('dashProblemsTableBody');
+      if (table) table.scrollIntoView({ behavior: 'smooth' });
+    }
+
     function renderDashboardOverview() {
-      const activeClient = clients.find(c => c.id === selectedClientId);
+      const isAll = (!selectedClientId || selectedClientId === 'ALL');
+      const activeClient = isAll ? null : clients.find(c => c.id === selectedClientId);
       const titleElem = document.getElementById('dashClientTitle');
       if (titleElem) {
-        titleElem.innerText = activeClient ? `${activeClient.name} (${activeClient.location || ''})` : 'Wszyscy Klienci';
+        titleElem.innerText = activeClient ? `${activeClient.name} (${activeClient.location || ''})` : 'Wszyscy Klienci (Wszystkie zakłady)';
       }
 
-      // Maszyny wybranego klienta
-      const clientTpls = templates.filter(t => !selectedClientId || t.clientId === selectedClientId);
+      // Maszyny wybranego klienta (lub wszystkich)
+      const clientTpls = templates.filter(t => {
+        if (isAll) return true;
+        return t.clientId === selectedClientId;
+      });
       document.getElementById('dashKpiMachinesCount').innerText = clientTpls.length;
 
-      // Zlecenia wybranego klienta
+      // Zlecenia wybranego klienta (lub wszystkich)
       const clientOrders = activeOrders.filter(o => {
-        if (selectedClientId && o.clientId && o.clientId !== selectedClientId) return false;
-        if (activeClient && !o.clientId && o.client && o.client !== activeClient.name) return false;
-        return true;
+        if (isAll) return true;
+        const matchId = (o.clientId === selectedClientId);
+        const matchName = (activeClient && o.client && o.client.toLowerCase().trim() === activeClient.name.toLowerCase().trim());
+        return matchId || matchName;
       });
 
       const activeOrdCount = clientOrders.filter(o => o.status !== 'done').length;
@@ -1256,19 +1286,36 @@
       const query = (document.getElementById('orderSearchInput') ? document.getElementById('orderSearchInput').value : '').toLowerCase();
       const statusFilter = document.getElementById('orderStatusFilter') ? document.getElementById('orderStatusFilter').value : 'active';
 
-      const activeClient = clients.find(c => c.id === selectedClientId);
+      const activeClient = (selectedClientId && selectedClientId !== 'ALL') ? clients.find(c => c.id === selectedClientId) : null;
       const sideClientLbl = document.getElementById('sidebarClientNameDisplay');
-      if (sideClientLbl) sideClientLbl.innerText = activeClient ? activeClient.name : 'Wszyscy';
+      if (sideClientLbl) sideClientLbl.innerText = activeClient ? activeClient.name : 'Wszyscy Klienci';
       
       const filtered = activeOrders.filter(o => {
-        if (selectedClientId && o.clientId && o.clientId !== selectedClientId) return false;
-        if (activeClient && !o.clientId && o.client && o.client !== activeClient.name) return false;
+        // Filtr klienta: jeśli wybrano konkretnego klienta
+        if (activeClient) {
+          const matchId = (o.clientId === activeClient.id);
+          const matchName = (o.client && o.client.toLowerCase().trim() === activeClient.name.toLowerCase().trim());
+          if (!matchId && !matchName) return false;
+        }
+
         const matchesQuery = `${o.orderNum || ''} ${o.client || ''} ${o.machine || ''} ${o.title || ''}`.toLowerCase().includes(query);
-        const isDone = o.status === 'done';
+        const isDone = (o.status === 'done');
         if (statusFilter === 'active' && isDone) return false;
         if (statusFilter === 'done' && !isDone) return false;
         return matchesQuery;
       });
+
+      // Jeśli aktualnie otwarte zlecenie nie znajduje się na przefiltrowanej liście, zdejmij je z prawego ekranu!
+      if (currentOrderId) {
+        const stillInList = filtered.some(x => x.id === currentOrderId);
+        if (!stillInList) {
+          currentOrderId = null;
+          const v = document.getElementById('activeOrderView');
+          const e = document.getElementById('orderEmptyState');
+          if (v) v.style.display = 'none';
+          if (e) e.style.display = 'block';
+        }
+      }
 
       if (!filtered.length) {
         sb.innerHTML = '<div style="color:#64748b; font-size:0.8rem; text-align:center; padding:12px;">Brak zleceń w tej kategorii.</div>';
@@ -2405,7 +2452,16 @@
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       }).then(docRef => {
         closeModal('modalDispatchOrder');
+        // Synchronizuj aktywnego klienta, aby wystawione zlecenie od razu było widoczne!
+        selectedClientId = cId;
+        localStorage.setItem('serwismaster_active_client_id', cId);
+        const globSel = document.getElementById('globalClientSelector');
+        if (globSel) globSel.value = cId;
+        
         switchTab('orders');
+        const stSel = document.getElementById('orderStatusFilter');
+        if (stSel) stSel.value = 'active';
+        filterOrdersList();
         loadActiveOrder(docRef.id);
       });
     }
