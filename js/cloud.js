@@ -119,6 +119,57 @@ export async function createCloudStore(config) {
       if (!usePhotos || !storage) return Promise.reject(new Error('Zdjęcia wyłączone.'));
       return S.getDownloadURL(S.ref(storage, path));
     },
+    /**
+     * Atomowy zapis dziennika (deterministyczne ID = uid+date+workOrderId).
+     * replace=false: konflikt gdy time lub trip istnieje.
+     * replace=true: update treści szkicu; diet→none = delete trip w tej samej transakcji.
+     * Uwaga: delete+set tego samego ID w batch = update w regułach – dlatego replace time/trip robi update, nie delete+create.
+     * Approved/rejected → Conflict, transakcja bez zmian.
+     */
+    async saveDailySheet({ timeId, timeEntry, tripId = null, trip = null, replace = false }) {
+      if (!timeId || !timeEntry) throw new Error('Brak wpisu czasu.');
+      if (!tripId) throw new Error('Brak tripId (wymagane do atomowego czyszczenia diety).');
+      if (timeEntry.uid !== me.uid) throw new PermissionError('Dieta/czas tylko na własne konto.');
+      if (trip && trip.uid !== me.uid) throw new PermissionError('Dieta tylko na własne konto.');
+      const timeRef = d('timeEntries', timeId);
+      const tripRef = d('trips', tripId);
+      return F.runTransaction(db, async tx => {
+        const curTime = await tx.get(timeRef);
+        const curTrip = await tx.get(tripRef);
+        if (curTime.exists()) {
+          if (curTime.data().uid !== me.uid) throw new PermissionError();
+          if (curTime.data().status !== 'draft') throw new ConflictError('Wpis czasu już zatwierdzony – bez edycji.');
+          if (!replace) throw new ConflictError('Wpis na ten dzień i zlecenie już istnieje (unikaj duplikatu).');
+        }
+        if (curTrip.exists()) {
+          if (curTrip.data().uid !== me.uid) throw new PermissionError();
+          if (!['draft', 'manual_review'].includes(curTrip.data().status)) {
+            throw new ConflictError('Dieta już rozpatrzona – bez edycji.');
+          }
+          if (!replace) throw new ConflictError('Dieta na ten dzień już istnieje (zaznacz Nadpisz szkic).');
+        }
+        if (curTime.exists()) {
+          tx.update(timeRef, {
+            minutes: timeEntry.minutes,
+            note: timeEntry.note || '',
+            kind: timeEntry.kind,
+            date: timeEntry.date,
+          });
+        } else {
+          tx.set(timeRef, { ...timeEntry, createdAt: now() });
+        }
+        if (curTrip.exists()) {
+          if (trip) {
+            tx.update(tripRef, { input: trip.input, calc: trip.calc, status: trip.status });
+          } else {
+            tx.delete(tripRef); // diet → none, atomowo z update czasu
+          }
+        } else if (trip) {
+          tx.set(tripRef, { ...trip, createdAt: now() });
+        }
+        return { timeId, tripId: trip ? tripId : null };
+      });
+    },
     now: () => '__now__',
   };
   function stamp(name) { return ['timeEntries', 'materials', 'trips', 'defects'].includes(name) ? { createdAt: now() } : { updatedAt: now() }; }

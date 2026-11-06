@@ -5,6 +5,9 @@ import { readFileSync } from 'node:fs';
 import { initializeTestEnvironment, assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
 import { doc, getDoc, setDoc, updateDoc, deleteDoc, getDocs, collection, query, where, runTransaction, increment, writeBatch } from 'firebase/firestore';
 import { ref, uploadBytes } from 'firebase/storage';
+import { buildTripInput, hasUndefinedDeep } from '../../js/domain/trip-form.js';
+import { calculateAllowance } from '../../js/domain/allowance.js';
+import { buildDailySheetPayloads } from '../../js/domain/daily-sheet.js';
 
 let env; const T = 'acme', T2 = 'other';
 const p = (...s) => ['tenants', T, ...s].join('/');
@@ -187,4 +190,131 @@ test('technik listFor: zapytanie złożone workOrderId+uid (wymaga indeksu zło�
   await assertSucceeds(getDocs(query(collection(db('tech1'), p('materials')), where('workOrderId', '==', 'o1'), where('uid', '==', 'tech1'))));
   await assertSucceeds(getDocs(query(collection(db('tech1'), p('defects')), where('workOrderId', '==', 'o1'), where('createdBy', '==', 'tech1'))));
   await assertFails(getDocs(query(collection(db('tech2'), p('timeEntries')), where('workOrderId', '==', 'o1'), where('uid', '==', 'tech1'))));
+});
+
+
+test('DE trip bez city: buildTripInput → emulator save (SDK)', async () => {
+  const input = buildTripInput({
+    country: 'DE', city: '', start: '2026-11-02T07:33', end: '2026-11-02T19:34',
+    dayCategory: 'partial_gt8', businessTripEligible: true,
+  });
+  assert.equal('city' in input, false);
+  assert.equal(hasUndefinedDeep(input), null);
+  const calc = calculateAllowance(input);
+  assert.equal(calc.total, 14);
+  const trip = { uid: 'tech1', workOrderId: '', input, calc: { total: calc.total, rate: { full: calc.rate.full, partial: calc.rate.partial } }, status: 'draft' };
+  assert.equal(hasUndefinedDeep(trip), null);
+  await assertSucceeds(setDoc(doc(db('tech1'), p('trips', 'de1')), trip));
+  await assertFails(setDoc(doc(db('tech1'), p('trips', 'de2')), { ...trip, uid: 'tech2' }));
+});
+
+
+
+test('dziennik: batch create time+trip DE bez city (reguły produkcyjne)', async () => {
+  const built = buildDailySheetPayloads({
+    uid: 'tech1', date: '2026-11-06', workOrderId: 'o1',
+    workStart: '08:00', workEnd: '17:00', breakDuration: '01:00',
+    dietMode: 'day_gt8', businessTripEligible: true,
+    absenceStart: '2026-11-06T06:00', absenceEnd: '2026-11-06T16:30',
+    country: 'DE', mealBreakfast: true,
+  });
+  assert.equal(hasUndefinedDeep(built.trip), null);
+  assert.equal('city' in built.trip.input, false);
+  const dbf = db('tech1');
+  const batch = writeBatch(dbf);
+  batch.set(doc(dbf, p('timeEntries', built.timeId)), { ...built.timeEntry, createdAt: new Date().toISOString() });
+  batch.set(doc(dbf, p('trips', built.tripId)), { ...built.trip, createdAt: new Date().toISOString() });
+  await assertSucceeds(batch.commit());
+  await assertFails(setDoc(doc(dbf, p('timeEntries', built.timeId)), { ...built.timeEntry, createdAt: new Date().toISOString() }));
+});
+
+test('dziennik: tech może usunąć własny szkic diety (OPEN order); approved nie', async () => {
+  const built = buildDailySheetPayloads({
+    uid: 'tech1', date: '2026-11-06', workOrderId: 'o1',
+    workStart: '08:00', workEnd: '17:00', breakDuration: '01:00',
+    dietMode: 'day_gt8', businessTripEligible: true,
+    absenceStart: '2026-11-06T06:00', absenceEnd: '2026-11-06T16:30', country: 'DE',
+  });
+  const dbf = db('tech1');
+  await assertSucceeds(setDoc(doc(dbf, p('timeEntries', built.timeId)), { ...built.timeEntry, createdAt: 't' }));
+  await assertSucceeds(setDoc(doc(dbf, p('trips', built.tripId)), { ...built.trip, createdAt: 't' }));
+  await assertSucceeds(deleteDoc(doc(dbf, p('trips', built.tripId))));
+  await assertSucceeds(setDoc(doc(dbf, p('trips', built.tripId)), { ...built.trip, createdAt: 't2' }));
+  // zatwierdzenie przez admina
+  await assertSucceeds(updateDoc(doc(db('admin1'), p('trips', built.tripId)), {
+    status: 'approved', approvedBy: 'admin1', approvedAt: 'now',
+  }));
+  await assertFails(deleteDoc(doc(dbf, p('trips', built.tripId))));
+  // cudzy tech
+  await assertFails(deleteDoc(doc(db('tech2'), p('trips', built.tripId))));
+});
+
+test('dziennik: atomowy replace diet→none (batch); approved blokuje i nic nie zmienia', async () => {
+  const built = buildDailySheetPayloads({
+    uid: 'tech1', date: '2026-11-09', workOrderId: 'o1',
+    workStart: '08:00', workEnd: '17:00', breakDuration: '01:00',
+    dietMode: 'day_gt8', businessTripEligible: true,
+    absenceStart: '2026-11-09T06:00', absenceEnd: '2026-11-09T16:30', country: 'DE',
+  });
+  const dbf = db('tech1');
+  await assertSucceeds(setDoc(doc(dbf, p('timeEntries', built.timeId)), { ...built.timeEntry, createdAt: 't' }));
+  await assertSucceeds(setDoc(doc(dbf, p('trips', built.tripId)), { ...built.trip, createdAt: 't' }));
+  const none = buildDailySheetPayloads({
+    uid: 'tech1', date: '2026-11-09', workOrderId: 'o1',
+    workStart: '09:00', workEnd: '17:00', breakDuration: '00:30', dietMode: 'none',
+  });
+  // Atomowo: update czasu + delete diety (bez delete+set tego samego ID)
+  const batch = writeBatch(dbf);
+  batch.update(doc(dbf, p('timeEntries', built.timeId)), {
+    minutes: none.timeEntry.minutes, note: none.timeEntry.note, kind: 'work', date: none.timeEntry.date,
+  });
+  batch.delete(doc(dbf, p('trips', built.tripId)));
+  await assertSucceeds(batch.commit());
+  await env.withSecurityRulesDisabled(async c => {
+    assert.equal((await getDoc(doc(c.firestore(), p('trips', built.tripId)))).exists(), false);
+    assert.equal((await getDoc(doc(c.firestore(), p('timeEntries', none.timeId)))).data().minutes, none.timeEntry.minutes);
+  });
+
+  await assertSucceeds(setDoc(doc(dbf, p('trips', built.tripId)), { ...built.trip, createdAt: 't4' }));
+  await assertSucceeds(updateDoc(doc(db('admin1'), p('timeEntries', none.timeId)), {
+    status: 'approved', approvedBy: 'admin1', approvedAt: 'now',
+  }));
+  await assertSucceeds(updateDoc(doc(db('admin1'), p('trips', built.tripId)), {
+    status: 'approved', approvedBy: 'admin1', approvedAt: 'now',
+  }));
+  const beforeMin = none.timeEntry.minutes;
+  const bad = writeBatch(dbf);
+  bad.update(doc(dbf, p('timeEntries', none.timeId)), { minutes: 1, note: 'x', kind: 'work', date: none.timeEntry.date });
+  bad.delete(doc(dbf, p('trips', built.tripId)));
+  await assertFails(bad.commit());
+  await env.withSecurityRulesDisabled(async c => {
+    const te = await getDoc(doc(c.firestore(), p('timeEntries', none.timeId)));
+    const tr = await getDoc(doc(c.firestore(), p('trips', built.tripId)));
+    assert.equal(te.data().status, 'approved');
+    assert.equal(te.data().minutes, beforeMin);
+    assert.equal(tr.data().status, 'approved');
+  });
+});
+
+test('dziennik: tech bez przypisania / zamówienie approved – brak delete trip', async () => {
+  await env.withSecurityRulesDisabled(async c => {
+    const dbx = c.firestore();
+    await setDoc(doc(dbx, p('trips', 'tx1')), {
+      uid: 'tech1', workOrderId: 'o2', status: 'draft',
+      input: { country: 'DE', start: '2026-11-01T08:00', end: '2026-11-01T18:00', overnight: false, meals: {}, employeeContribution: {} },
+      calc: { total: 14 }, createdAt: 't',
+    });
+  });
+  // o2 is approved – orderOpen false
+  await assertFails(deleteDoc(doc(db('tech1'), p('trips', 'tx1'))));
+});
+
+test('dziennik: bez diety tylko time; partial fail nie zostawia trip', async () => {
+  const built = buildDailySheetPayloads({
+    uid: 'tech1', date: '2026-11-08', workOrderId: 'o1',
+    workStart: '08:00', workEnd: '17:00', breakDuration: '01:00', dietMode: 'none',
+  });
+  const dbf = db('tech1');
+  await assertSucceeds(setDoc(doc(dbf, p('timeEntries', built.timeId)), { ...built.timeEntry, createdAt: new Date().toISOString() }));
+  await assertFails(setDoc(doc(dbf, p('trips', 'x')), { uid: 'tech2', workOrderId: 'o1', input: {}, calc: { total: 1 }, status: 'draft', createdAt: new Date().toISOString() }));
 });

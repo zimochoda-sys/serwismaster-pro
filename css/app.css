@@ -40,3 +40,37 @@ code{background:#0c1527;padding:1px 4px;border-radius:3px}
 ul{margin-left:18px}
 .invoice{background:#fff;color:#111;padding:16px;border-radius:4px}.invoice .tbl td,.invoice .tbl th{border-color:#ccc}
 @media print{header,#statusBar,.btn,form,nav{display:none!important}body{background:#fff;color:#000}.panel,.card{border:1px solid #999;background:#fff;color:#000}}
+
+/* Diety – ten sam układ funkcji, ciemna paleta aplikacji (kontrast WCAG-ish) */
+.diet-panel .diet-card{background:#152238;color:#f1f5f9;border-radius:10px;padding:16px 18px;border:1px solid #223758;margin:10px 0}
+.diet-card-head{display:flex;justify-content:space-between;align-items:center;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #334155;color:#e2e8f0}
+.diet-field{display:block;margin:10px 0;font-size:.78rem;color:#94a3b8;font-weight:600}
+.diet-field>input,.diet-field>select{display:block;width:100%;margin-top:4px;background:#0c1527;border:1px solid #334155;border-radius:4px;color:#f8fafc;padding:8px 10px}
+.diet-field>input:focus,.diet-field>select:focus{outline:2px solid #38bdf8;outline-offset:1px;border-color:#0284c7}
+.diet-field>input[readonly]{opacity:.9;border-style:dashed;color:#cbd5e1}
+.diet-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.diet-grid2{grid-template-columns:1fr}}
+.diet-cats{border:1px solid #334155;border-radius:8px;padding:10px 12px;margin:12px 0;background:#1a2a46}
+.diet-cats legend{padding:0 6px;font-weight:700;color:#e2e8f0}
+.diet-check{display:flex;gap:8px;align-items:flex-start;margin:6px 0;color:#e2e8f0;font-size:.88rem;font-weight:500}
+.diet-check input{accent-color:#38bdf8;margin-top:3px;flex-shrink:0}
+.diet-eligible{background:#3b2a0d;border:1px solid #92400e;border-radius:6px;padding:8px;margin:10px 0;color:#fde68a}
+.diet-advanced{margin:10px 0;background:#1a2a46;border:1px solid #223758;border-radius:6px;padding:8px 10px;color:#cbd5e1}
+.diet-advanced summary{cursor:pointer;font-weight:700;margin-bottom:6px;color:#e2e8f0}
+.diet-advanced summary:focus{outline:2px solid #38bdf8;outline-offset:2px}
+.diet-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;flex-wrap:wrap}
+.diet-hint{margin:0 0 8px}
+.diet-result{margin-top:12px}
+.diet-summary{background:#0c1527;border:1px solid #223758;border-radius:8px;padding:12px;color:#f1f5f9}
+.diet-total{font-size:1.05rem;margin:8px 0;color:#e2e8f0}
+.diet-days{margin:8px 0;color:#cbd5e1}
+.diet-days summary{cursor:pointer;color:#93c5fd}
+.diet-card .muted{color:#94a3b8}
+.diet-card a{color:#38bdf8}
+.diet-card a:focus,.diet-check:focus-within{outline:0}
+
+.diet-extra{margin-top:8px}
+.diet-meals{background:#1a2a46}
+.btn-amber{background:#b45309;color:#fff;border:none}
+.btn-amber:disabled{opacity:.5}
+.diet-card[hidden],.diet-extra[hidden]{display:none!important}
