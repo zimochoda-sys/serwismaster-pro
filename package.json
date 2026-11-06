@@ -1,0 +1,2 @@
+{ "name": "serwismaster-rebuild", "private": true, "type": "module",
+  "scripts": { "test": "node --test tests/domain.test.js", "test:browser": "node tests/browser-smoke.cjs", "test:rules": "cd tests/rules && npm test" } }

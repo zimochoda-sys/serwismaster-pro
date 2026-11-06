@@ -1,0 +1,22 @@
+PASS brak config.js => ekran konfiguracji, logowanie wyłączone, brak fałszywego zapisu
+PASS brak wyrejestrowywania service workera
+PASS tryb DEMO wyraźnie oznaczony
+PASS technik widzi tylko swoje zakładki
+PASS „nie dotyczy” wymaga uzasadnienia
+PASS pomiar poza zakresem nie może być OK
+PASS usterka -> zadanie naprawcze
+PASS przekazanie zablokowane przy brakach
+PASS konflikt wersji wykryty, brak nadpisania
+PASS czas pracy/dojazdu i materiał dodane
+PASS po przekazaniu checklista zablokowana dla technika
+PASS dieta Warszawa 27+32+27 = 86 € w UI
+PASS admin zatwierdza czas, materiał (stan magazynu), dietę
+PASS stan magazynu 5-2=3
+PASS admin zatwierdził protokół -> zablokowany
+PASS szkic rachunku: arytmetyka 204,80 + 38,91 = 243,71
+PASS admin nie edytuje własnej roli
+PASS nieznany kraj blokuje obliczenie
+PASS granice bez źródła blokują zapis szablonu
+PASS dodanie klienta
+PASS zero żądań zewnętrznych (brak chmury w demo)
+PASS brak błędów JS
