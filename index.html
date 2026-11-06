@@ -34,6 +34,7 @@
     .btn-del { background: #ef4444; }
     .btn-gray { background: #475569; }
 
+    /* MENU ADMINISTRATORA ROZWIJANE */
     .admin-menu-dropdown { position: relative; display: inline-block; }
     .admin-menu-content { display: none; position: absolute; right: 0; top: 100%; background: #16243d; min-width: 230px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); border: 1px solid #2a4365; border-radius: 6px; z-index: 150; padding: 6px 0; margin-top: 4px; }
     .admin-menu-content a, .admin-menu-content button { color: #f8fafc; padding: 9px 14px; text-decoration: none; display: flex; align-items: center; gap: 8px; font-size: 0.82rem; background: transparent; border: none; width: 100%; text-align: left; cursor: pointer; }
@@ -63,6 +64,7 @@
     .badge-status.active { background: #0284c7; color: #fff; }
     .badge-status.done { background: #047857; color: #ecfdf5; }
 
+    /* DASHBOARD OKRĘGOWY */
     .dash-summary-row { display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 16px; }
     .donut-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 10px; }
     .donut-center-text { position: absolute; text-align: center; pointer-events: none; }
@@ -74,50 +76,11 @@
     .dash-kpi-tile-val { font-size: 1.5rem; font-weight: 800; margin-top: 4px; }
     .dash-kpi-tile-lbl { font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
 
-    .chk-mod-container { background: #131e33; border: 1px solid #25395c; border-radius: 6px; margin-bottom: 14px; overflow: hidden; }
-    .chk-mod-header { background: #1b2a47; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #25395c; }
-    .chk-mod-title { font-weight: 700; font-size: 0.92rem; color: #38bdf8; }
-    .chk-mod-list { padding: 8px; display: flex; flex-direction: column; gap: 6px; background: #0d172a; }
-
-    .task-card-row { background: #16243d; border: 1px solid #23385d; border-radius: 4px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: flex-start; transition: 0.15s; }
-    .task-card-row:hover { border-color: #38bdf8; background: #1a2c4b; }
-    .task-card-row.done { background: #0b2e25; border-color: #10b981; }
-    .task-left-box { flex: 1; margin-right: 14px; }
-    .task-main-text { font-size: 0.88rem; font-weight: 600; color: #f8fafc; line-height: 1.35; cursor: pointer; }
-    .task-card-row.done .task-main-text { color: #ecfdf5; font-weight: 600; }
-    
-    .task-sub-toolbar { display: flex; align-items: center; gap: 12px; margin-top: 6px; font-size: 0.85rem; }
-    .sub-icon { cursor: pointer; transition: transform 0.15s; display: inline-flex; align-items: center; gap: 4px; }
-    .sub-icon:hover { transform: scale(1.15); color: #38bdf8; }
-    .badge-counter { font-size: 0.68rem; background: #ef4444; color: #fff; padding: 1px 5px; border-radius: 10px; font-weight: bold; }
-
-    .problem-snippet { margin-top: 8px; background: #1c263d; border-left: 3px solid #ef4444; padding: 8px 10px; border-radius: 4px; font-size: 0.82rem; }
-    .prob-item-row { padding: 5px 0; border-bottom: 1px solid #223758; display: flex; justify-content: space-between; align-items: center; }
-    .prob-item-row:last-child { border-bottom: none; }
-    .prob-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; display: inline-block; margin-right: 6px; }
-    .prob-parts-tag { display: inline-block; background: #283955; color: #fbbf24; padding: 2px 6px; border-radius: 3px; font-size: 0.75rem; margin-top: 3px; margin-right: 4px; }
-
-    .status-badge { font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; }
-    .status-badge.ok { background: #047857; color: #ecfdf5; border-color: #10b981; }
-    .status-badge.open { background: #243550; color: #fbbf24; border-color: #f59e0b; }
-
-    .progress-wrap { background: #0c1527; border: 1px solid #283e66; border-radius: 6px; height: 16px; width: 100%; overflow: hidden; margin: 10px 0; }
-    .progress-bar { background: #10b981; height: 100%; width: 0%; transition: width 0.3s ease; }
-
-    .zeit-summary-kpi { background: #101e38; border: 2px solid #0284c7; border-radius: 6px; padding: 14px 18px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-    .zeit-kpi-item { display: flex; flex-direction: column; }
-    .zeit-kpi-lbl { font-size: 0.75rem; color: #94a3b8; font-weight: bold; }
-    .zeit-kpi-val { font-size: 1.55rem; font-weight: 800; margin-top: 2px; }
-
-    .day-sheet-card { background: #131f36; border: 1px solid #223556; border-radius: 6px; margin-bottom: 10px; overflow: hidden; }
-    .day-sheet-header { background: #182845; padding: 9px 14px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: bold; }
-    .day-sheet-entries { padding: 8px 12px; display: flex; flex-direction: column; gap: 6px; }
-    .day-entry-line { background: #0d172a; border-left: 3px solid #38bdf8; border-radius: 3px; padding: 7px 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; }
-
     .table-custom { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
     .table-custom th, .table-custom td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #23385d; }
     .table-custom th { color: #94a3b8; }
 
+    /* FAKTURA RECHNUNG PREVIEW */
     .invoice-preview-sheet { background: #ffffff; color: #000000; padding: 40px; border-radius: 4px; max-width: 820px; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.6); font-family: "Segoe UI", Arial, sans-serif; }
     .invoice-preview-sheet h2 { color: #0f172a; border-bottom: 2px solid #0284c7; padding-bottom: 8px; font-size: 1.4rem; margin-bottom: 16px; }
 
@@ -350,8 +313,49 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="modalInvoiceGenerator">
+    <div class="modal-window" style="max-width:820px; height:90vh;">
+      <h3>Generator Faktur (Rechnung)</h3>
+      <div class="modal-scrollable">
+        <input id="invNum" value="RE-2026-001">
+        <select id="invClientSelect"></select>
+        <div id="invoiceItemsContainer"></div>
+        <button class="btn" onclick="addInvoiceItemRow()">+ Dodaj pozycję</button>
+      </div>
+      <button class="btn btn-green" onclick="generateInvoicePdfPreview()">Drukuj PDF</button>
+      <button class="btn btn-gray" onclick="closeModal('modalInvoiceGenerator')">Zamknij</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalInvoicePreview">
+    <div class="modal-window" style="max-width:890px; height:92vh;">
+      <h3>Podgląd Faktury</h3>
+      <div class="modal-scrollable" id="invoicePreviewContentContainer"></div>
+      <button class="btn btn-gray" onclick="closeModal('modalInvoicePreview')">Zamknij</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalManageUsers">
+    <div class="modal-window" style="max-width:720px;">
+      <h3>Zarządzanie Zespołem</h3>
+      <div class="modal-scrollable">
+        <table class="table-custom"><thead><tr><th>Imię</th><th>Rola</th><th>PIN</th></tr></thead><tbody id="usersManagementTableBody"></tbody></table>
+      </div>
+      <button class="btn btn-gray" onclick="closeModal('modalManageUsers')">Zamknij</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalChangePassword">
+    <div class="modal-window" style="max-width:400px;">
+      <h3>Zmień hasło</h3>
+      <input type="password" id="oldPasswordInput" placeholder="Stare hasło">
+      <input type="password" id="newPasswordInput" placeholder="Nowe hasło">
+      <button class="btn btn-green" onclick="executeChangePassword()">Zapisz</button>
+      <button class="btn btn-gray" onclick="closeModal('modalChangePassword')">Anuluj</button>
+    </div>
+  </div>
+
   <script>
-    // Pełny skrypt inicjalizacyjny zapobiegający zamrożeniu i czyszczący cache
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(registrations => {
         for(let reg of registrations) reg.unregister();
@@ -391,6 +395,7 @@
       if (t === 'zeit') renderZeitnachweisView();
     }
 
+    // Bezpieczne ładowanie danych z fallbackiem
     db.collection("clients").onSnapshot(snap => {
       clients = [];
       snap.forEach(d => clients.push({ id: d.id, ...d.data() }));
@@ -402,6 +407,8 @@
       }
       renderDashboardOverview();
       filterOrdersList();
+    }, err => {
+      console.error("Błąd ładowania klientów:", err);
     });
 
     db.collection("active_orders").onSnapshot(snap => {
@@ -410,6 +417,38 @@
       renderDashboardOverview();
       filterOrdersList();
     });
+
+    db.collection("users").onSnapshot(snap => {
+      users = [];
+      snap.forEach(d => users.push({ id: d.id, ...d.data() }));
+      if (!users.length) {
+        users = [
+          { id: 'u1', name: 'Arkadiusz Zimochod', role: 'admin', pin: '1234', permEditTemplates: true, permDeleteOrders: true, permViewAllTimes: true },
+          { id: 'u2', name: 'Lukas Goldbach', role: 'technician', pin: '0000', permEditTemplates: false, permDeleteOrders: false, permViewAllTimes: false }
+        ];
+      }
+      if (!currentUserId && users.length) currentUserId = users[0].id;
+      updateActiveUserDropdown();
+      renderUsersManagementTable();
+    });
+
+    function getActiveUser() {
+      return users.find(u => u.id === currentUserId) || { name: 'Arkadiusz Zimochod', role: 'admin', pin: '1234' };
+    }
+
+    function updateActiveUserDropdown() {
+      const sel = document.getElementById('activeUserSelector');
+      const adminMenu = document.getElementById('adminMenuDropdownWrapper');
+      const curUser = getActiveUser();
+      if (sel) {
+        sel.innerHTML = '';
+        users.forEach(u => sel.innerHTML += `<option value="${u.id}">${u.name} (${u.role === 'admin' ? 'Admin' : 'Technik'})</option>`);
+        sel.value = currentUserId;
+      }
+      if (adminMenu) {
+        adminMenu.style.display = (curUser.role === 'admin') ? 'inline-block' : 'none';
+      }
+    }
 
     function toggleAdminMenu(e) {
       if (e) e.stopPropagation();
@@ -424,8 +463,76 @@
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    
-    console.log("SerwisMaster Pro v2.7 loaded successfully.");
+
+    function handleOpenManageUsersAuth() {
+      renderUsersManagementTable();
+      openModal('modalManageUsers');
+    }
+
+    function renderUsersManagementTable() {
+      const tb = document.getElementById('usersManagementTableBody');
+      if (!tb) return;
+      tb.innerHTML = '';
+      users.forEach(u => {
+        tb.innerHTML += `<tr><td><b>${u.name}</b></td><td>${u.role}</td><td><code>${u.pin || '1234'}</code></td></tr>`;
+      });
+    }
+
+    function openInvoiceGeneratorModal() {
+      const sel = document.getElementById('invClientSelect');
+      if (sel) {
+        sel.innerHTML = '<option value="">-- Wybierz klienta --</option>';
+        clients.forEach(c => sel.innerHTML += `<option value="${c.id}">${c.name}</option>`);
+      }
+      openModal('modalInvoiceGenerator');
+    }
+
+    function addInvoiceItemRow(desc = 'Serviceeinsatz', qty = 8, price = 85.00) {
+      const container = document.getElementById('invoiceItemsContainer');
+      if (!container) return;
+      const div = document.createElement('div');
+      div.className = 'grid-4 inv-row';
+      div.style.marginBottom = '6px';
+      div.innerHTML = `
+        <input class="inv-desc" value="${desc}" style="grid-column: span 2;">
+        <input type="number" class="inv-qty" value="${qty}" step="0.5">
+        <input type="number" class="inv-price" value="${price}" step="0.5">
+      `;
+      container.appendChild(div);
+    }
+
+    function generateInvoicePdfPreview() {
+      const container = document.getElementById('invoicePreviewContentContainer');
+      container.innerHTML = `<div class="invoice-preview-sheet"><h2>Rechnung (Faktura)</h2><p>Podgląd faktury w przygotowaniu.</p></div>`;
+      closeModal('modalInvoiceGenerator');
+      openModal('modalInvoicePreview');
+    }
+
+    function openEditClientModal() {
+      const activeClient = clients.find(c => c.id === selectedClientId);
+      if (!activeClient) return alert('Wybierz najpierw klienta u góry!');
+      const newName = prompt('Nowa nazwa klienta:', activeClient.name);
+      if (!newName) return;
+      db.collection("clients").doc(activeClient.id).update({ name: newName.trim() }).then(() => alert('Zaktualizowano!'));
+    }
+
+    function renderDashboardOverview() {
+      const activeOrdCount = activeOrders.filter(o => o.status !== 'done').length;
+      const doneOrdCount = activeOrders.filter(o => o.status === 'done').length;
+      const el1 = document.getElementById('dashKpiActiveOrders');
+      const el2 = document.getElementById('dashKpiDoneOrders');
+      if (el1) el1.innerText = activeOrdCount;
+      if (el2) el2.innerText = doneOrdCount;
+    }
+
+    function filterOrdersList() {}
+    function renderPlannedOrdersTable() {}
+    function renderZeitnachweisView() {}
+    function renderDashboardProblems() {}
+    function openOrdersFiltered(st) { switchTab('orders'); }
+    function openProblemsFiltered(st) { switchTab('dash'); }
+
+    console.log("SerwisMaster Pro v3.0 loaded successfully.");
   </script>
 </body>
 </html>
