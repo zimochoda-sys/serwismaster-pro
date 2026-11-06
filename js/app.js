@@ -4,7 +4,9 @@ import { humanError, ConflictError, ValidationError } from './errors.js';
 import { createDemoStore } from './demo.js';
 import { ORDER_STATUSES, ITEM_TYPES, validateResult, validateSubmission, validateTemplate, snapshotFor, techCanEdit, isOutOfRange } from './domain/checklist.js';
 import { TIME_KINDS, validateTimeEntry, sumTime, buildInvoiceDraft, fmtEur } from './domain/billing.js';
-import { calculateAllowance, splitAmounts, listCountries, listCities, AllowanceError } from './domain/allowance.js';
+import { listCountries, listCities, AllowanceError } from './domain/allowance.js';
+import { omitUndefinedDeep, hasUndefinedDeep } from './domain/trip-form.js';
+import { buildDailySheetPayloads } from './domain/daily-sheet.js';
 
 let store = null, me = null, view = 'orders', current = null, cfg = null;
 const app = () => $('#app');
@@ -75,8 +77,8 @@ function renderLogin() {
 }
 
 const TABS = {
-  tech: [['orders', 'Moje zlecenia'], ['trips', 'Delegacje / diety']],
-  admin: [['orders', 'Zlecenia'], ['approvals', 'Akceptacje'], ['assets', 'Klienci i maszyny'], ['templates', 'Szablony checklist'], ['parts', 'Magazyn'], ['trips', 'Diety'], ['invoices', 'Szkice rachunków'], ['team', 'Zespół'], ['settings', 'Ustawienia']],
+  tech: [['orders', 'Moje zlecenia'], ['trips', 'Dziennik']],
+  admin: [['orders', 'Zlecenia'], ['approvals', 'Akceptacje'], ['assets', 'Klienci i maszyny'], ['templates', 'Szablony checklist'], ['parts', 'Magazyn'], ['trips', 'Dziennik'], ['invoices', 'Szkice rachunków'], ['team', 'Zespół'], ['settings', 'Ustawienia']],
 };
 function renderNav() {
   const nav = $('#nav');
@@ -236,28 +238,92 @@ const VIEWS = {
   },
 
   async trips() {
-    const trips = me.role === 'admin' ? await store.list('trips') : await store.listMine('trips');
+    const [trips, times, orders] = await Promise.all([
+      me.role === 'admin' ? store.list('trips') : store.listMine('trips'),
+      me.role === 'admin' ? store.list('timeEntries') : store.listMine('timeEntries'),
+      store.listOrders(),
+    ]);
+    const openOrders = me.role === 'admin'
+      ? orders.filter(o => o.status !== 'approved')
+      : orders.filter(o => techCanEdit(o.status) && o.assignedTo === me.uid);
     const countries = ['DE', ...listCountries(2026)];
-    app().innerHTML = `<section class="panel"><h2>Diety (Verpflegungsmehraufwand) – zasady DE, tabela BMF 2026</h2>
-      <p class="muted">Źródła: <a href="https://www.gesetze-im-internet.de/estg/__9.html" target="_blank" rel="noopener">§ 9 ust. 4a EStG</a>, <a href="https://www.bundesfinanzministerium.de/Content/DE/Downloads/BMF_Schreiben/Steuerarten/Lohnsteuer/2025-12-05-steuerliche-behandlung-reisekosten-2026.html" target="_blank" rel="noopener">BMF 05.12.2025 (stawki od 01.01.2026)</a>. Program liczy tylko proste przypadki; złożone oznacza do ręcznej weryfikacji. Ostateczne rozliczenie zatwierdza księgowość/doradca podatkowy.</p>
-      <form id="tripForm" class="grid">
-        <label>Kraj<select name="country" id="tripCountry">${countries.map(c => `<option ${c === 'DE' ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></label>
-        <label>Miasto (jeśli tabela rozróżnia)<select name="city" id="tripCity"></select></label>
-        <label>Start<input type="datetime-local" name="start" required></label><label>Koniec<input type="datetime-local" name="end" required></label>
-        <label><input type="checkbox" name="overnight"> Nocleg (podróż wielodniowa)</label>
-        <label><input type="checkbox" name="multi"> Kilka krajów w podróży</label>
-        <label>W tym miejscu pracy od (reguła 3 mies.)<input type="date" name="sameSiteSince"></label>
-        <label>Przerwa w tym miejscu (tygodnie)<input type="number" name="interruptedWeeks" min="0"></label>
-        <label>Posiłki zapewnione (data:ś/o/k, np. 2026-05-05:s,o)<input name="meals" placeholder="2026-05-05:s;2026-05-06:s,o,k"></label>
-        <label>Dopłata pracownika do posiłków (data:€)<input name="contrib" placeholder="2026-05-05:5"></label>
-        <label>Zwrot firmy €/dzień (puste = kwota wolna od podatku)<input name="reimb" type="number" step="0.01" min="0"></label>
-        <label>Dla klienta €/dzień (opcjonalnie)<input name="cust" type="number" step="0.01" min="0"></label>
-        <button type="button" class="btn" data-action="calcTrip">Oblicz</button></form>
-      <div id="tripResult"></div></section>
-      <section class="panel"><h3>${me.role === 'admin' ? 'Wszystkie rozliczenia' : 'Moje rozliczenia'}</h3>${listOrEmpty(trips, t => `<tr><td>${esc(t.calc?.rate?.label)}</td><td>${esc(t.input.start)} → ${esc(t.input.end)}</td><td>${t.calc.total.toFixed(2)} €</td><td>${esc(t.status)}</td></tr>`)}</section>`;
-    const fillCities = () => { const c = $('#tripCountry').value; const cities = c === 'DE' ? [] : listCities(2026, c);
+    const whoAmI = me.displayName || me.email || me.uid;
+    const today = new Date().toISOString().slice(0, 10);
+    const myTimes = times.filter(x => x.uid === me.uid).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    app().innerHTML = `<section class="panel diet-panel">
+      <h2>Dziennik dnia <span class="muted">(czas pracy + dieta)</span></h2>
+      <p class="muted">Źródła diety: <a href="https://www.gesetze-im-internet.de/estg/__9.html" target="_blank" rel="noopener">§ 9 ust. 4a EStG</a>,
+        <a href="https://www.bundesfinanzministerium.de/Content/DE/Downloads/BMF_Schreiben/Steuerarten/Lohnsteuer/2025-12-05-steuerliche-behandlung-reisekosten-2026.html" target="_blank" rel="noopener">BMF 2026</a>.
+        <b>Czas pracy</b> i <b>nieobecność w podróży</b> to osobne pola – dieta nie wynika z godzin na hali ani z samego checkboxa.</p>
+      <form id="dailyForm" class="diet-card" autocomplete="off">
+        <div class="diet-card-head"><span>Wpis dzienny</span><span class="muted">jeden zapis · szkic</span></div>
+        <label class="diet-field">Data *
+          <input type="date" name="date" required value="${esc(today)}">
+        </label>
+        <label class="diet-field">Zlecenie *
+          <select name="workOrderId" required>${openOrders.length
+            ? openOrders.map(o => `<option value="${esc(o.id)}">${esc(o.title)} (${esc(o.status)})</option>`).join('')
+            : '<option value="">— brak otwartego zlecenia —</option>'}</select>
+        </label>
+        <label class="diet-field">Pracownik
+          <input type="text" value="${esc(whoAmI)}" readonly title="Zapis zawsze na Twoje UID">
+        </label>
+        <p class="muted diet-hint">UID: <code>${esc(me.uid)}</code> · bez impersonacji. Technik: tylko przypisane otwarte zlecenia.</p>
+        <label class="diet-field">Początek pracy<input type="time" name="workStart" required value="08:00"></label>
+        <label class="diet-field">Koniec pracy<input type="time" name="workEnd" required value="17:00"></label>
+        <label class="diet-field">Przerwa (HH:MM)<input type="text" name="breakDuration" value="01:00" pattern="\\d{1,3}:[0-5]\\d" placeholder="01:00"></label>
+        <label class="diet-field">Prywatne km (opcjonalnie)<input type="number" name="privateKm" min="0" step="0.1" placeholder="—"></label>
+        <fieldset class="diet-cats">
+          <legend>Dieta tego dnia</legend>
+          <label class="diet-check"><input type="radio" name="dietMode" value="none" checked> Bez diety (tylko czas pracy)</label>
+          <label class="diet-check"><input type="radio" name="dietMode" value="day_gt8"> Dzień &gt;8 h nieobecności (An-/Abreisetag 1-dniowy)</label>
+          <label class="diet-check"><input type="radio" name="dietMode" value="arrival_departure"> An-/Abreisetag z noclegiem (wyjazd lub powrót)</label>
+          <label class="diet-check"><input type="radio" name="dietMode" value="full24"> Pełna doba 24 h (nieobecność obejmuje całą datę, przez północ)</label>
+        </fieldset>
+        <div id="dietExtra" class="diet-extra" hidden>
+          <label class="diet-check diet-eligible"><input type="checkbox" name="eligible">
+            Potwierdzam: <b>podróż służbowa / nieobecność</b> poza miejscem zamieszkania lub pierwszą placówką (nie same godziny pracy).</label>
+          <div class="diet-grid2">
+            <label class="diet-field">Początek nieobecności<input type="datetime-local" name="absenceStart"></label>
+            <label class="diet-field">Koniec nieobecności<input type="datetime-local" name="absenceEnd"></label>
+          </div>
+          <label class="diet-field">Kraj<select name="country" id="tripCountry">${countries.map(c => `<option ${c === 'DE' ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></label>
+          <label class="diet-field">Miasto (BMF)<select name="city" id="tripCity"></select></label>
+          <fieldset class="diet-cats diet-meals">
+            <legend>Posiłki zapewnione (wybrana data)</legend>
+            <label class="diet-check"><input type="checkbox" name="mealBreakfast"> Śniadanie</label>
+            <label class="diet-check"><input type="checkbox" name="mealLunch"> Obiad</label>
+            <label class="diet-check"><input type="checkbox" name="mealDinner"> Kolacja</label>
+          </fieldset>
+          <details class="diet-advanced"><summary>Zaawansowane (dopłata do posiłków)</summary>
+            <label class="diet-field">Dopłata pracownika € (ta data)<input type="number" name="mealContrib" min="0" step="0.01" placeholder="0"></label>
+            <label class="diet-check"><input type="checkbox" name="multiCountry"> Kilka krajów (ręczna weryfikacja)</label>
+          </details>
+        </div>
+        <div class="diet-actions">
+          <button type="button" class="btn btn-gray" data-action="resetDailyForm">Wyczyść</button>
+          <button type="button" class="btn btn-green" data-action="previewDaily" id="btnPreviewDaily">Podgląd</button>
+          <button type="button" class="btn btn-amber" data-action="saveDaily" id="btnSaveDaily" disabled>Zapisz szkic</button>
+        </div>
+        <label class="diet-check"><input type="checkbox" name="replaceDraft" id="replaceDraft"> Nadpisz własny <b>szkic</b> (ten sam dzień + zlecenie) – kasuje też szkic diety przy „bez diety”. Zatwierdzonych nie nadpiszesz.</label>
+      </form>
+      <div id="tripResult" class="diet-result"></div>
+    </section>
+    <section class="panel"><h3>Historia – mój czas</h3>
+      ${listOrEmpty(myTimes.slice(0, 30), x => `<tr><td>${esc(x.date)}</td><td>${esc(x.kind)}</td><td>${x.minutes} min</td><td>${esc(x.status)}</td><td class="muted">${esc(x.note || '')}</td>
+        <td>${x.status === 'draft' && x.uid === me.uid ? `<button type="button" class="btn sm" data-action="loadDailyDraft" data-id="${esc(x.id)}" data-date="${esc(x.date)}" data-oid="${esc(x.workOrderId)}">Edytuj szkic</button>` : ''}</td></tr>`)}
+    </section>
+    <section class="panel"><h3>${me.role === 'admin' ? 'Wszystkie diety' : 'Moje diety'}</h3>
+      ${listOrEmpty(trips, t => `<tr><td>${esc(t.input?.workDate || t.input?.start?.slice(0, 10) || '—')}</td><td>${esc(t.calc?.rate?.label || '—')}</td><td>${esc(t.input?.start)} → ${esc(t.input?.end)}</td><td>${Number(t.calc?.total || 0).toFixed(2)} €</td><td>${esc(t.status)}</td></tr>`)}</section>`;
+    const fillCities = () => { const c = $('#tripCountry')?.value; if (!$('#tripCity')) return; const cities = c === 'DE' ? [] : listCities(2026, c);
       $('#tripCity').innerHTML = cities.length ? cities.map(x => `<option value="${esc(x)}">${x === '_rest' ? 'pozostałe (im Übrigen)' : esc(x)}</option>`).join('') : '<option value="">— nie dotyczy —</option>'; };
-    $('#tripCountry').onchange = fillCities; fillCities();
+    $('#tripCountry') && ($('#tripCountry').onchange = fillCities); fillCities();
+    const syncDiet = () => {
+      const mode = document.querySelector('input[name="dietMode"]:checked')?.value || 'none';
+      const box = $('#dietExtra'); if (box) box.hidden = mode === 'none';
+    };
+    $$('input[name="dietMode"]').forEach(r => r.addEventListener('change', syncDiet)); syncDiet();
+    VIEWS._dailyDraft = null;
   },
 
   async invoices() {
@@ -393,23 +459,80 @@ const ACTIONS = {
     const p = await store.get('parts', b.dataset.id); if (p.stock + delta < 0) return status('Stan nie może być ujemny', 'err');
     const { id, ...rest } = p; if (await guarded('Korekta stanu', () => store.update('parts', id, { ...rest, stock: p.stock + delta }))) go('parts'); },
   editMember: b => { const f = $('#memberForm'); f.uid.value = b.dataset.id; f.displayName.value = b.dataset.name; f.role.value = b.dataset.role; f.active.checked = b.dataset.active === 'true'; f.uid.focus(); },
-  calcTrip: async () => {
-    const d = formData($('#tripForm')); const box = $('#tripResult');
+  resetDailyForm: () => {
+    const f = $('#dailyForm'); if (!f) return;
+    f.reset(); VIEWS._dailyDraft = null; $('#tripResult').innerHTML = '';
+    const box = $('#dietExtra'); if (box) box.hidden = true;
+    const b = $('#btnSaveDaily'); if (b) b.disabled = true;
+    status('Formularz wyczyszczony', 'ok');
+  },
+  loadDailyDraft: async b => {
+    const f = $('#dailyForm'); if (!f) return;
+    f.date.value = b.dataset.date || '';
+    f.workOrderId.value = b.dataset.oid || f.workOrderId.value;
+    f.replaceDraft.checked = true;
+    status('Ustawiono datę/zlecenie szkicu – popraw godziny i zapisz z „Nadpisz”.', 'ok');
+  },
+  previewDaily: async () => {
+    const f = $('#dailyForm'); const box = $('#tripResult'); if (!f || !box) return;
     try {
-      const meals = {}; for (const [k, v] of Object.entries(parsePairs(d.meals))) meals[k] = { breakfast: /s/.test(v), lunch: /o/.test(v), dinner: /k/.test(v) };
-      const contrib = parsePairs(d.contrib);
-      const input = { country: d.country, city: d.city || undefined, start: d.start, end: d.end, overnight: !!d.overnight, crossBorderMultipleCountries: !!d.multi,
-        sameSiteSince: d.sameSiteSince || undefined, interruptedWeeks: d.interruptedWeeks ? Number(d.interruptedWeeks) : undefined, meals, employeeContribution: contrib };
-      const calc = calculateAllowance(input);
-      const split = splitAmounts(calc, { reimbursePerDay: d.reimb === '' ? null : Number(d.reimb), customerPerDay: d.cust === '' ? null : Number(d.cust) });
-      box.innerHTML = `<h3>${esc(calc.rate.label)}: stawka ${calc.rate.full} € / ${calc.rate.partial} €</h3>
-        <table class="tbl"><tr><th>Dzień</th><th>Rodzaj</th><th>Kwota bazowa</th><th>Potrącenie posiłków</th><th>Dieta</th></tr>${calc.days.map(x => `<tr><td>${x.date}</td><td>${x.type}</td><td>${x.base.toFixed(2)}</td><td>${x.reduction.toFixed(2)}</td><td>${x.amount.toFixed(2)}</td></tr>`).join('')}</table>
-        <p><b>Wolne od podatku: ${split.taxFree.toFixed(2)} €</b> · Zwrot firmy: ${split.reimbursement.toFixed(2)} € (nadwyżka opodatkowana: ${split.taxableExcess.toFixed(2)} €) · Refaktura klientowi: ${split.customerBilling.toFixed(2)} €</p>
-        ${calc.manualReview.length ? `<div class="warn-box"><b>Wymaga ręcznej weryfikacji:</b><ul>${calc.manualReview.map(m => `<li>${esc(m)}</li>`).join('')}</ul></div>` : ''}
-        ${calc.warnings.map(w => `<p class="muted">⚠ ${esc(w)}</p>`).join('')}
-        <button class="btn btn-green" id="saveTrip">Zapisz rozliczenie (do akceptacji)</button>`;
-      $('#saveTrip').onclick = async () => { if (await guarded('Rozliczenie diet', () => store.add('trips', { uid: me.uid, workOrderId: '', input, calc: { ...calc, split }, status: calc.autoApprovable ? 'draft' : 'manual_review' }))) go('trips'); };
-    } catch (e) { box.innerHTML = `<p class="err-box">Obliczenie zablokowane: ${esc(e.message)}</p>`; }
+      const d = formData(f);
+      const dietMode = d.dietMode || 'none';
+      const raw = {
+        uid: me.uid, date: d.date, workOrderId: d.workOrderId,
+        workStart: d.workStart, workEnd: d.workEnd, breakDuration: d.breakDuration || '00:00',
+        privateKm: d.privateKm, dietMode,
+        businessTripEligible: dietMode === 'none' ? true : !!f.eligible?.checked,
+        absenceStart: d.absenceStart, absenceEnd: d.absenceEnd,
+        country: d.country || 'DE', city: d.city,
+        mealBreakfast: !!f.mealBreakfast?.checked, mealLunch: !!f.mealLunch?.checked, mealDinner: !!f.mealDinner?.checked,
+        mealContrib: d.mealContrib, multiCountry: !!f.multiCountry?.checked,
+      };
+      const built = buildDailySheetPayloads(raw);
+      VIEWS._dailyDraft = { ...built, replace: !!f.replaceDraft?.checked };
+      const w = built.work;
+      let dietHtml = '<p class="muted">Bez diety – zapisze tylko czas pracy (status szkic, akceptacja admina osobno).</p>';
+      if (built.trip) {
+        const calc = built.trip.calc;
+        dietHtml = `<h3>${esc(calc.rate.label)} · ${calc.rate.full} € / ${calc.rate.partial} €</h3>
+          <p class="diet-total"><b>Dieta (szkic): ${Number(calc.total).toFixed(2)} €</b></p>
+          <table class="tbl"><tr><th>Dzień</th><th>Rodzaj</th><th>Baza</th><th>Posiłki</th><th>Kwota</th></tr>
+          ${calc.days.map(x => `<tr><td>${x.date}</td><td>${esc(x.type)}</td><td>${x.base.toFixed(2)}</td><td>${x.reduction.toFixed(2)}</td><td>${x.amount.toFixed(2)}</td></tr>`).join('')}</table>
+          <p class="muted">Status diety: <code>${esc(built.trip.status)}</code> – nie zatwierdzona automatycznie.</p>`;
+      }
+      box.innerHTML = `<div class="diet-summary">
+        <p><b>Czas pracy netto:</b> ${w.minutes} min (${esc(d.workStart)}–${esc(d.workEnd)}, przerwa ${esc(d.breakDuration || '00:00')})</p>
+        <p class="muted">ID czasu: <code>${esc(built.timeId)}</code>${built.tripId ? ` · ID diety: <code>${esc(built.tripId)}</code>` : ''}</p>
+        ${dietHtml}
+        <p class="muted">Zapis atomowy (transakcja): timeEntries${built.trip ? ' + trips' : ''} · bez duplikatu przy tym samym dniu/zleceniu.</p>
+      </div>`;
+      const btn = $('#btnSaveDaily'); if (btn) btn.disabled = false;
+      status('Podgląd gotowy', 'ok');
+    } catch (e) {
+      VIEWS._dailyDraft = null;
+      const btn = $('#btnSaveDaily'); if (btn) btn.disabled = true;
+      box.innerHTML = `<p class="err-box">${esc(e.message)}</p>`;
+      status(e.message, 'err');
+    }
+  },
+  saveDaily: async () => {
+    const draft = VIEWS._dailyDraft;
+    if (!draft) return status('Najpierw podgląd.', 'warn');
+    if (hasUndefinedDeep(draft.timeEntry) || (draft.trip && hasUndefinedDeep(draft.trip))) return status('undefined w payload – anulowano.', 'err');
+    if (draft.timeEntry.uid !== me.uid) return status('Tylko własne konto.', 'err');
+    const btn = $('#btnSaveDaily'); const prev = $('#btnPreviewDaily');
+    if (btn) btn.disabled = true; if (prev) prev.disabled = true;
+    try {
+      const ok = await guarded('Zapis dziennika', () => store.saveDailySheet({
+        timeId: draft.timeId, timeEntry: draft.timeEntry,
+        tripId: draft.tripId, trip: draft.trip, replace: !!draft.replace,
+      }));
+      if (ok) { VIEWS._dailyDraft = null; go('trips'); }
+      else { if (btn) btn.disabled = false; if (prev) prev.disabled = false; }
+    } catch (e) {
+      if (btn) btn.disabled = false; if (prev) prev.disabled = false;
+      status(humanError(e), 'err');
+    }
   },
   buildInvoice: async () => {
     const { orders, time, mats, tenant, clients } = VIEWS._invData; const o = orders.find(x => x.id === $('#invOrder').value);

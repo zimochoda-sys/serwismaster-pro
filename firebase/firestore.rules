@@ -123,10 +123,25 @@ service cloud.firestore {
           && request.resource.data.kind in ['work', 'travel', 'break'] && request.resource.data.minutes is int
           && request.resource.data.minutes >= 1 && request.resource.data.minutes <= 1440 && optStr(request.resource.data, 'note', 500)
           && (isAdmin(t) || (isTech(t) && assignedTo(t, request.resource.data.workOrderId) && orderOpen(t, request.resource.data.workOrderId)));
-        allow update: if isAdmin(t) && resource.data.status == 'draft' && changed().hasOnly(['status', 'approvedBy', 'approvedAt'])
-          && request.resource.data.status == 'approved' && request.resource.data.approvedBy == request.auth.uid;
-        allow delete: if resource.data.status == 'draft' && isTech(t) && resource.data.uid == request.auth.uid
-          && assignedTo(t, resource.data.workOrderId) && orderOpen(t, resource.data.workOrderId);
+        allow update: if
+          // Admin: zatwierdzenie cudzego/własnego szkicu
+          (isAdmin(t) && resource.data.status == 'draft' && changed().hasOnly(['status', 'approvedBy', 'approvedAt'])
+            && request.resource.data.status == 'approved' && request.resource.data.approvedBy == request.auth.uid)
+          // Właściciel: edycja treści własnego szkicu (dziennik Nadpisz)
+          || (resource.data.uid == request.auth.uid && resource.data.status == 'draft' && request.resource.data.status == 'draft'
+            && request.resource.data.uid == resource.data.uid
+            && request.resource.data.workOrderId == resource.data.workOrderId
+            && changed().hasOnly(['minutes', 'note', 'kind', 'date'])
+            && request.resource.data.kind in ['work', 'travel', 'break']
+            && request.resource.data.minutes is int
+            && request.resource.data.minutes >= 1 && request.resource.data.minutes <= 1440
+            && optStr(request.resource.data, 'note', 500)
+            && (isAdmin(t) || (isTech(t) && assignedTo(t, resource.data.workOrderId) && orderOpen(t, resource.data.workOrderId))));
+        // Szkic własny: tech (przypisane otwarte) lub admin (własny UID) – nigdy approved.
+        allow delete: if resource.data.status == 'draft' && resource.data.uid == request.auth.uid && (
+          (isTech(t) && assignedTo(t, resource.data.workOrderId) && orderOpen(t, resource.data.workOrderId))
+          || isAdmin(t)
+        );
       }
 
       match /parts/{id} {
@@ -162,9 +177,36 @@ service cloud.firestore {
           && (request.resource.data.workOrderId == '' || isAdmin(t)
               || (exists(/databases/$(database)/documents/tenants/$(t)/workOrders/$(request.resource.data.workOrderId))
                   && assignedTo(t, request.resource.data.workOrderId) && orderOpen(t, request.resource.data.workOrderId)));
-        allow update: if isAdmin(t) && resource.data.status in ['draft', 'manual_review'] && changed().hasOnly(['status', 'approvedBy', 'approvedAt', 'reviewNote'])
-          && request.resource.data.status in ['approved', 'rejected'] && request.resource.data.approvedBy == request.auth.uid;
-        allow delete: if false;
+        allow update: if
+          // Admin: decyzja nt. cudzego/własnego szkicu
+          (isAdmin(t) && resource.data.status in ['draft', 'manual_review']
+            && changed().hasOnly(['status', 'approvedBy', 'approvedAt', 'reviewNote'])
+            && request.resource.data.status in ['approved', 'rejected']
+            && request.resource.data.approvedBy == request.auth.uid)
+          // Właściciel: nadpisanie input/calc własnego szkicu
+          || (resource.data.uid == request.auth.uid
+            && resource.data.status in ['draft', 'manual_review']
+            && request.resource.data.status in ['draft', 'manual_review']
+            && request.resource.data.uid == resource.data.uid
+            && request.resource.data.workOrderId == resource.data.workOrderId
+            && changed().hasOnly(['input', 'calc', 'status'])
+            && request.resource.data.input is map && request.resource.data.calc is map
+            && request.resource.data.calc.total is number && request.resource.data.calc.total >= 0
+            && (isAdmin(t) || (isTech(t) && (
+              resource.data.workOrderId == ''
+              || (assignedTo(t, resource.data.workOrderId) && orderOpen(t, resource.data.workOrderId))
+            ))));
+        // Nadpisanie dziennika: tylko własny szkic/manual_review, nigdy approved/rejected.
+        // Tech: zlecenie przypisane i otwarte; admin: własny UID. workOrderId '' = legacy / tylko właściciel szkicu.
+        allow delete: if resource.data.uid == request.auth.uid
+          && resource.data.status in ['draft', 'manual_review']
+          && (
+            isAdmin(t)
+            || (isTech(t) && (
+              resource.data.workOrderId == ''
+              || (assignedTo(t, resource.data.workOrderId) && orderOpen(t, resource.data.workOrderId))
+            ))
+          );
       }
 
       match /invoiceDrafts/{id} {

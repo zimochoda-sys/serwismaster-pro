@@ -4,6 +4,7 @@ import { calculateAllowance, rateFor, splitAmounts, AllowanceError, listCountrie
 import { validateTemplate, snapshotFor, validateSubmission, validateResult, canTransition } from '../js/domain/checklist.js';
 import { buildInvoiceDraft, validateTimeEntry, sumTime } from '../js/domain/billing.js';
 import { photosEnabled } from '../js/cloud.js';
+import { buildTripInput, omitUndefinedDeep, hasUndefinedDeep, resolveTripTiming, parseDurationToMinutes } from '../js/domain/trip-form.js';
 
 test('DE krajowe 2026: >8h = 14 €, ≤8h = 0', () => {
   assert.equal(calculateAllowance({ country: 'DE', start: '2026-03-02T06:00', end: '2026-03-02T14:30', overnight: false }).total, 14);
@@ -105,4 +106,166 @@ test('ratesConfigured: brak milczących stawek – wymaga VAT i obu €/h', () =
   assert.equal(ok({ name: 'AZ Service' }), false);
   assert.equal(ok({ name: 'AZ', vatPercent: 19 }), false);
   assert.equal(ok({ name: 'AZ', vatPercent: 19, workPerHour: 80, travelPerHour: 50 }), true);
+});
+
+
+test('omitUndefinedDeep usuwa undefined, zostawia null i puste stringi', () => {
+  const o = omitUndefinedDeep({ a: 1, b: undefined, c: null, d: '', nest: { x: undefined, y: 2 } });
+  assert.deepEqual(o, { a: 1, c: null, d: '', nest: { y: 2 } });
+  assert.equal(hasUndefinedDeep(o), null);
+  assert.equal(hasUndefinedDeep({ city: undefined }), 'city');
+});
+
+test('DE bez city: buildTripInput nie zawiera klucza city (naprawa Firestore undefined)', () => {
+  const input = buildTripInput({
+    country: 'DE', city: '', start: '2026-11-02T07:33', end: '2026-11-02T19:34',
+    dayCategory: 'partial_gt8', businessTripEligible: true,
+  });
+  assert.equal('city' in input, false);
+  assert.equal(input.overnight, false);
+  const calc = calculateAllowance(input);
+  assert.equal(calc.total, 14);
+  assert.equal(hasUndefinedDeep(input), null);
+});
+
+test('≤8 h: auto bez diety; partial_gt8 odrzuca', () => {
+  assert.equal(calculateAllowance(buildTripInput({
+    country: 'DE', start: '2026-11-06T08:00', end: '2026-11-06T16:00',
+    dayCategory: 'auto', businessTripEligible: true,
+  })).total, 0);
+  assert.throws(() => buildTripInput({
+    country: 'DE', start: '2026-11-06T08:00', end: '2026-11-06T16:00',
+    dayCategory: 'partial_gt8', businessTripEligible: true,
+  }), AllowanceError);
+});
+
+test('full_multi na jednym dniu odrzucone; overnight OK', () => {
+  assert.throws(() => resolveTripTiming({ start: '2026-11-06T08:00', end: '2026-11-06T20:00', dayCategory: 'full_multi' }), AllowanceError);
+  const input = buildTripInput({
+    country: 'DE', start: '2026-11-02T15:00', end: '2026-11-04T10:00',
+    dayCategory: 'full_multi', businessTripEligible: true,
+  });
+  assert.equal(input.overnight, true);
+  assert.equal(calculateAllowance(input).total, 56);
+});
+
+test('auto przez północ = overnight; midnight boundary', () => {
+  const input = buildTripInput({
+    country: 'DE', start: '2026-11-06T22:00', end: '2026-11-07T06:30',
+    dayCategory: 'auto', businessTripEligible: true,
+  });
+  assert.equal(input.overnight, true);
+  assert.equal(calculateAllowance(input).days.length, 2);
+});
+
+test('bez potwierdzenia podróży służbowej – blokada', () => {
+  assert.throws(() => buildTripInput({
+    country: 'DE', start: '2026-11-06T06:00', end: '2026-11-06T18:00', dayCategory: 'auto',
+  }), /podróż służbowa/i);
+});
+
+test('opcjonalne posiłki/km/przerwa bez undefined', () => {
+  const input = buildTripInput({
+    country: 'DE', start: '2026-11-06T06:00', end: '2026-11-06T18:00',
+    dayCategory: 'auto', businessTripEligible: true,
+    breakDuration: '01:00', privateKm: 12.5,
+    meals: { '2026-11-06': { breakfast: true } },
+  });
+  assert.equal(input.breakMinutes, 60);
+  assert.equal(input.privateKm, 12.5);
+  assert.equal(parseDurationToMinutes(''), null);
+  assert.equal(hasUndefinedDeep(omitUndefinedDeep({ uid: 'u', workOrderId: '', input, calc: { total: 1 }, status: 'draft' })), null);
+});
+
+import {
+  workMinutesFromRange, validateDietAbsence, calculateDailyDiet, buildDailySheetPayloads,
+  dailyTimeId, dailyTripId,
+} from '../js/domain/daily-sheet.js';
+
+test('daily work 08-17 break 1h = 8h', () => {
+  const w = workMinutesFromRange('2026-11-06', '08:00', '17:00', '01:00');
+  assert.equal(w.minutes, 480);
+});
+
+test('daily invalid end/break', () => {
+  assert.throws(() => workMinutesFromRange('2026-11-06', '17:00', '08:00', '00:00'));
+  assert.throws(() => workMinutesFromRange('2026-11-06', '08:00', '09:00', '02:00'));
+});
+
+test('daily >8 strict on absence not work', () => {
+  assert.throws(() => validateDietAbsence({
+    dietMode: 'day_gt8', date: '2026-11-06',
+    absenceStart: '2026-11-06T08:00', absenceEnd: '2026-11-06T16:00',
+  }));
+  const ok = validateDietAbsence({
+    dietMode: 'day_gt8', date: '2026-11-06',
+    absenceStart: '2026-11-06T06:00', absenceEnd: '2026-11-06T16:30',
+  });
+  assert.equal(ok.kind, 'partial');
+});
+
+test('full24 requires overnight covering whole date', () => {
+  assert.throws(() => validateDietAbsence({
+    dietMode: 'full24', date: '2026-11-06',
+    absenceStart: '2026-11-06T08:00', absenceEnd: '2026-11-06T20:00',
+  }));
+  const ok = validateDietAbsence({
+    dietMode: 'full24', date: '2026-11-06',
+    absenceStart: '2026-11-05T18:00', absenceEnd: '2026-11-07T09:00',
+  });
+  assert.equal(ok.kind, 'full');
+});
+
+test('arrival_departure needs overnight and date is edge', () => {
+  assert.throws(() => validateDietAbsence({
+    dietMode: 'arrival_departure', date: '2026-11-06',
+    absenceStart: '2026-11-06T08:00', absenceEnd: '2026-11-06T20:00',
+  }));
+  assert.throws(() => validateDietAbsence({
+    dietMode: 'arrival_departure', date: '2026-11-07',
+    absenceStart: '2026-11-05T08:00', absenceEnd: '2026-11-06T20:00',
+  }));
+  const ok = validateDietAbsence({
+    dietMode: 'arrival_departure', date: '2026-11-05',
+    absenceStart: '2026-11-05T08:00', absenceEnd: '2026-11-06T20:00',
+  });
+  assert.equal(ok.kind, 'partial');
+});
+
+test('DE breakfast deduction 20% of full from partial', () => {
+  const calc = calculateDailyDiet({
+    date: '2026-11-06', country: 'DE', kind: 'partial',
+    meals: { breakfast: true, lunch: false, dinner: false },
+  });
+  assert.equal(calc.rate.full, 28);
+  assert.equal(calc.rate.partial, 14);
+  assert.equal(calc.days[0].reduction, 5.6); // 0.2 * 28
+  assert.equal(calc.total, 8.4); // 14 - 5.6
+});
+
+test('no diet still builds time only', () => {
+  const p = buildDailySheetPayloads({
+    uid: 'u1', date: '2026-11-06', workOrderId: 'o1',
+    workStart: '08:00', workEnd: '17:00', breakDuration: '01:00',
+    dietMode: 'none',
+  });
+  assert.equal(p.timeEntry.minutes, 480);
+  assert.equal(p.trip, null);
+  assert.equal(p.timeId, dailyTimeId('u1', '2026-11-06', 'o1'));
+  assert.equal(hasUndefinedDeep(p.timeEntry), null);
+});
+
+test('DE without city no undefined in trip', () => {
+  const p = buildDailySheetPayloads({
+    uid: 'u1', date: '2026-11-06', workOrderId: 'o1',
+    workStart: '08:00', workEnd: '17:00', breakDuration: '01:00',
+    dietMode: 'day_gt8', businessTripEligible: true,
+    absenceStart: '2026-11-06T06:00', absenceEnd: '2026-11-06T16:30',
+    country: 'DE', city: '',
+    mealBreakfast: true,
+  });
+  assert.ok(p.trip);
+  assert.equal('city' in p.trip.input, false);
+  assert.equal(hasUndefinedDeep(p.trip), null);
+  assert.equal(p.tripId, dailyTripId('u1', '2026-11-06', 'o1'));
 });

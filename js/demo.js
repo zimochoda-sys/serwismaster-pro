@@ -67,7 +67,17 @@ export function createDemoStore() {
       if (name === 'invoiceDrafts' && data.status && data.status !== 'draft') throw new PermissionError('Tylko szkice.');
       Object.assign(db[name][k], clone(data));
     },
-    async remove(name, k) { admin(); delete db[name][k]; },
+    async remove(name, k) {
+      const row = db[name][k];
+      if (!row) return;
+      if (name === 'timeEntries' && row.status === 'draft' && row.uid === me.uid && (me.role === 'admin' || (assigned(row.workOrderId) && techCanEdit(db.workOrders[row.workOrderId]?.status)))) {
+        delete db[name][k]; return;
+      }
+      if (name === 'trips' && ['draft', 'manual_review'].includes(row.status) && row.uid === me.uid && me.role === 'tech') {
+        delete db[name][k]; return;
+      }
+      admin(); delete db[name][k];
+    },
     async upsertMember(uid, data) { admin(); if (uid === me.uid) throw new PermissionError('Nie możesz zmieniać własnej roli.'); db.members[uid] = { ...data, updatedBy: me.uid }; },
     async createTemplateVersion({ templateId, name, machineType, source, items }) {
       admin(); const tid = templateId || id('tpl'); const version = (db.templates[tid]?.currentVersion || 0) + 1; const vid = id('ver');
@@ -99,6 +109,38 @@ export function createDemoStore() {
     },
     async uploadPhoto(oid, file) { if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error('Dozwolone: JPG, PNG, WEBP.'); const url = URL.createObjectURL(file); return 'demo:' + url; },
     async photoUrl(path) { return path.replace(/^demo:/, ''); },
+    async saveDailySheet({ timeId, timeEntry, tripId = null, trip = null, replace = false }) {
+      if (!timeId || !timeEntry) throw new Error('Brak wpisu czasu.');
+      if (!tripId) throw new Error('Brak tripId (wymagane do atomowego czyszczenia diety).');
+      if (timeEntry.uid !== me.uid) throw new PermissionError('Tylko własne konto.');
+      if (trip && trip.uid !== me.uid) throw new PermissionError('Tylko własne konto.');
+      const o = db.workOrders[timeEntry.workOrderId];
+      if (me.role !== 'admin' && (!assigned(timeEntry.workOrderId) || !techCanEdit(o?.status))) throw new PermissionError('Zlecenie nieprzypisane lub zablokowane.');
+      const curT = db.timeEntries[timeId];
+      const curTrip = db.trips[tripId];
+      if (curT) {
+        if (curT.uid !== me.uid) throw new PermissionError();
+        if (curT.status !== 'draft') throw new ConflictError('Wpis czasu już zatwierdzony – bez edycji.');
+        if (!replace) throw new ConflictError('Wpis na ten dzień i zlecenie już istnieje (unikaj duplikatu).');
+      }
+      if (curTrip) {
+        if (curTrip.uid !== me.uid) throw new PermissionError();
+        if (!['draft', 'manual_review'].includes(curTrip.status)) throw new ConflictError('Dieta już rozpatrzona – bez edycji.');
+        if (!replace) throw new ConflictError('Dieta na ten dzień już istnieje (zaznacz Nadpisz szkic).');
+      }
+      if (curT) {
+        Object.assign(db.timeEntries[timeId], { minutes: timeEntry.minutes, note: timeEntry.note || '', kind: timeEntry.kind, date: timeEntry.date });
+      } else {
+        db.timeEntries[timeId] = clone({ ...timeEntry });
+      }
+      if (curTrip) {
+        if (trip) Object.assign(db.trips[tripId], { input: clone(trip.input), calc: clone(trip.calc), status: trip.status });
+        else delete db.trips[tripId];
+      } else if (trip) {
+        db.trips[tripId] = clone({ ...trip });
+      }
+      return { timeId, tripId: trip ? tripId : null };
+    },
     now: () => '__now__',
     _simulateRemoteEdit(oid) { db.workOrders[oid].rev++; }, // do testu konfliktów
   };

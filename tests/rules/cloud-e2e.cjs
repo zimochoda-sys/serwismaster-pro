@@ -48,14 +48,31 @@ async function seed(docPath, data) { const r = await fetch(`${FS}/${docPath}`, {
     assert.match(await page.textContent('#statusBar'), /zapisano w chmurze/); pass('zapis wyniku w Firestore przez transakcję (rev) bez Storage');
     await seed(`tenants/${T}/workOrders/o1`, { title: 'Zlecenie T1', clientId: 'c1', siteId: '', machineId: 'm1', assignedTo: tech, dueDate: '2026-12-01', status: 'in_progress', snapshot: snap, results: { a: { outcome: 'ok' } }, rev: 99, createdBy: admin });
     await page.check('[data-item=a] input[value=ok]'); await page.click('[data-item=a] [data-action=saveItem]');
-    await page.waitForFunction(() => /KONFLIKT/.test(document.querySelector('#statusBar').textContent)); pass('konflikt rev wykryty w chmurze');
+    await page.waitForSelector('#statusBar >> text=KONFLIKT'); pass('konflikt rev wykryty w chmurze');
+    // Dziennik przez prawdziwy cloud.saveDailySheet (UI)
+    await page.click('[data-view=trips]');
+    await page.waitForSelector('#dailyForm');
+    await page.fill('[name=date]', '2026-11-06');
+    await page.fill('[name=workStart]', '08:00');
+    await page.fill('[name=workEnd]', '17:00');
+    await page.fill('[name=breakDuration]', '01:00');
+    await page.check('[name=dietMode][value=none]');
+    await page.click('[data-action=previewDaily]');
+    await page.waitForSelector('#tripResult .diet-summary');
+    await page.click('[data-action=saveDaily]');
+    await page.waitForSelector('text=Historia');
+    pass('cloud saveDailySheet: czas bez diety (SDK+emulator)');
+    await page.click('[data-action=previewDaily]');
+    await page.click('[data-action=saveDaily]');
+    await page.waitForSelector('#statusBar >> text=/duplikatu|już istnieje|Konflikt|konflikt|BŁĄD/i');
+    pass('cloud saveDailySheet: duplikat odrzucony');
     await page.click('[data-view=orders]'); await page.click('[data-action=openOrder]'); await page.click('[data-action=submitOrder]'); await page.waitForSelector('text=Przekazano do akceptacji'); pass('technik przekazał protokół (reguły: wymagane odpowiedzi)');
     await page.click('[data-action=logout]');
     await login('admin@example.invalid'); await page.waitForSelector('text=Wszystkie zlecenia');
     await page.click('[data-view=approvals]'); await page.click('text=Sprawdź'); await page.click('[data-action=decide][data-to=approved]'); await page.waitForSelector('text=Protokół zatwierdzony'); pass('admin zatwierdził w chmurze');
     await page.click('[data-view=team]'); await page.waitForSelector('text=to Ty – edycja zablokowana');
     await page.fill('#memberForm [name=uid]', admin); await page.fill('#memberForm [name=displayName]', 'x'); await page.click('#memberForm button');
-    await page.waitForFunction(() => /BŁĄD/.test(document.querySelector('#statusBar').textContent)); pass('zmiana własnej roli odrzucona');
+    await page.waitForSelector('#statusBar >> text=BŁĄD'); pass('zmiana własnej roli odrzucona');
     assert.deepEqual(errors, []); pass('brak błędów JS (chmura)');
   } catch (e) { console.error('FAIL', e.stack || e.message); log.push('FAIL ' + e.message); process.exitCode = 1; }
   fs.writeFileSync(path.join(__dirname, 'cloud-e2e-result.txt'), log.join('\n') + '\n');
