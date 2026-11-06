@@ -1,0 +1,10 @@
+PASS bootstrap-admin (Admin SDK) tworzy firmę i 1. admina; drugie uruchomienie odrzucone
+PASS konto bez członkostwa nie ma dostępu
+PASS brak danych logowania w localStorage (persistence=session)
+PASS technik (chmura) widzi tylko przypisane zlecenia
+PASS zapis wyniku w Firestore przez transakcję (rev)
+PASS konflikt rev wykryty w chmurze
+PASS technik przekazał protokół (reguły: wymagane odpowiedzi)
+PASS admin zatwierdził w chmurze
+PASS zmiana własnej roli odrzucona
+PASS brak błędów JS (chmura)

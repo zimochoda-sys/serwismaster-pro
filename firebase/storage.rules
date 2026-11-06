@@ -1,0 +1,20 @@
+rules_version = '2';
+// Zdjęcia do zleceń: tenants/{t}/workOrders/{orderId}/{uid}/{fileName}
+service firebase.storage {
+  match /b/{bucket}/o {
+    function memberDoc(t) { return firestore.get(/databases/(default)/documents/tenants/$(t)/members/$(request.auth.uid)); }
+    function isAdmin(t) { return request.auth != null && memberDoc(t).data.active == true && memberDoc(t).data.role == 'admin'; }
+    function orderDoc(t, o) { return firestore.get(/databases/(default)/documents/tenants/$(t)/workOrders/$(o)); }
+    function assigned(t, o) { return request.auth != null && memberDoc(t).data.active == true && orderDoc(t, o).data.assignedTo == request.auth.uid; }
+    match /tenants/{t}/workOrders/{o}/{uid}/{fileName} {
+      allow read: if isAdmin(t) || assigned(t, o);
+      allow create: if request.auth != null && request.auth.uid == uid && assigned(t, o)
+        && orderDoc(t, o).data.status in ['planned', 'in_progress', 'rejected']
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp)')
+        && fileName.matches('[A-Za-z0-9_-]{8,64}\\.(jpg|png|webp)');
+      allow update, delete: if false;
+    }
+    match /{all=**} { allow read, write: if false; }
+  }
+}

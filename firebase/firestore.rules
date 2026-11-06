@@ -1,0 +1,177 @@
+rules_version = '2';
+// SerwisMaster – reguły Firestore. Wszystkie dane pod tenants/{tenantId}/...
+// Rola pochodzi WYŁĄCZNIE z tenants/{t}/members/{uid} (zapis: admin innego konta lub Admin SDK).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function member(t) { return signedIn() && exists(/databases/$(database)/documents/tenants/$(t)/members/$(request.auth.uid))
+      && get(/databases/$(database)/documents/tenants/$(t)/members/$(request.auth.uid)).data.active == true; }
+    function role(t) { return get(/databases/$(database)/documents/tenants/$(t)/members/$(request.auth.uid)).data.role; }
+    function isAdmin(t) { return member(t) && role(t) == 'admin'; }
+    function isTech(t) { return member(t) && role(t) == 'tech'; }
+    function str(v, max) { return v is string && v.size() <= max; }
+    function optStr(d, k, max) { return !(k in d) || str(d[k], max); }
+    function order(t, id) { return get(/databases/$(database)/documents/tenants/$(t)/workOrders/$(id)).data; }
+    function assignedTo(t, id) { return order(t, id).assignedTo == request.auth.uid; }
+    function orderOpen(t, id) { return order(t, id).status in ['planned', 'in_progress', 'rejected']; }
+    function orderNotApproved(t, id) { return order(t, id).status != 'approved'; }
+    function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
+
+    match /tenants/{t} {
+      allow read: if member(t);
+      allow update: if isAdmin(t) && request.resource.data.keys().hasOnly(['name', 'vatPercent', 'workPerHour', 'travelPerHour', 'updatedAt'])
+        && str(request.resource.data.name, 120) && request.resource.data.vatPercent is number
+        && request.resource.data.vatPercent >= 0 && request.resource.data.vatPercent <= 100;
+      allow create, delete: if false; // tworzy tylko Admin SDK (tools/bootstrap-admin.mjs)
+
+      match /members/{uid} {
+        // Własny wpis czytelny także dla nieaktywnego konta (do komunikatu „brak dostępu”) – nie daje dostępu do danych.
+        allow read: if signedIn() && (request.auth.uid == uid || isAdmin(t));
+        // Admin zarządza INNYMI kontami; nikt nie zmienia własnej roli. Konto Auth musi już istnieć (UID z konsoli).
+        allow create, update: if isAdmin(t) && uid != request.auth.uid
+          && request.resource.data.keys().hasOnly(['role', 'active', 'displayName', 'updatedBy', 'updatedAt'])
+          && request.resource.data.role in ['admin', 'tech'] && request.resource.data.active is bool
+          && str(request.resource.data.displayName, 80) && request.resource.data.updatedBy == request.auth.uid;
+        allow delete: if isAdmin(t) && uid != request.auth.uid;
+      }
+
+      match /clients/{id} {
+        allow read: if member(t);
+        allow create, update: if isAdmin(t) && request.resource.data.keys().hasOnly(['name', 'address', 'vatId', 'updatedAt'])
+          && str(request.resource.data.name, 120) && optStr(request.resource.data, 'address', 300) && optStr(request.resource.data, 'vatId', 40);
+        allow delete: if isAdmin(t);
+      }
+      match /sites/{id} {
+        allow read: if member(t);
+        allow create, update: if isAdmin(t) && request.resource.data.keys().hasOnly(['clientId', 'name', 'address', 'updatedAt'])
+          && str(request.resource.data.clientId, 64) && str(request.resource.data.name, 120) && optStr(request.resource.data, 'address', 300);
+        allow delete: if isAdmin(t);
+      }
+      match /machines/{id} {
+        allow read: if member(t);
+        allow create, update: if isAdmin(t) && request.resource.data.keys().hasOnly(['clientId', 'siteId', 'name', 'model', 'serial', 'machineType', 'updatedAt'])
+          && str(request.resource.data.clientId, 64) && str(request.resource.data.name, 120)
+          && optStr(request.resource.data, 'model', 120) && optStr(request.resource.data, 'serial', 80) && optStr(request.resource.data, 'machineType', 80);
+        allow delete: if isAdmin(t);
+      }
+      match /templates/{id} {
+        allow read: if member(t);
+        allow create, update: if isAdmin(t) && request.resource.data.keys().hasOnly(['name', 'machineType', 'currentVersion', 'updatedAt'])
+          && str(request.resource.data.name, 120) && request.resource.data.currentVersion is int;
+        allow delete: if false;
+      }
+      // Wersje szablonów są niezmienne.
+      match /templateVersions/{id} {
+        allow read: if member(t);
+        allow create: if isAdmin(t) && request.resource.data.keys().hasOnly(['templateId', 'version', 'name', 'source', 'items', 'createdBy', 'createdAt'])
+          && request.resource.data.createdBy == request.auth.uid && request.resource.data.items is list
+          && request.resource.data.items.size() > 0 && request.resource.data.items.size() <= 200 && request.resource.data.version is int
+          && str(request.resource.data.source, 500);
+        allow update, delete: if false;
+      }
+
+      match /workOrders/{id} {
+        allow read: if isAdmin(t) || (isTech(t) && resource.data.assignedTo == request.auth.uid);
+        allow create: if isAdmin(t)
+          && request.resource.data.keys().hasOnly(['title', 'clientId', 'siteId', 'machineId', 'assignedTo', 'dueDate', 'status', 'snapshot', 'results', 'rev', 'createdBy', 'createdAt', 'updatedAt', 'updatedBy'])
+          && request.resource.data.status == 'planned' && request.resource.data.rev == 0
+          && request.resource.data.createdBy == request.auth.uid && request.resource.data.results.size() == 0
+          && str(request.resource.data.title, 160) && str(request.resource.data.assignedTo, 128)
+          && request.resource.data.snapshot.requiredItemIds is list && request.resource.data.snapshot.items.size() <= 200;
+        allow update: if resource.data.status != 'approved' // zatwierdzony = zablokowany
+          && request.resource.data.rev == resource.data.rev + 1 // kontrola konfliktu
+          && request.resource.data.updatedBy == request.auth.uid
+          && (adminPlanning() || adminDecision() || techWork() || techStatus());
+        allow delete: if isAdmin(t) && resource.data.status == 'planned';
+
+        function adminPlanning() { return isAdmin(t) && resource.data.status in ['planned', 'in_progress', 'rejected']
+          && changed().hasOnly(['title', 'assignedTo', 'dueDate', 'siteId', 'rev', 'updatedAt', 'updatedBy']); }
+        function adminDecision() { return isAdmin(t) && resource.data.status == 'submitted'
+          && request.resource.data.status in ['approved', 'rejected']
+          && changed().hasOnly(['status', 'rev', 'updatedAt', 'updatedBy', 'decidedBy', 'decidedAt', 'decisionNote'])
+          && request.resource.data.decidedBy == request.auth.uid && optStr(request.resource.data, 'decisionNote', 1000); }
+        function techMine() { return isTech(t) && resource.data.assignedTo == request.auth.uid; }
+        function techWork() { return techMine() && resource.data.status in ['planned', 'in_progress', 'rejected']
+          && changed().hasOnly(['results', 'rev', 'updatedAt', 'updatedBy'])
+          && request.resource.data.results is map && request.resource.data.results.size() <= 200
+          && request.resource.data.results.diff(resource.data.results).affectedKeys().size() == 1; }
+        function techStatus() { return techMine() && changed().hasOnly(['status', 'rev', 'updatedAt', 'updatedBy', 'submittedAt']) && (
+            (resource.data.status in ['planned', 'rejected'] && request.resource.data.status == 'in_progress')
+            || (resource.data.status in ['in_progress', 'rejected'] && request.resource.data.status == 'submitted'
+                && request.resource.data.results.keys().hasAll(resource.data.snapshot.requiredItemIds))); }
+      }
+
+      match /defects/{id} {
+        allow read: if isAdmin(t) || (isTech(t) && resource.data.createdBy == request.auth.uid);
+        allow create: if signedIn() && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.keys().hasOnly(['workOrderId', 'machineId', 'itemId', 'description', 'severity', 'status', 'createdBy', 'createdAt'])
+          && request.resource.data.status == 'open' && request.resource.data.severity in ['low', 'medium', 'high']
+          && str(request.resource.data.description, 2000)
+          && (isAdmin(t) || (isTech(t) && assignedTo(t, request.resource.data.workOrderId) && orderOpen(t, request.resource.data.workOrderId)));
+        allow update: if isAdmin(t) && changed().hasOnly(['status', 'followUpOrderId', 'updatedAt']) && request.resource.data.status in ['open', 'in_repair', 'closed'];
+        allow delete: if false;
+      }
+
+      match /timeEntries/{id} {
+        allow read: if isAdmin(t) || (isTech(t) && resource.data.uid == request.auth.uid);
+        allow create: if request.resource.data.uid == request.auth.uid && request.resource.data.status == 'draft'
+          && request.resource.data.keys().hasOnly(['workOrderId', 'uid', 'date', 'kind', 'minutes', 'note', 'status', 'createdAt'])
+          && request.resource.data.kind in ['work', 'travel', 'break'] && request.resource.data.minutes is int
+          && request.resource.data.minutes >= 1 && request.resource.data.minutes <= 1440 && optStr(request.resource.data, 'note', 500)
+          && (isAdmin(t) || (isTech(t) && assignedTo(t, request.resource.data.workOrderId) && orderOpen(t, request.resource.data.workOrderId)));
+        allow update: if isAdmin(t) && resource.data.status == 'draft' && changed().hasOnly(['status', 'approvedBy', 'approvedAt'])
+          && request.resource.data.status == 'approved' && request.resource.data.approvedBy == request.auth.uid;
+        allow delete: if resource.data.status == 'draft' && isTech(t) && resource.data.uid == request.auth.uid
+          && assignedTo(t, resource.data.workOrderId) && orderOpen(t, resource.data.workOrderId);
+      }
+
+      match /parts/{id} {
+        allow read: if member(t);
+        allow create, update: if isAdmin(t) && request.resource.data.keys().hasOnly(['sku', 'name', 'stock', 'unitPrice', 'updatedAt'])
+          && request.resource.data.stock is int && request.resource.data.stock >= 0 && request.resource.data.unitPrice is number && str(request.resource.data.name, 120);
+        allow delete: if false;
+      }
+      match /materials/{id} {
+        allow read: if isAdmin(t) || (isTech(t) && resource.data.uid == request.auth.uid);
+        allow create: if request.resource.data.uid == request.auth.uid && request.resource.data.status == 'draft'
+          && request.resource.data.keys().hasOnly(['workOrderId', 'partId', 'name', 'qty', 'unitPrice', 'uid', 'status', 'createdAt'])
+          && request.resource.data.qty is int && request.resource.data.qty > 0 && request.resource.data.qty <= 10000
+          && (isAdmin(t) || (isTech(t) && assignedTo(t, request.resource.data.workOrderId) && orderOpen(t, request.resource.data.workOrderId)));
+        // Zatwierdzenie razem z atomowym zmniejszeniem stanu magazynu (transakcja + getAfter).
+        allow update: if isAdmin(t) && resource.data.status == 'draft' && changed().hasOnly(['status', 'approvedBy', 'approvedAt'])
+          && request.resource.data.status == 'approved' && request.resource.data.approvedBy == request.auth.uid
+          && getAfter(/databases/$(database)/documents/tenants/$(t)/parts/$(resource.data.partId)).data.stock
+             == get(/databases/$(database)/documents/tenants/$(t)/parts/$(resource.data.partId)).data.stock - resource.data.qty;
+        allow delete: if resource.data.status == 'draft' && isTech(t) && resource.data.uid == request.auth.uid
+          && assignedTo(t, resource.data.workOrderId) && orderOpen(t, resource.data.workOrderId);
+      }
+
+      match /trips/{id} {
+        allow read: if isAdmin(t) || (isTech(t) && resource.data.uid == request.auth.uid);
+        allow create: if (isAdmin(t) || isTech(t)) && request.resource.data.uid == request.auth.uid
+          && request.resource.data.status in ['draft', 'manual_review']
+          && request.resource.data.keys().hasOnly(['uid', 'workOrderId', 'input', 'calc', 'status', 'createdAt'])
+          && request.resource.data.keys().hasAll(['uid', 'workOrderId', 'input', 'calc', 'status'])
+          && request.resource.data.input is map && request.resource.data.calc is map
+          && request.resource.data.calc.total is number && request.resource.data.calc.total >= 0
+          && request.resource.data.workOrderId is string && request.resource.data.workOrderId.size() <= 64
+          && (request.resource.data.workOrderId == '' || isAdmin(t)
+              || (exists(/databases/$(database)/documents/tenants/$(t)/workOrders/$(request.resource.data.workOrderId))
+                  && assignedTo(t, request.resource.data.workOrderId) && orderOpen(t, request.resource.data.workOrderId)));
+        allow update: if isAdmin(t) && resource.data.status in ['draft', 'manual_review'] && changed().hasOnly(['status', 'approvedBy', 'approvedAt', 'reviewNote'])
+          && request.resource.data.status in ['approved', 'rejected'] && request.resource.data.approvedBy == request.auth.uid;
+        allow delete: if false;
+      }
+
+      match /invoiceDrafts/{id} {
+        allow read: if isAdmin(t);
+        // Tylko szkice – brak statusu "issued" (wystawianie wymaga systemu księgowego).
+        allow create, update: if isAdmin(t) && request.resource.data.status == 'draft' && request.resource.data.number == null
+          && orderApprovedFor(request.resource.data.workOrderId);
+        allow delete: if isAdmin(t);
+        function orderApprovedFor(oid) { return order(t, oid).status == 'approved'; }
+      }
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

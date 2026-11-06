@@ -1,0 +1,21 @@
+✔ niezalogowany nic nie czyta (1340.607159ms)
+✔ technik czyta przypisane, nie czyta cudzych (274.687861ms)
+✔ izolacja tenantów: admin innej firmy nie ma dostępu (118.575914ms)
+✔ eskalacja ról: technik nie nadaje sobie admina; admin nie zmienia siebie (173.587835ms)
+✔ technik zapisuje wynik z rev+1; zły rev = konflikt (135.198309ms)
+✔ podszywanie się: updatedBy musi być autorem; technik nie zmienia snapshotu/przypisania (121.941638ms)
+✔ zgłoszenie wymaga odpowiedzi na wymagane punkty; technik nie zatwierdza (182.780238ms)
+✔ zatwierdzony protokół zablokowany także dla admina (102.630365ms)
+✔ czas pracy: tylko własny, do przypisanego zlecenia; technik nie zatwierdza (138.256552ms)
+✔ materiał: zatwierdzenie tylko z atomowym zdjęciem ze stanu (88.214338ms)
+✔ szkic rachunku tylko admin, tylko dla zatwierdzonego, bez numeru (121.452668ms)
+✔ wersje szablonów niezmienne (92.33087ms)
+✔ Storage: zdjęcie tylko przypisany technik, obraz <10MB, własny folder (289.01871ms)
+✔ wyłączone konto: brak odczytu/zapisu/usuwania własnych danych; własny wpis członkostwa czytelny (125.443342ms)
+✔ dieta: powiązanie tylko z własnym otwartym zleceniem; walidacja pól (189.649897ms)
+✔ usuwanie szkicu czasu: tylko własny, aktywny, przypisane otwarte zlecenie (115.765076ms)
+✔ członek (technik) czyta wspólny katalog klientów/maszyn – zamierzone, udokumentowane (61.703617ms)
+ℹ tests 17
+ℹ pass 17
+ℹ fail 0
+✔  Script exited successfully (code 0)
