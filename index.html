@@ -15,13 +15,17 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: #0b1329; color: #f8fafc; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
     header { background: #1e293b; padding: 0 16px; height: 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; position: relative; z-index: 100; }
     .brand { font-weight: 800; font-size: 1.15rem; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+    
     .nav-tabs { display: flex; gap: 4px; height: 100%; align-items: center; }
     .tab-btn { background: transparent; color: #94a3b8; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.82rem; display: flex; align-items: center; gap: 5px; }
     .tab-btn:hover { color: #fff; background: #334155; }
     .tab-btn.active { background: #0284c7; color: #fff; }
+
     .header-right { display: flex; align-items: center; gap: 8px; }
+
     .btn { background: #0284c7; color: #fff; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; }
     .btn:hover { opacity: 0.9; }
     .btn-green { background: #10b981; }
@@ -29,19 +33,25 @@
     .btn-purple { background: #8b5cf6; }
     .btn-del { background: #ef4444; }
     .btn-gray { background: #475569; }
+
+    /* MENU ADMINISTRATORA ROZWIJANE */
     .admin-menu-dropdown { position: relative; display: inline-block; }
     .admin-menu-content { display: none; position: absolute; right: 0; top: 100%; background: #16243d; min-width: 210px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); border: 1px solid #2a4365; border-radius: 6px; z-index: 150; padding: 6px 0; margin-top: 4px; }
     .admin-menu-content a, .admin-menu-content button { color: #f8fafc; padding: 8px 14px; text-decoration: none; display: flex; align-items: center; gap: 8px; font-size: 0.82rem; background: transparent; border: none; width: 100%; text-align: left; cursor: pointer; }
     .admin-menu-content a:hover, .admin-menu-content button:hover { background: #1f3558; color: #38bdf8; }
+    .admin-menu-dropdown:hover .admin-menu-content { display: block; }
+
     .view-container { display: flex; flex: 1; width: 100%; height: calc(100vh - 50px); overflow: hidden; }
     .sidebar { width: 330px; background: #0c1527; border-right: 2px solid #1e2e4a; overflow-y: auto; padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; }
     .content { flex: 1; padding: 18px; overflow-y: auto; }
+    
     .card { background: #152238; border: 1px solid #223758; padding: 12px; border-radius: 6px; cursor: pointer; position: relative; transition: all 0.15s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     .card:hover { border-color: #38bdf8; background: #1a2a46; transform: translateY(-1px); }
     .card.act { border-color: #38bdf8; background: #1c3156; box-shadow: 0 0 0 1px #38bdf8; }
     .card.is-done { border-left: 4px solid #10b981; opacity: 0.85; }
     .card.is-active { border-left: 4px solid #38bdf8; }
     .card-del-btn { position: absolute; top: 6px; right: 6px; background: #ef4444; color: #fff; border: none; width: 20px; height: 20px; border-radius: 3px; cursor: pointer; font-weight: bold; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; }
+
     .box { background: #152238; border: 1px solid #2a4365; border-radius: 8px; padding: 18px; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); }
     .box h3 { color: #38bdf8; font-size: 1rem; font-weight: 700; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e355b; padding-bottom: 8px; }
     input, select, textarea { width: 100%; background: #0c1527; border: 1px solid #283e66; color: #fff; padding: 7px 10px; border-radius: 4px; margin-top: 4px; font-size: 0.88rem; }
@@ -49,58 +59,97 @@
     textarea { height: 75px; resize: vertical; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+
     .badge-status { font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 3px; display: inline-block; }
     .badge-status.active { background: #0284c7; color: #fff; }
     .badge-status.done { background: #047857; color: #ecfdf5; }
+
+    /* DASHBOARD OKRĘGOWY */
     .dash-summary-row { display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 16px; }
     .donut-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 10px; }
     .donut-center-text { position: absolute; text-align: center; pointer-events: none; }
     .donut-center-num { font-size: 1.6rem; font-weight: 800; color: #38bdf8; }
     .donut-center-lbl { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; }
+
     .dash-kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .dash-kpi-tile { background: #0e192e; border: 1px solid #1e355b; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; justify-content: center; }
     .dash-kpi-tile-val { font-size: 1.5rem; font-weight: 800; margin-top: 4px; }
     .dash-kpi-tile-lbl { font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
+
+    /* CHECKLISTY */
     .chk-mod-container { background: #131e33; border: 1px solid #25395c; border-radius: 6px; margin-bottom: 14px; overflow: hidden; }
     .chk-mod-header { background: #1b2a47; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #25395c; }
     .chk-mod-title { font-weight: 700; font-size: 0.92rem; color: #38bdf8; }
     .chk-mod-list { padding: 8px; display: flex; flex-direction: column; gap: 6px; background: #0d172a; }
+
     .task-card-row { background: #16243d; border: 1px solid #23385d; border-radius: 4px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: flex-start; transition: 0.15s; }
     .task-card-row:hover { border-color: #38bdf8; background: #1a2c4b; }
     .task-card-row.done { background: #0b2e25; border-color: #10b981; }
     .task-left-box { flex: 1; margin-right: 14px; }
     .task-main-text { font-size: 0.88rem; font-weight: 600; color: #f8fafc; line-height: 1.35; cursor: pointer; }
     .task-card-row.done .task-main-text { color: #ecfdf5; font-weight: 600; }
+    
     .task-sub-toolbar { display: flex; align-items: center; gap: 12px; margin-top: 6px; font-size: 0.85rem; }
     .sub-icon { cursor: pointer; transition: transform 0.15s; display: inline-flex; align-items: center; gap: 4px; }
     .sub-icon:hover { transform: scale(1.15); color: #38bdf8; }
     .badge-counter { font-size: 0.68rem; background: #ef4444; color: #fff; padding: 1px 5px; border-radius: 10px; font-weight: bold; }
+
     .problem-snippet { margin-top: 8px; background: #1c263d; border-left: 3px solid #ef4444; padding: 8px 10px; border-radius: 4px; font-size: 0.82rem; }
     .prob-item-row { padding: 5px 0; border-bottom: 1px solid #223758; display: flex; justify-content: space-between; align-items: center; }
+    .prob-item-row:last-child { border-bottom: none; }
     .prob-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; display: inline-block; margin-right: 6px; }
     .prob-parts-tag { display: inline-block; background: #283955; color: #fbbf24; padding: 2px 6px; border-radius: 3px; font-size: 0.75rem; margin-top: 3px; margin-right: 4px; }
+
     .status-badge { font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; }
     .status-badge.ok { background: #047857; color: #ecfdf5; border-color: #10b981; }
     .status-badge.open { background: #243550; color: #fbbf24; border-color: #f59e0b; }
+
     .progress-wrap { background: #0c1527; border: 1px solid #283e66; border-radius: 6px; height: 16px; width: 100%; overflow: hidden; margin: 10px 0; }
     .progress-bar { background: #10b981; height: 100%; width: 0%; transition: width 0.3s ease; }
+
+    /* MIESIĘCZNY ZEITNACHWEIS I DIETY */
     .zeit-summary-kpi { background: #101e38; border: 2px solid #0284c7; border-radius: 6px; padding: 14px 18px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
     .zeit-kpi-item { display: flex; flex-direction: column; }
     .zeit-kpi-lbl { font-size: 0.75rem; color: #94a3b8; font-weight: bold; }
     .zeit-kpi-val { font-size: 1.55rem; font-weight: 800; margin-top: 2px; }
+
     .day-sheet-card { background: #131f36; border: 1px solid #223556; border-radius: 6px; margin-bottom: 10px; overflow: hidden; }
     .day-sheet-header { background: #182845; padding: 9px 14px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: bold; }
     .day-sheet-entries { padding: 8px 12px; display: flex; flex-direction: column; gap: 6px; }
     .day-entry-line { background: #0d172a; border-left: 3px solid #38bdf8; border-radius: 3px; padding: 7px 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; }
+    .day-entry-line.anreise { border-left-color: #3b82f6; }
+    .day-entry-line.abreise { border-left-color: #a855f7; }
+    .day-entry-line.arbeit { border-left-color: #10b981; }
+    .day-entry-line.standby { border-left-color: #f59e0b; }
+
     .table-custom { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
     .table-custom th, .table-custom td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #23385d; }
+    .table-custom th { color: #94a3b8; }
+
+    /* PODGLĄD PDF */
+    .pdf-preview-sheet { background: #ffffff; color: #000000; padding: 36px 42px; border-radius: 4px; max-width: 820px; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.6); font-family: "Segoe UI", Arial, sans-serif; }
+    .pdf-preview-sheet h2 { color: #0f172a; border-bottom: 2px solid #0284c7; padding-bottom: 6px; font-size: 1.3rem; margin-bottom: 12px; }
+    .pdf-meta-table { width: 100%; margin-bottom: 16px; border-collapse: collapse; }
+    .pdf-meta-table td { padding: 4px 6px; font-size: 0.85rem; vertical-align: top; }
+    .pdf-sec-title { font-weight: bold; background: #e2e8f0; padding: 6px 8px; font-size: 0.9rem; margin-top: 14px; margin-bottom: 6px; border-left: 4px solid #0284c7; }
+    .pdf-item-row { font-size: 0.82rem; padding: 5px 8px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; }
+    .pdf-prob-box { background: #fffbeb; border: 1px solid #fef3c7; padding: 6px 10px; border-radius: 3px; font-size: 0.8rem; margin: 4px 0; color: #92400e; }
+
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.78); display: none; justify-content: center; align-items: center; z-index: 1000; overflow-y: auto; padding: 16px; }
     .modal-window { background: #16243d; border: 1px solid #284069; border-radius: 8px; padding: 18px; width: 100%; max-width: 680px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); max-height: 90vh; display: flex; flex-direction: column; }
     .modal-scrollable { overflow-y: auto; flex: 1; margin-top: 10px; padding-right: 4px; }
     .module-builder-row { background: #0e172a; border: 1px solid #233658; border-radius: 4px; padding: 10px; margin-bottom: 10px; }
+
+    @media print {
+      header, .sidebar, .nav-tabs, .no-print, button, input[type="file"] { display: none !important; }
+      body, .content, .view-container { background: #fff !important; color: #000 !important; height: auto !important; overflow: visible !important; padding: 0 !important; }
+      .pdf-preview-sheet { box-shadow: none !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
+    }
   </style>
 </head>
 <body>
+
   <header class="no-print">
     <div class="brand">⚙️ SerwisMaster Pro</div>
     <div class="nav-tabs">
@@ -110,15 +159,21 @@
       <button class="tab-btn" id="btnTabData" onclick="switchTab('data')">📂 Maszyny & Moduły</button>
       <button class="tab-btn" id="btnTabParts" onclick="switchTab('parts')">📦 Magazyn</button>
     </div>
+
     <div class="header-right">
+      <!-- WYBÓR KLIENTA W GŁÓWNYM PASKU -->
       <div style="display:flex; align-items:center; gap:6px; background:#0d182b; padding:3px 8px; border-radius:4px; border:1px solid #283e66;">
         <span style="font-size:0.75rem; color:#94a3b8; font-weight:bold;">🏢 Klient:</span>
         <select id="globalClientSelector" onchange="onGlobalClientChanged(this.value)" style="background:transparent; border:none; color:#38bdf8; font-weight:bold; font-size:0.82rem; margin:0; padding:2px; cursor:pointer; outline:none;"></select>
       </div>
+
+      <!-- PRZEŁĄCZNIK ZALOGOWANEGO UŻYTKOWNIKA -->
       <div style="display:flex; align-items:center; gap:6px; background:#0d182b; padding:3px 8px; border-radius:4px; border:1px solid #283e66;">
         <span style="font-size:0.75rem; color:#94a3b8; font-weight:bold;">👤</span>
         <select id="activeUserSelector" onchange="onSwitchActiveUser(this.value)" style="background:transparent; border:none; color:#10b981; font-weight:bold; font-size:0.82rem; margin:0; padding:2px; cursor:pointer; outline:none;"></select>
       </div>
+
+      <!-- ROZWIJANE SUBMENU DLA ADMINISTRATORA -->
       <div class="admin-menu-dropdown" id="adminMenuDropdownWrapper">
         <button class="btn btn-gray" style="padding:4px 8px; font-size:0.78rem;" onclick="toggleAdminMenu(event)">⚙️ Admin ▼</button>
         <div class="admin-menu-content" id="adminMenuContentDropdown">
@@ -127,9 +182,2518 @@
           <button onclick="openPasswordSettingsModal()">🔑 Zmień hasło główne</button>
         </div>
       </div>
+
       <button class="btn btn-purple" onclick="openOrderDispatchModal()">+ Zlecenie</button>
     </div>
   </header>
-  <!-- Reszta kodu aplikacji w repozytorium GitHub Pages -->
+
+  <!-- ==================== 0. WIDOK: NOWOCZESNY DASHBOARD (WYKRES PIERŚCIENIOWY & KPI KLIENTA) ==================== -->
+  <div id="viewDash" class="view-container" style="flex-direction:column; padding:18px; overflow-y:auto;">
+    <div style="max-width:1150px; margin:0 auto; width:100%;">
+      
+      <!-- NAGŁÓWEK DASHBOARDU -->
+      <div class="box" style="margin-bottom:14px; background:#16243d; border:1px solid #2b456e;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div>
+            <div style="font-size:0.75rem; color:#94a3b8; font-weight:bold; text-transform:uppercase;">PULPIT GŁÓWNY ZAKŁADU:</div>
+            <h2 id="dashClientTitle" style="color:#38bdf8; font-size:1.35rem; margin-top:2px;">Wszystkie maszyny</h2>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-green" onclick="switchTab('orders')">📋 Zobacz zlecenia</button>
+            <button class="btn btn-purple" onclick="openOrderDispatchModal()">+ Wystaw nowe zlecenie</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- GŁÓWNY PANEL: WYKRES PIERŚCIENIOWY (DONUT) + KAFELKI KPI -->
+      <div class="dash-summary-row">
+        <!-- WYKRES PIERŚCIENIOWY LIVE -->
+        <div class="box" style="margin-bottom:0; display:flex; flex-direction:column; justify-content:center;">
+          <h3 style="margin-bottom:8px;">Stan Punktów Kontrolnych</h3>
+          <div class="donut-wrap">
+            <svg width="180" height="180" viewBox="0 0 180 180">
+              <circle cx="90" cy="90" r="70" fill="transparent" stroke="#1f3354" stroke-width="22"></circle>
+              <!-- Segment OK (zielony) -->
+              <circle id="donutCircleOk" cx="90" cy="90" r="70" fill="transparent" stroke="#10b981" stroke-width="22" stroke-dasharray="0 440" stroke-dashoffset="110" transform="rotate(-90 90 90)"></circle>
+              <!-- Segment Defect (czerwony) -->
+              <circle id="donutCircleDefect" cx="90" cy="90" r="70" fill="transparent" stroke="#ef4444" stroke-width="22" stroke-dasharray="0 440" stroke-dashoffset="110" transform="rotate(-90 90 90)"></circle>
+              <!-- Segment Open (pomarańczowy) -->
+              <circle id="donutCircleOpen" cx="90" cy="90" r="70" fill="transparent" stroke="#f59e0b" stroke-width="22" stroke-dasharray="0 440" stroke-dashoffset="110" transform="rotate(-90 90 90)"></circle>
+            </svg>
+            <div class="donut-center-text">
+              <div class="donut-center-num" id="donutTotalTasksNum">0</div>
+              <div class="donut-center-lbl">Punktów</div>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-around; margin-top:8px; font-size:0.75rem;">
+            <span style="color:#10b981;">🟢 Sprawdzone: <b id="dashLegendOk">0</b></span>
+            <span style="color:#f59e0b;">🟠 Do zrobienia: <b id="dashLegendOpen">0</b></span>
+            <span style="color:#ef4444;">🔴 Usterki: <b id="dashLegendDefects">0</b></span>
+          </div>
+        </div>
+
+        <!-- KAFELKI KPI KLIENTA -->
+        <div class="box" style="margin-bottom:0; display:flex; flex-direction:column; justify-content:center;">
+          <h3 style="margin-bottom:8px;">Zlecenia & Urządzenia</h3>
+          <div class="dash-kpi-grid">
+            <div class="dash-kpi-tile" style="cursor:pointer;" onclick="openOrdersFiltered('active')" title="Kliknij, aby otworzyć aktywne zlecenia">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="dash-kpi-tile-lbl">Aktywne zlecenia:</span>
+                <span style="font-size:0.75rem; color:#38bdf8;">Otwórz ➔</span>
+              </div>
+              <span class="dash-kpi-tile-val" style="color:#38bdf8;" id="dashKpiActiveOrders">0</span>
+            </div>
+            <div class="dash-kpi-tile" style="cursor:pointer;" onclick="openOrdersFiltered('done')" title="Kliknij, aby otworzyć zakończone serwisy">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="dash-kpi-tile-lbl">Zakończone serwisy:</span>
+                <span style="font-size:0.75rem; color:#10b981;">Otwórz ➔</span>
+              </div>
+              <span class="dash-kpi-tile-val" style="color:#10b981;" id="dashKpiDoneOrders">0</span>
+            </div>
+            <div class="dash-kpi-tile" style="cursor:pointer;" onclick="switchTab('data')" title="Kliknij, aby przejść do katalogu maszyn">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="dash-kpi-tile-lbl">Maszyny w katalogu:</span>
+                <span style="font-size:0.75rem; color:#fbbf24;">Otwórz ➔</span>
+              </div>
+              <span class="dash-kpi-tile-val" style="color:#fbbf24;" id="dashKpiMachinesCount">0</span>
+            </div>
+            <div class="dash-kpi-tile" style="cursor:pointer;" onclick="openProblemsFiltered('open')" title="Kliknij, aby zobaczyć otwarte wady">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="dash-kpi-tile-lbl">Otwarte wady (Rest):</span>
+                <span style="font-size:0.75rem; color:#ef4444;">Zobacz ➔</span>
+              </div>
+              <span class="dash-kpi-tile-val" style="color:#ef4444;" id="dashKpiOpenDefects">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLICA USTEREK I PRAC DO WYKONANIA (REST-ARBEIT) DLA TEGO KLIENTA -->
+      <div class="box">
+        <h3>
+          <span>⚠️ Usterki & Restarbeit w toku (dla wybranego zakładu)</span>
+          <select id="dashFilterSelect" onchange="renderDashboardProblems()" style="width:auto; font-size:0.78rem; padding:2px 8px; margin:0;">
+            <option value="open">Tylko Otwarte (Wymagają naprawy)</option>
+            <option value="all">Wszystkie wady</option>
+            <option value="resolved">Tylko Rozwiązane</option>
+          </select>
+        </h3>
+        <table class="table-custom">
+          <thead>
+            <tr><th>Status</th><th>Maszyna / Linia</th><th>Punkt kontrolny</th><th>Usterka</th><th>Restarbeit (Czynność)</th><th>Części</th><th>Technik</th><th>Akcja</th></tr>
+          </thead>
+          <tbody id="dashProblemsTableBody"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== 1. WIDOK: ZLECENIA MASZYN (CZYSTE ZLECENIA) ==================== -->
+  <div id="viewOrders" class="view-container" style="display:none;">
+    <div class="sidebar no-print">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid #1e355b; padding-bottom:6px;">
+        <div>
+          <span style="font-size:0.7rem; color:#94a3b8; font-weight:bold; text-transform:uppercase;">Zlecenia:</span>
+          <b id="sidebarClientNameDisplay" style="color:#38bdf8; font-size:0.78rem; display:block;"></b>
+        </div>
+        <select id="orderStatusFilter" onchange="filterOrdersList()" style="width:auto; padding:3px 6px; font-size:0.75rem; margin:0; background:#0c1527; border:1px solid #283e66; color:#fff; border-radius:4px;">
+          <option value="active" selected>Aktywne</option>
+          <option value="done">Zakończone</option>
+          <option value="all">Wszystkie</option>
+        </select>
+      </div>
+      <input type="text" id="orderSearchInput" placeholder="🔍 Szukaj zlecenia..." oninput="filterOrdersList()" style="margin-bottom:8px; padding:5px 8px; font-size:0.8rem;">
+      <div id="ordersSidebar"></div>
+    </div>
+    
+    <div class="content">
+      <div id="orderEmptyState" style="text-align:center; margin-top:120px; color:#94a3b8;">
+        <h2>Wybierz zlecenie z listy po lewej lub kliknij „+ Wystaw zlecenie”</h2>
+        <p style="font-size:0.85rem; color:#64748b; margin-top:6px;">Zlecenia dotyczą wyłącznie prac serwisowych i przeglądów maszyn na obiekcie. Cały czas pracy (Anreise, Abreise, godziny i diety) rejestrujesz w zakładce <b>⏱️ Godziny & Diety</b>.</p>
+      </div>
+
+      <div id="activeOrderView" style="display:none; max-width:980px; margin:0 auto;">
+        
+        <!-- NAGŁÓWEK STANU I BLOKADA HASŁEM -->
+        <div style="background:#131f38; border:1px solid #23385d; border-radius:6px; padding:12px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span id="aoStatusBadge" class="badge-status active">W TOKU</span>
+            <b id="aoHeaderOrderNum" style="font-size:1.05rem; color:#fff;">AUF-2026-001</b>
+            <span id="aoLockNotice" style="font-size:0.75rem; color:#ef4444; font-weight:bold; display:none;">🔒 ZAMKNIĘTE (BLOKADA EDYCJI)</span>
+          </div>
+          <div class="no-print" style="display:flex; gap:8px;">
+            <button class="btn btn-purple" onclick="openPdfPreviewModal()">📄 Podgląd PDF / Druk</button>
+            <button class="btn btn-green" id="btnToggleOrderDone" onclick="handleToggleOrderStatusClick()">✓ Zakończ zlecenie</button>
+          </div>
+        </div>
+
+        <!-- DANE GŁÓWNE -->
+        <div class="box">
+          <div class="grid-3">
+            <div><label>Klient / Zakład</label><input id="aoClientName" readonly style="color:#38bdf8; font-weight:bold;"></div>
+            <div><label>Maszyna / Linia</label><input id="aoMachineName" readonly style="color:#fff; font-weight:bold;"></div>
+            <div><label>Data realizacji (KW)</label><input type="date" id="aoOrderDate" onchange="onOrderDateChanged(this.value)"></div>
+          </div>
+          <div class="grid" style="margin-top:8px;">
+            <div><label>Tytuł / Zakres zlecenia</label><input id="aoOrderTitle" oninput="updateActiveOrderField('title', this.value)"></div>
+            <div><label>Technik prowadzący</label><input id="aoTechnician" oninput="updateActiveOrderField('technician', this.value)"></div>
+          </div>
+        </div>
+
+        <!-- UWAGI TECHNICZNE -->
+        <div class="box">
+          <h3>Przebieg prac / Notatki techniczne</h3>
+          <textarea id="aoSpecialNotes" style="height:80px;" placeholder="Wpisz uwagi z przeglądu, pomiary, stan maszyny..." oninput="updateActiveOrderField('specialNotes', this.value)"></textarea>
+        </div>
+
+        <!-- LISTA KONTROLNA -->
+        <div id="serviceChecklistSection">
+          <div class="box">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+              <div>
+                <h3 style="margin:0;">Protokół Punktów Kontrolnych</h3>
+                <span style="font-size:0.75rem; color:#94a3b8;">Odznaczaj punkty, zgłaszaj usterki ⚠️ lub dodaj nowy moduł</span>
+              </div>
+              <div class="no-print">
+                <button class="btn btn-amber" style="padding:4px 10px; font-size:0.75rem;" onclick="handleAddModuleToActiveOrderAuth()">➕ Dodaj moduł na stałe (Hasło)</button>
+              </div>
+            </div>
+            <div style="margin-top:10px;">
+              <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                <span>Postęp realizacji punktów kontrolnych:</span>
+                <b id="aoProgressTxt" style="color:#38bdf8;">0%</b>
+              </div>
+              <div class="progress-wrap"><div class="progress-bar" id="aoProgressBar"></div></div>
+            </div>
+          </div>
+          <div id="activeOrderModules"></div>
+        </div>
+
+        <div class="no-print" style="margin-top:20px; padding-bottom:40px; display:flex; justify-content:space-between;">
+          <button class="btn btn-green" onclick="handleToggleOrderStatusClick()" id="btnBottomDone">✓ Zakończ to zlecenie</button>
+          <button class="btn btn-del" id="btnDeleteOrder" onclick="handleDeleteOrderClick()">🗑️ Usuń to zlecenie</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 2. ZEITNACHWEIS & DIETY ==================== -->
+  <div id="viewZeit" class="view-container" style="display:none; flex-direction:column; padding:18px; overflow-y:auto;">
+    <div style="max-width:1150px; margin:0 auto; width:100%;">
+      
+      <!-- NAGŁÓWEK MIESIĘCZNY I PRZEŁĄCZANIE -->
+      <div class="box" style="margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <h2 id="zeitMonthDisplayTitle" style="color:#38bdf8; font-size:1.25rem;">⏱️ Miesięczna Karta Czasu Pracy & Diety (Zeitnachweis)</h2>
+            <div style="display:flex; gap:4px;">
+              <button class="btn btn-gray" style="padding:4px 8px;" onclick="changeZeitMonth(-1)">◀ Poprzedni</button>
+              <button class="btn btn-gray" style="padding:4px 8px;" onclick="currentZeitMonthDate = new Date(); renderZeitnachweisView();">Bieżący miesiąc</button>
+              <button class="btn btn-gray" style="padding:4px 8px;" onclick="changeZeitMonth(1)">Następny ▶</button>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div id="zeitTechnicianFilterBox" style="display:flex; align-items:center; gap:6px; background:#0d182b; padding:4px 8px; border-radius:4px; border:1px solid #1c2e4d;">
+              <span style="font-size:0.75rem; color:#94a3b8; font-weight:bold;">Filtr technika:</span>
+              <select id="zeitTechFilterSelect" onchange="renderZeitnachweisView()" style="background:transparent; border:none; color:#38bdf8; font-size:0.8rem; margin:0; padding:0; cursor:pointer; outline:none;">
+                <option value="ALL">Wszyscy pracownicy</option>
+              </select>
+            </div>
+            <button class="btn btn-purple" onclick="openAddDayEntryModal()">+ Dodaj czynność (Anreise / Praca / Abreise)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MIESIĘCZNY PASEK PODSUMOWANIA -->
+      <div class="zeit-summary-kpi">
+        <div class="zeit-kpi-item">
+          <span class="zeit-kpi-lbl">ROBOCZOGODZINY W MIESIĄCU:</span>
+          <span class="zeit-kpi-val" style="color:#10b981;" id="zeitKpiWorkHours">0.00 h</span>
+        </div>
+        <div class="zeit-kpi-item">
+          <span class="zeit-kpi-lbl">ŁĄCZNE PRZERWY:</span>
+          <span class="zeit-kpi-val" style="color:#f59e0b;" id="zeitKpiBreaks">0 min</span>
+        </div>
+        <div class="zeit-kpi-item">
+          <span class="zeit-kpi-lbl">DNI Z DIETĄ (AUSLÖSE):</span>
+          <span class="zeit-kpi-val" style="color:#38bdf8;" id="zeitKpiDietDays">0 dni</span>
+        </div>
+        <div class="zeit-kpi-item">
+          <span class="zeit-kpi-lbl">SUMA DIET ZA MIESIĄC (W EURO):</span>
+          <span class="zeit-kpi-val" style="color:#fbbf24;" id="zeitKpiDietTotal">0.00 €</span>
+        </div>
+      </div>
+
+      <!-- KARTY DNI MIESIĄCA -->
+      <div class="box">
+        <h3>Ewidencja Dni Pracy i Rozliczenie Diety w Miesiącu</h3>
+        <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
+          💡 Wszystkie stawki diet wyliczane są według oficjalnych <strong>niemieckich stawek delegacyjnych BMF i wypłacane w EURO (€)</strong>. 
+          <strong>Zasada kontrolna:</strong> w jednym dniu dieta naliczana jest <u>dokładnie raz na dobę</u>.
+        </p>
+        <div id="zeitDaysCardsContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 3. WIDOK: KATALOG DANYCH ==================== -->
+  <div id="viewData" class="view-container" style="display:none; flex-direction:column; padding:18px; overflow-y:auto;">
+    <div style="max-width:1150px; margin:0 auto; width:100%;">
+      <div class="box" style="margin-bottom:14px; border:1px solid #334155; background:#16243d;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div>
+            <div style="font-size:0.75rem; color:#94a3b8; font-weight:bold; text-transform:uppercase;">KATALOG MASZYN I LINII PRODUKCYJNYCH DLA:</div>
+            <h2 id="dataActiveClientName" style="color:#38bdf8; font-size:1.35rem; margin-top:2px;">Wybierz klienta u góry</h2>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-amber" onclick="openEditClientModal()">✏️ Zmień nazwę / dane klienta</button>
+            <button class="btn btn-green" onclick="addNewClientPrompt()">+ Dodaj nowego klienta</button>
+            <button class="btn btn-purple" onclick="openTemplateCreatorModal()">+ Dodaj maszynę do klienta</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="dataClientViewEmpty" style="text-align:center; margin-top:60px; color:#94a3b8; display:none;">
+        <h3>Brak wybranego klienta. Wybierz zakład z listy rozwijanej u góry strony.</h3>
+      </div>
+      <div id="clientTemplatesContainer"></div>
+    </div>
+  </div>
+
+  <!-- ==================== 4. WIDOK: MAGAZYN CZĘŚCI ==================== -->
+  <div id="viewParts" class="view-container" style="display:none; padding:20px; overflow-y:auto;">
+    <div style="max-width:1050px; margin:0 auto; width:100%;">
+      <div class="box">
+        <h3>Dodaj część do magazynu</h3>
+        <div style="display:grid; grid-template-columns: 2fr 1.5fr 1fr auto; gap:10px; align-items:end;">
+          <div><label>Nazwa części</label><input id="npName" placeholder="np. Rolka dociskowa"></div>
+          <div><label>Nr katalogowy (Art.-Nr)</label><input id="npNum" placeholder="np. S-11885807"></div>
+          <div><label>Stan sztuk</label><input id="npStock" type="number" value="1"></div>
+          <button class="btn btn-green" onclick="saveNewPart()">Zapisz</button>
+        </div>
+      </div>
+      <div class="box">
+        <h3>Katalog części zamiennych</h3>
+        <table class="table-custom">
+          <thead><tr><th>Nazwa części</th><th>Nr katalogowy</th><th>Stan</th><th>Akcja</th></tr></thead>
+          <tbody id="partsCatalogList"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODALE ==================== -->
+
+  <!-- MODAL: DODANIE MODUŁU NA STAŁE W OTWARTYM ZLECENIU I SZABLONIE -->
+  <div class="modal-overlay" id="modalAddModToOrderAndTemplate">
+    <div class="modal-window" style="max-width:540px;">
+      <h3 style="color:#38bdf8; margin-bottom:8px;">➕ Dodaj Moduł do Zlecenia i Maszyny</h3>
+      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:10px;">
+        Ten moduł zostanie dodany do <b>bieżącego zlecenia</b> oraz <b>zapisany na stałe w kartotece maszyny</b> w Katalogu Danych. Każde kolejne zlecenie będzie go już zawierało.
+      </p>
+      
+      <div class="entry-modal-field">
+        <label style="font-size:0.8rem; color:#cbd5e1;">Nazwa nowego modułu:</label>
+        <input id="newModOrderName" placeholder="np. Magazynek 3, Stacja zgrzewania, F304...">
+      </div>
+
+      <div class="entry-modal-field" style="margin-top:8px;">
+        <label style="font-size:0.8rem; color:#cbd5e1;">Punkty kontrolne (każda linijka to jedno zadanie):</label>
+        <textarea id="newModOrderTasks" style="height:110px;" placeholder="1. Sprawdź luz i napięcie łańcucha&#10;2. Kontrola wycieków pneumatyki&#10;3. Czyszczenie i smarowanie"></textarea>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px; border-top:1px solid #23385d; padding-top:10px;">
+        <button class="btn btn-gray" onclick="closeModal('modalAddModToOrderAndTemplate')">Anuluj</button>
+        <button class="btn btn-green" onclick="executeAddModuleToOrderAndTemplate()">Zapisz moduł na stałe</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ZARZĄDZANIE PRACOWNIKAMI I UPRAWNIENIAMI (TYLKO DLA ADMINA) -->
+  <div class="modal-overlay" id="modalManageUsers">
+    <div class="modal-window" style="max-width:720px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #23385d; padding-bottom:8px; margin-bottom:12px;">
+        <div>
+          <h3 style="color:#38bdf8; margin:0;">👥 Zarządzanie Pracownikami & Uprawnieniami</h3>
+          <span style="font-size:0.75rem; color:#94a3b8;">Administrator przydziela uprawnienia i kontroluje dostęp</span>
+        </div>
+        <button class="btn btn-green" style="padding:3px 8px; font-size:0.75rem;" onclick="openAddNewUserPrompt()">+ Dodaj pracownika</button>
+      </div>
+
+      <div class="modal-scrollable" style="max-height:360px;">
+        <table class="table-custom">
+          <thead>
+            <tr><th>Pracownik</th><th>Rola</th><th>Kod PIN</th><th>Uprawnienia</th><th>Akcja</th></tr>
+          </thead>
+          <tbody id="usersManagementTableBody"></tbody>
+        </table>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px; border-top:1px solid #23385d; padding-top:10px;">
+        <button class="btn btn-gray" onclick="closeModal('modalManageUsers')">Zamknij</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NOWY PRACOWNIK / EDYCJA -->
+  <div class="modal-overlay" id="modalEditUser">
+    <div class="modal-window" style="max-width:440px;">
+      <h3 style="color:#38bdf8; margin-bottom:8px;" id="editUserModalTitle">Dodaj Pracownika</h3>
+      <input type="hidden" id="editUserDocId">
+
+      <div class="entry-modal-field">
+        <label style="font-size:0.8rem; color:#cbd5e1;">Imię i nazwisko technika:</label>
+        <input id="editUserNameInput" placeholder="np. Jan Kowalski">
+      </div>
+
+      <div class="grid" style="margin-top:8px;">
+        <div class="entry-modal-field">
+          <label style="font-size:0.8rem; color:#cbd5e1;">Rola w systemie:</label>
+          <select id="editUserRoleSelect">
+            <option value="technician" selected>Technik (Własne godziny & serwis)</option>
+            <option value="admin">Administrator (Pełne uprawnienia)</option>
+          </select>
+        </div>
+        <div class="entry-modal-field">
+          <label style="font-size:0.8rem; color:#cbd5e1;">Osobisty kod PIN:</label>
+          <input id="editUserPinInput" placeholder="np. 4 cyfry" value="1234">
+        </div>
+      </div>
+
+      <div style="margin-top:10px; background:#0d182b; padding:10px; border-radius:4px; border:1px solid #23385d;">
+        <b style="font-size:0.8rem; color:#fbbf24;">Uprawnienia dodatkowe:</b>
+        <div style="margin-top:6px; display:flex; flex-direction:column; gap:4px; font-size:0.78rem; color:#cbd5e1;">
+          <label><input type="checkbox" id="permEditTemplates" style="width:auto;"> Może modyfikować szablony maszyn</label>
+          <label><input type="checkbox" id="permDeleteOrders" style="width:auto;"> Może usuwać zlecenia</label>
+          <label><input type="checkbox" id="permViewAllTimes" style="width:auto;"> Może przeglądać godziny innych techników</label>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+        <button class="btn btn-gray" onclick="closeModal('modalEditUser')">Anuluj</button>
+        <button class="btn btn-green" onclick="saveUserToFirestore()">Zapisz pracownika</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NOWY / EDYCJA WPISU CZASU PRACY / ANREISE / ABREISE (ZEITNACHWEIS) -->
+  <div class="modal-overlay" id="modalAddZeitEntry">
+    <div class="modal-window" style="max-width:560px;">
+      <h3 style="color:#38bdf8; margin-bottom:8px;" id="zeModalHeaderTitle">⏱️ Wpis Czasu Pracy & Diety (Zeitnachweis)</h3>
+      <input type="hidden" id="zeEditingDocId">
+      
+      <div class="grid" style="margin-top:6px;">
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8;">Data czynności:</label>
+          <input type="date" id="zeDate">
+        </div>
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8;">Technik:</label>
+          <input id="zeTechnician" value="Arkadiusz Zimochod">
+        </div>
+      </div>
+
+      <div style="margin-top:8px;">
+        <label style="font-size:0.8rem; color:#94a3b8;">Klient / Zakład docelowy:</label>
+        <select id="zeClientSelect"></select>
+      </div>
+
+      <div style="margin-top:8px;">
+        <label style="font-size:0.8rem; color:#94a3b8;">Rodzaj czynności:</label>
+        <select id="zeActivityType" onchange="onZeActivityTypeChanged()">
+          <option value="anreise">🚗 Anreise (Wyjazd / Dojazd do klienta)</option>
+          <option value="arbeit" selected>⚙️ Praca serwisowa / Przegląd na obiekcie</option>
+          <option value="standby">⚡ Wsparcie produkcji (Standby)</option>
+          <option value="abreise">🏠 Abreise (Powrót / Odjazd od klienta)</option>
+        </select>
+      </div>
+
+      <div style="margin-top:8px;">
+        <label style="font-size:0.8rem; color:#94a3b8;">Opis / Trasa / Zadanie:</label>
+        <input id="zeDesc" placeholder="np. Dojazd do Fuldy / Serwis Schubert / Zjazd do bazy">
+      </div>
+
+      <div class="grid-3" style="margin-top:8px;">
+        <div>
+          <label style="font-size:0.75rem; color:#94a3b8;">Godzina Od:</label>
+          <input type="time" id="zeStart" value="06:00">
+        </div>
+        <div>
+          <label style="font-size:0.75rem; color:#94a3b8;">Godzina Do:</label>
+          <input type="time" id="zeEnd" value="15:45">
+        </div>
+        <div>
+          <label style="font-size:0.75rem; color:#94a3b8;">Przerwa (min):</label>
+          <input type="number" id="zePause" value="30" step="5">
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:8px;">
+        <div>
+          <label style="font-size:0.75rem; color:#94a3b8;">Kilometry (km):</label>
+          <input type="number" id="zeKm" placeholder="np. 180 km">
+        </div>
+        <div>
+          <label style="font-size:0.75rem; color:#94a3b8;">Kraj wykonywania pracy (stawka BMF w €):</label>
+          <select id="zeCountry" onchange="updateDietRatesDisplay()">
+            <option value="DE" selected>🇩🇪 Niemcy (Deutschland)</option>
+            <option value="CH">🇨🇭 Szwajcaria (Schweiz)</option>
+            <option value="PL">🇵🇱 Polska (Polen)</option>
+            <option value="AT">🇦🇹 Austria (Österreich)</option>
+            <option value="IT">🇮🇹 Włochy (Italien)</option>
+            <option value="NL">🇳🇱 Holandia (Niederlande)</option>
+            <option value="FR">🇫🇷 Francja (Frankreich)</option>
+            <option value="CZ">🇨🇿 Czechy (Tschechien)</option>
+            <option value="CUSTOM">Inny kraj (własna stawka w €)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- KONTROLA DIETY NA TEN KONKRETNY DZIEŃ -->
+      <div style="margin-top:12px; background:#0d182b; border:1px solid #1c2e4d; border-radius:6px; padding:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <b style="font-size:0.82rem; color:#fbbf24;">🍽️ Dieta (Auslöse) w walucie EURO (€):</b>
+          <span id="zeCountryDietInfoBadge" style="font-size:0.75rem; color:#38bdf8; font-weight:bold;">Niemcy: 14 € / 28 €</span>
+        </div>
+        <div style="font-size:0.74rem; color:#94a3b8; margin-top:2px;">Wybierz wymiar diety na ten dzień:</div>
+        
+        <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
+          <label style="font-size:0.8rem; color:#cbd5e1; cursor:pointer;">
+            <input type="radio" name="zeDietRadio" value="none" style="width:auto; margin-right:6px;" onchange="onDietRadioChanged()">
+            Brak diety (0.00 €)
+          </label>
+          <label style="font-size:0.8rem; color:#cbd5e1; cursor:pointer;">
+            <input type="radio" name="zeDietRadio" value="part" id="radioDietPart" checked style="width:auto; margin-right:6px;" onchange="onDietRadioChanged()">
+            <span id="labelDietPart">Dzień wyjazdowy / powrotny (>8h / Anreise / Abreise) – 14.00 €</span>
+          </label>
+          <label style="font-size:0.8rem; color:#cbd5e1; cursor:pointer;">
+            <input type="radio" name="zeDietRadio" value="full" id="radioDietFull" style="width:auto; margin-right:6px;" onchange="onDietRadioChanged()">
+            <span id="labelDietFull">Dzień pełny całodobowy (24h) – 28.00 €</span>
+          </label>
+        </div>
+
+        <div id="customDietRateBox" style="display:none; margin-top:8px;">
+          <label style="font-size:0.75rem; color:#94a3b8;">Wpisz ręcznie kwotę diety na ten dzień (w €):</label>
+          <input type="number" id="zeCustomDietEuroInput" value="28.00" step="0.5" style="width:120px; padding:4px 8px;"> €
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+        <button class="btn btn-gray" onclick="closeModal('modalAddZeitEntry')">Anuluj</button>
+        <button class="btn btn-green" onclick="saveZeitEntry()">Zapisz zmiany</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ZMIANA HASŁA -->
+  <div class="modal-overlay" id="modalChangePassword">
+    <div class="modal-window" style="max-width:420px;">
+      <h3 style="color:#38bdf8; margin-bottom:10px;">🔑 Zmiana Hasła Autoryzacji</h3>
+      <label style="font-size:0.8rem; color:#94a3b8;">Obecne hasło:</label>
+      <input type="password" id="oldPasswordInput" placeholder="Wpisz obecne hasło">
+      
+      <label style="font-size:0.8rem; color:#94a3b8; margin-top:8px; display:block;">Nowe hasło:</label>
+      <input type="password" id="newPasswordInput" placeholder="Wpisz nowe hasło (min. 4 znaki)">
+
+      <label style="font-size:0.8rem; color:#94a3b8; margin-top:8px; display:block;">Powtórz nowe hasło:</label>
+      <input type="password" id="confirmNewPasswordInput" placeholder="Powtórz nowe hasło">
+
+      <div id="changePasswordError" style="color:#ef4444; font-size:0.75rem; margin-top:6px; display:none;"></div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+        <button class="btn btn-gray" onclick="closeModal('modalChangePassword')">Anuluj</button>
+        <button class="btn btn-green" onclick="executeChangePassword()">Zapisz nowe hasło</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: WERYFIKACJA HASŁA PRZED EDYCJĄ MASZYNY LUB ODBLOKOWANIEM -->
+  <div class="modal-overlay" id="modalAuthPrompt">
+    <div class="modal-window" style="max-width:400px;">
+      <h3 style="color:#ef4444; margin-bottom:8px;" id="authPromptTitle">🔒 Wymagana Autoryzacja</h3>
+      <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:10px;" id="authPromptMessage">Wpisz hasło autoryzacji:</p>
+      <input type="password" id="authPromptPasswordInput" placeholder="Hasło...">
+      <div id="authPromptError" style="color:#ef4444; font-size:0.75rem; margin-top:4px; display:none;">Nieprawidłowe hasło!</div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+        <button class="btn btn-gray" onclick="closeModal('modalAuthPrompt')">Anuluj</button>
+        <button class="btn btn-green" onclick="confirmAuthPromptAction()">Potwierdź</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDYCJA MASZYNY I JEJ MODUŁÓW W KATALOGU DANYCH -->
+  <div class="modal-overlay" id="modalEditTemplate">
+    <div class="modal-window" style="max-width:740px;">
+      <h3 style="color:#38bdf8;" id="editTemplateModalTitle">✏️ Modyfikacja Maszyny i Modułów w Katalogu</h3>
+      <input type="hidden" id="editTemplateId">
+      <div style="margin-top:6px;">
+        <label style="font-size:0.8rem; color:#94a3b8;">Nazwa maszyny / linii:</label>
+        <input id="editTplMachineName">
+      </div>
+
+      <div class="modal-scrollable" id="editTplModulesList" style="max-height:380px;"></div>
+
+      <div style="margin-top:10px;">
+        <button class="btn" style="background:#0284c7; width:100%;" onclick="addModuleBlockToEditor()">+ Dodaj kolejny moduł do tej maszyny</button>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px; border-top:1px solid #23385d; padding-top:10px;">
+        <button class="btn btn-gray" onclick="closeModal('modalEditTemplate')">Anuluj</button>
+        <button class="btn btn-green" onclick="saveEditedTemplateToDatabase()">Zapisz modyfikację modułów</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ŻÓŁTY TRÓJKĄT - USTERKI W PUNKCIE Z PRZYCISKIEM ZAKOŃCZ USTERKĘ -->
+  <div class="modal-overlay" id="modalProblem">
+    <div class="modal-window" style="max-width:700px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h3 style="color:#fbbf24; margin:0;">⚠️ Usterki & Restarbeit w tym punkcie</h3>
+        <button class="btn btn-purple" style="padding:3px 8px; font-size:0.75rem;" onclick="addNewDefectToProblem()">+ Dodaj kolejną wadę</button>
+      </div>
+      <p id="problemTaskTitle" style="font-size:0.85rem; color:#94a3b8; margin-bottom:10px;"></p>
+      
+      <div class="modal-scrollable" id="defectsListContainer" style="max-height:420px;"></div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px; border-top:1px solid #23385d; padding-top:10px;">
+        <button class="btn btn-gray" onclick="closeModal('modalProblem')">Anuluj</button>
+        <button class="btn btn-amber" onclick="saveAllDefectsToTask()">Zapisz usterki</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PODGLĄD WYDRUKU PDF (A4) -->
+  <div class="modal-overlay" id="modalPdfPreview">
+    <div class="modal-window" style="max-width:890px; height:92vh;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;" class="no-print">
+        <h3 style="color:#38bdf8; margin:0;">📄 Raport Końcowy PDF</h3>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-green" onclick="window.print()">🖨️ Drukuj / Zapisz PDF</button>
+          <button class="btn btn-gray" onclick="closeModal('modalPdfPreview')">Zamknij</button>
+        </div>
+      </div>
+      <div class="modal-scrollable" id="pdfPreviewContentContainer"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: WYSTAWIENIE ZLECENIA -->
+  <div class="modal-overlay" id="modalDispatchOrder">
+    <div class="modal-window">
+      <h3 style="color:#38bdf8; margin-bottom:10px;">Wystaw nowe zlecenie serwisowe</h3>
+      <label style="font-size:0.8rem; color:#94a3b8;">Wybierz Klienta / Zakład:</label>
+      <select id="dispatchClientSelect" onchange="loadTemplatesForDispatch(this.value)"></select>
+
+      <label style="font-size:0.8rem; color:#94a3b8; margin-top:10px; display:block;">Wybierz Linię / Maszynę z katalogu:</label>
+      <select id="dispatchTemplateSelect"></select>
+
+      <div class="grid" style="margin-top:10px;">
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8;">Numer Zlecenia (Auto):</label>
+          <input id="dispatchOrderNum" readonly style="color:#38bdf8; font-weight:bold;">
+        </div>
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8;">Data zlecenia:</label>
+          <input type="date" id="dispatchOrderDate">
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:10px;">
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8;">Technik odpowiedzialny:</label>
+          <input id="dispatchTechnician" value="Arkadiusz Zimochod">
+        </div>
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8;">Tydzień KW:</label>
+          <input id="dispatchKWDisplay" readonly style="color:#f59e0b; font-weight:bold;">
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+        <button class="btn btn-gray" onclick="closeModal('modalDispatchOrder')">Anuluj</button>
+        <button class="btn btn-purple" onclick="executeDispatchOrder()">Wystaw Zlecenie</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NOWY SZABLON W KATALOGU DANYCH -->
+  <div class="modal-overlay" id="modalCreateTemplate">
+    <div class="modal-window">
+      <h3 style="color:#38bdf8;">Nowa Maszyna w Katalogu Danych</h3>
+      <div style="margin-top:6px;">
+        <label style="font-size:0.8rem; color:#94a3b8;">Nazwa maszyny / linii:</label>
+        <input id="tplMachineName" placeholder="Wpisz nazwę maszyny...">
+      </div>
+      <div class="modal-scrollable" id="tplModulesList" style="max-height:280px; overflow-y:auto; margin-top:10px;"></div>
+      <div style="margin-top:10px;">
+        <button class="btn" style="background:#0284c7; width:100%;" onclick="addModuleBlockToTemplateBuilder()">+ Dodaj moduł</button>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px; border-top:1px solid #23385d; padding-top:10px;">
+        <button class="btn btn-gray" onclick="closeModal('modalCreateTemplate')">Anuluj</button>
+        <button class="btn btn-purple" onclick="saveTemplateToClient()">Zapisz do katalogu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NOTATKA -->
+  <div class="modal-overlay" id="modalNote">
+    <div class="modal-window" style="max-width:500px;">
+      <h3 style="color:#38bdf8; margin-bottom:10px;">💬 Notatka techniczna</h3>
+      <textarea id="taskNoteInput" style="height:110px;" placeholder="Wpisz uwagi techniczne..."></textarea>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+        <button class="btn btn-gray" onclick="closeModal('modalNote')">Anuluj</button>
+        <button class="btn" onclick="saveTaskNote()">Zapisz</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CZĘŚCI ZWYKŁE (KLUCZ) -->
+  <div class="modal-overlay" id="modalParts">
+    <div class="modal-window" style="max-width:500px;">
+      <h3 style="color:#38bdf8; margin-bottom:10px;">🔧 Części zamienne do punktu</h3>
+      <label style="font-size:0.8rem; color:#94a3b8;">Wybierz z magazynu:</label>
+      <div style="display:flex; gap:6px; margin-top:4px;">
+        <select id="selectRegularPart" style="flex:2;"></select>
+        <input id="selectRegularQty" type="number" value="1" min="1" style="flex:1;" placeholder="Szt.">
+        <button class="btn" onclick="assignRegularPart()">+ Dodaj</button>
+      </div>
+      <div id="regularPartsContainer" style="margin-top:10px; font-size:0.85rem; color:#94a3b8;"></div>
+      <div style="display:flex; justify-content:flex-end; margin-top:14px;">
+        <button class="btn btn-gray" onclick="closeModal('modalParts')">Zamknij</button>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="hiddenPhotoInput" accept="image/*" style="display:none;" onchange="handlePhotoUpload(event)">
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyASIxdDjVRgGZnc-PjgXbRDHRVv2L3qNUM",
+      authDomain: "service-21527.firebaseapp.com",
+      projectId: "service-21527",
+      storageBucket: "service-21527.firebasestorage.app",
+      messagingSenderId: "609818317583",
+      appId: "1:609818317583:web:14c2e0b49e26dc093247a1"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let clients = [], templates = [], activeOrders = [], parts = [], zeitEntries = [];
+    let users = [];
+    let currentOrderId = null, currentClientId = null, activeTaskIdx = null;
+    let selectedClientId = localStorage.getItem('serwismaster_active_client_id') || '';
+    let currentUserId = localStorage.getItem('serwismaster_active_user_id') || '';
+    let tempDefects = [];
+    let currentZeitMonthDate = new Date();
+    
+    let currentAdminPassword = "1234";
+    let pendingAuthAction = null;
+
+    function getActiveUser() {
+      return users.find(u => u.id === currentUserId) || users.find(u => u.role === 'admin') || {
+        name: 'Arkadiusz Zimochod',
+        role: 'admin',
+        pin: '1234',
+        permEditTemplates: true,
+        permDeleteOrders: true,
+        permViewAllTimes: true
+      };
+    }
+
+    function onSwitchActiveUser(uId) {
+      const targetUser = users.find(u => u.id === uId);
+      if (!targetUser) return;
+
+      if (targetUser.role === 'admin' || targetUser.pin) {
+        const enteredPin = prompt(`Podaj kod PIN dla ${targetUser.name}:`);
+        if (enteredPin !== targetUser.pin && enteredPin !== currentAdminPassword) {
+          alert('Nieprawidłowy kod PIN!');
+          updateActiveUserDropdown();
+          return;
+        }
+      }
+
+      currentUserId = targetUser.id;
+      localStorage.setItem('serwismaster_active_user_id', currentUserId);
+      updateActiveUserDropdown();
+      renderZeitnachweisView();
+      renderDashboardOverview();
+    }
+
+    function updateActiveUserDropdown() {
+      const sel = document.getElementById('activeUserSelector');
+      const adminMenu = document.getElementById('adminMenuDropdownWrapper');
+      const curUser = getActiveUser();
+
+      if (sel) {
+        sel.innerHTML = '';
+        users.forEach(u => {
+          const isSel = (u.id === currentUserId);
+          sel.innerHTML += `<option value="${u.id}" ${isSel ? 'selected' : ''}>${u.name} (${u.role === 'admin' ? 'Admin' : 'Technik'})</option>`;
+        });
+      }
+
+      // Ukryj menu admina jeśli użytkownik to nie admin
+      if (adminMenu) {
+        adminMenu.style.display = (curUser.role === 'admin') ? 'inline-block' : 'none';
+      }
+
+      const filterSel = document.getElementById('zeitTechFilterSelect');
+      const filterBox = document.getElementById('zeitTechnicianFilterBox');
+
+      if (filterSel) {
+        const prevVal = filterSel.value;
+        filterSel.innerHTML = '<option value="ALL">Wszyscy pracownicy</option>';
+        users.forEach(u => {
+          filterSel.innerHTML += `<option value="${u.name}">${u.name}</option>`;
+        });
+        filterSel.value = prevVal || 'ALL';
+      }
+
+      if (filterBox) {
+        filterBox.style.display = (curUser.role === 'admin' || curUser.permViewAllTimes) ? 'flex' : 'none';
+      }
+    }
+
+    // ==========================================
+    // 1. ZMIANA KLIENTA (Z NATYCHMIASTOWYM CZYSZCZENIEM EKRANU ZLECENIA)
+    // ==========================================
+    function onGlobalClientChanged(cId) {
+      selectedClientId = cId;
+      localStorage.setItem('serwismaster_active_client_id', cId);
+      currentClientId = cId;
+
+      // KLUCZOWA POPRAWKA: Jeśli otwarte zlecenie nie należy do nowo wybranego klienta, ZAMKNIJ JE Z GŁÓWNEGO EKRANU!
+      if (currentOrderId) {
+        const openedOrder = activeOrders.find(o => o.id === currentOrderId);
+        const curClientObj = clients.find(c => c.id === cId);
+        if (openedOrder && curClientObj && openedOrder.client !== curClientObj.name && openedOrder.clientId !== cId) {
+          currentOrderId = null;
+          document.getElementById('activeOrderView').style.display = 'none';
+          document.getElementById('orderEmptyState').style.display = 'block';
+        }
+      }
+
+      filterOrdersList();
+      renderDashboardProblems();
+      renderDashboardOverview();
+      if (document.getElementById('viewData').style.display !== 'none') {
+        selectClientInData(cId);
+      }
+    }
+
+    function updateGlobalClientDropdown() {
+      const sel = document.getElementById('globalClientSelector');
+      if (!sel) return;
+      sel.innerHTML = '<option value="ALL">🏢 Wszyscy Klienci</option>';
+      clients.forEach(c => {
+        sel.innerHTML += `<option value="${c.id}" ${c.id === selectedClientId ? 'selected' : ''}>${c.name} (${c.location || ''})</option>`;
+      });
+      if (!selectedClientId) {
+        selectedClientId = 'ALL';
+        localStorage.setItem('serwismaster_active_client_id', 'ALL');
+      }
+      sel.value = selectedClientId;
+    }
+
+    const BMF_DIET_RATES_EUR = {
+      DE: { name: "Niemcy", part: 14.00, full: 28.00 },
+      CH: { name: "Szwajcaria", part: 43.00, full: 64.00 },
+      PL: { name: "Polska", part: 29.00, full: 44.00 },
+      AT: { name: "Austria", part: 27.00, full: 40.00 },
+      IT: { name: "Włochy", part: 31.00, full: 46.00 },
+      NL: { name: "Holandia", part: 31.00, full: 47.00 },
+      FR: { name: "Francja", part: 39.00, full: 58.00 },
+      CZ: { name: "Czechy", part: 26.00, full: 39.00 },
+      CUSTOM: { name: "Własna", part: 14.00, full: 28.00 }
+    };
+
+    function getWeekNumber(d) {
+      d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+      return { year: d.getUTCFullYear(), week: weekNo };
+    }
+
+    function switchTab(t) {
+      document.getElementById('viewDash').style.display = t === 'dash' ? 'flex' : 'none';
+      document.getElementById('viewOrders').style.display = t === 'orders' ? 'flex' : 'none';
+      document.getElementById('viewZeit').style.display = t === 'zeit' ? 'flex' : 'none';
+      document.getElementById('viewData').style.display = t === 'data' ? 'flex' : 'none';
+      document.getElementById('viewParts').style.display = t === 'parts' ? 'block' : 'none';
+
+      document.getElementById('btnTabDash').className = 'tab-btn' + (t === 'dash' ? ' active' : '');
+      document.getElementById('btnTabOrders').className = 'tab-btn' + (t === 'orders' ? ' active' : '');
+      document.getElementById('btnTabZeit').className = 'tab-btn' + (t === 'zeit' ? ' active' : '');
+      document.getElementById('btnTabData').className = 'tab-btn' + (t === 'data' ? ' active' : '');
+      document.getElementById('btnTabParts').className = 'tab-btn' + (t === 'parts' ? ' active' : '');
+
+      if (t === 'dash') {
+        renderDashboardOverview();
+        renderDashboardProblems();
+      }
+      if (t === 'orders') filterOrdersList();
+      if (t === 'zeit') renderZeitnachweisView();
+      if (t === 'data' && selectedClientId) selectClientInData(selectedClientId);
+    }
+
+    // ==========================================
+    // 0. NOWOCZESNY DASHBOARD Z WYKRESEM OKRĘGOWYM (DONUT)
+    // ==========================================
+        // KLIKALNE KAFELKI Z DASHBOARDU
+    function openOrdersFiltered(status) {
+      switchTab('orders');
+      const sel = document.getElementById('orderStatusFilter');
+      if (sel) sel.value = status;
+      filterOrdersList();
+    }
+
+    function openProblemsFiltered(status) {
+      switchTab('dash');
+      const sel = document.getElementById('dashFilterSelect');
+      if (sel) sel.value = status;
+      renderDashboardProblems();
+      const table = document.getElementById('dashProblemsTableBody');
+      if (table) table.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderDashboardOverview() {
+      const isAll = (!selectedClientId || selectedClientId === 'ALL');
+      const activeClient = isAll ? null : clients.find(c => c.id === selectedClientId);
+      const titleElem = document.getElementById('dashClientTitle');
+      if (titleElem) {
+        titleElem.innerText = activeClient ? `${activeClient.name} (${activeClient.location || ''})` : 'Wszyscy Klienci (Wszystkie zakłady)';
+      }
+
+      // Maszyny wybranego klienta (lub wszystkich)
+      const clientTpls = templates.filter(t => {
+        if (isAll) return true;
+        return t.clientId === selectedClientId;
+      });
+      document.getElementById('dashKpiMachinesCount').innerText = clientTpls.length;
+
+      // Zlecenia wybranego klienta (lub wszystkich)
+      const clientOrders = activeOrders.filter(o => {
+        if (isAll) return true;
+        const matchId = (o.clientId === selectedClientId);
+        const matchName = (activeClient && o.client && o.client.toLowerCase().trim() === activeClient.name.toLowerCase().trim());
+        return matchId || matchName;
+      });
+
+      const activeOrdCount = clientOrders.filter(o => o.status !== 'done').length;
+      const doneOrdCount = clientOrders.filter(o => o.status === 'done').length;
+      document.getElementById('dashKpiActiveOrders').innerText = activeOrdCount;
+      document.getElementById('dashKpiDoneOrders').innerText = doneOrdCount;
+
+      // Punkty kontrolne, usterki i statusy
+      let totalTasks = 0;
+      let okCount = 0;
+      let openCount = 0;
+      let defectsCount = 0;
+
+      clientOrders.forEach(ord => {
+        (ord.items || []).forEach(it => {
+          totalTasks++;
+          const defs = it.defects || [];
+          const hasOpenDefects = defs.some(d => d.status !== 'resolved');
+          
+          if (it.done) {
+            okCount++;
+          } else if (hasOpenDefects) {
+            defectsCount++;
+          } else {
+            openCount++;
+          }
+        });
+      });
+
+      document.getElementById('dashKpiOpenDefects').innerText = defectsCount;
+      document.getElementById('donutTotalTasksNum').innerText = totalTasks;
+      document.getElementById('dashLegendOk').innerText = okCount;
+      document.getElementById('dashLegendOpen').innerText = openCount;
+      document.getElementById('dashLegendDefects').innerText = defectsCount;
+
+      // Rysowanie wykresu pierścieniowego SVG (obwód r=70 to ~440px)
+      const circumference = 2 * Math.PI * 70; // ~439.8
+      if (totalTasks === 0) {
+        document.getElementById('donutCircleOk').setAttribute('stroke-dasharray', `0 ${circumference}`);
+        document.getElementById('donutCircleDefect').setAttribute('stroke-dasharray', `0 ${circumference}`);
+        document.getElementById('donutCircleOpen').setAttribute('stroke-dasharray', `0 ${circumference}`);
+      } else {
+        const okLen = (okCount / totalTasks) * circumference;
+        const defLen = (defectsCount / totalTasks) * circumference;
+        const openLen = (openCount / totalTasks) * circumference;
+
+        document.getElementById('donutCircleOk').setAttribute('stroke-dasharray', `${okLen} ${circumference}`);
+        document.getElementById('donutCircleOk').setAttribute('stroke-dashoffset', `0`);
+
+        document.getElementById('donutCircleDefect').setAttribute('stroke-dasharray', `${defLen} ${circumference}`);
+        document.getElementById('donutCircleDefect').setAttribute('stroke-dashoffset', `${-okLen}`);
+
+        document.getElementById('donutCircleOpen').setAttribute('stroke-dasharray', `${openLen} ${circumference}`);
+        document.getElementById('donutCircleOpen').setAttribute('stroke-dashoffset', `${-(okLen + defLen)}`);
+      }
+    }
+
+    // NASŁUCHIWANIE BAZY
+    db.collection("users").orderBy("name").onSnapshot(snap => {
+      users = [];
+      snap.forEach(d => users.push({ id: d.id, ...d.data() }));
+      if (users.length === 0) {
+        db.collection("users").add({
+          name: "Arkadiusz Zimochod",
+          role: "admin",
+          pin: "1234",
+          permEditTemplates: true,
+          permDeleteOrders: true,
+          permViewAllTimes: true
+        });
+        db.collection("users").add({
+          name: "Lukas Goldbach",
+          role: "technician",
+          pin: "0000",
+          permEditTemplates: false,
+          permDeleteOrders: false,
+          permViewAllTimes: false
+        });
+      }
+      if (!currentUserId && users.length) {
+        currentUserId = users[0].id;
+        localStorage.setItem('serwismaster_active_user_id', currentUserId);
+      }
+      updateActiveUserDropdown();
+      renderZeitnachweisView();
+      renderDashboardOverview();
+    });
+
+    db.collection("settings").doc("security").onSnapshot(doc => {
+      if (doc.exists && doc.data().adminPassword) {
+        currentAdminPassword = doc.data().adminPassword;
+      }
+    });
+
+    db.collection("clients").orderBy("name").onSnapshot(snap => {
+      clients = [];
+      snap.forEach(d => clients.push({ id: d.id, ...d.data() }));
+      updateGlobalClientDropdown();
+      updateDispatchClientsDropdown();
+      filterOrdersList();
+      renderDashboardOverview();
+      renderDashboardProblems();
+    });
+
+    db.collection("templates").orderBy("createdAt", "desc").onSnapshot(snap => {
+      templates = [];
+      snap.forEach(d => templates.push({ id: d.id, ...d.data() }));
+      if (currentClientId) renderClientTemplates(currentClientId);
+      renderDashboardOverview();
+    });
+
+    db.collection("active_orders").orderBy("createdAt", "desc").onSnapshot(snap => {
+      activeOrders = [];
+      snap.forEach(d => activeOrders.push({ id: d.id, ...d.data() }));
+      filterOrdersList();
+      renderDashboardOverview();
+      renderDashboardProblems();
+      if (currentOrderId) loadActiveOrder(currentOrderId);
+    });
+
+    db.collection("zeitnachweis").orderBy("date", "desc").onSnapshot(snap => {
+      zeitEntries = [];
+      snap.forEach(d => zeitEntries.push({ id: d.id, ...d.data() }));
+      renderZeitnachweisView();
+    });
+
+    db.collection("parts").orderBy("name").onSnapshot(snap => {
+      parts = [];
+      snap.forEach(d => parts.push({ id: d.id, ...d.data() }));
+      renderPartsCatalog();
+      updatePartsDropdowns();
+    });
+
+    // ==========================================
+    // SYSTEM AUTORYZACJI I ZMIANY HASŁA
+    // ==========================================
+    function openPasswordSettingsModal() {
+      document.getElementById('oldPasswordInput').value = '';
+      document.getElementById('newPasswordInput').value = '';
+      document.getElementById('confirmNewPasswordInput').value = '';
+      document.getElementById('changePasswordError').style.display = 'none';
+      openModal('modalChangePassword');
+    }
+
+    function executeChangePassword() {
+      const oldPass = document.getElementById('oldPasswordInput').value;
+      const newPass = document.getElementById('newPasswordInput').value;
+      const confirmPass = document.getElementById('confirmNewPasswordInput').value;
+      const errElem = document.getElementById('changePasswordError');
+
+      if (oldPass !== currentAdminPassword) {
+        errElem.innerText = 'Nieprawidłowe obecne hasło!';
+        errElem.style.display = 'block';
+        return;
+      }
+      if (!newPass || newPass.length < 4) {
+        errElem.innerText = 'Nowe hasło musi mieć co najmniej 4 znaki!';
+        errElem.style.display = 'block';
+        return;
+      }
+      if (newPass !== confirmPass) {
+        errElem.innerText = 'Nowe hasła nie są identyczne!';
+        errElem.style.display = 'block';
+        return;
+      }
+
+      db.collection("settings").doc("security").set({ adminPassword: newPass }, { merge: true }).then(() => {
+        currentAdminPassword = newPass;
+        closeModal('modalChangePassword');
+        alert("Hasło autoryzacji zostało pomyślnie zmienione!");
+      });
+    }
+
+    function requireAuth(title, message, callback) {
+      pendingAuthAction = callback;
+      document.getElementById('authPromptTitle').innerText = title || '🔒 Wymagana Autoryzacja';
+      document.getElementById('authPromptMessage').innerText = message || 'Wpisz hasło autoryzacji:';
+      document.getElementById('authPromptPasswordInput').value = '';
+      document.getElementById('authPromptError').style.display = 'none';
+      openModal('modalAuthPrompt');
+    }
+
+    function confirmAuthPromptAction() {
+      const entered = document.getElementById('authPromptPasswordInput').value;
+      if (entered === currentAdminPassword) {
+        closeModal('modalAuthPrompt');
+        if (typeof pendingAuthAction === 'function') {
+          pendingAuthAction();
+          pendingAuthAction = null;
+        }
+      } else {
+        document.getElementById('authPromptError').style.display = 'block';
+      }
+    }
+
+    // ==========================================
+    // 1. ZLECENIA MASZYN
+    // ==========================================
+    function filterOrdersList() {
+      const sb = document.getElementById('ordersSidebar');
+      if (!sb) return;
+      sb.innerHTML = '';
+
+      const query = (document.getElementById('orderSearchInput') ? document.getElementById('orderSearchInput').value : '').toLowerCase();
+      const statusFilter = document.getElementById('orderStatusFilter') ? document.getElementById('orderStatusFilter').value : 'active';
+
+      const activeClient = (selectedClientId && selectedClientId !== 'ALL') ? clients.find(c => c.id === selectedClientId) : null;
+      const sideClientLbl = document.getElementById('sidebarClientNameDisplay');
+      if (sideClientLbl) sideClientLbl.innerText = activeClient ? activeClient.name : 'Wszyscy Klienci';
+      
+      const filtered = activeOrders.filter(o => {
+        // Filtr klienta: jeśli wybrano konkretnego klienta
+        if (activeClient) {
+          const matchId = (o.clientId === activeClient.id);
+          const matchName = (o.client && o.client.toLowerCase().trim() === activeClient.name.toLowerCase().trim());
+          if (!matchId && !matchName) return false;
+        }
+
+        const matchesQuery = `${o.orderNum || ''} ${o.client || ''} ${o.machine || ''} ${o.title || ''}`.toLowerCase().includes(query);
+        const isDone = (o.status === 'done');
+        if (statusFilter === 'active' && isDone) return false;
+        if (statusFilter === 'done' && !isDone) return false;
+        return matchesQuery;
+      });
+
+      // Jeśli aktualnie otwarte zlecenie nie znajduje się na przefiltrowanej liście, zdejmij je z prawego ekranu!
+      if (currentOrderId) {
+        const stillInList = filtered.some(x => x.id === currentOrderId);
+        if (!stillInList) {
+          currentOrderId = null;
+          const v = document.getElementById('activeOrderView');
+          const e = document.getElementById('orderEmptyState');
+          if (v) v.style.display = 'none';
+          if (e) e.style.display = 'block';
+        }
+      }
+
+      if (!filtered.length) {
+        sb.innerHTML = '<div style="color:#64748b; font-size:0.8rem; text-align:center; padding:12px;">Brak zleceń w tej kategorii.</div>';
+        return;
+      }
+
+      filtered.forEach(o => {
+        const isDone = o.status === 'done';
+        let cardClass = isDone ? 'card is-done' : 'card is-active';
+        if (o.id === currentOrderId) cardClass += ' act';
+
+        const d = document.createElement('div');
+        d.className = cardClass;
+        d.onclick = () => loadActiveOrder(o.id);
+
+        let statusBadge = isDone ? '<span class="badge-status done">🔒 ZAKOŃCZONO</span>' : '<span class="badge-status active">W TOKU</span>';
+
+        d.innerHTML = `
+          <button class="card-del-btn" title="Usuń zlecenie" onclick="event.stopPropagation(); deleteOrderDirect('${o.id}')">✕</button>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; padding-right:20px;">
+            <b style="font-size:0.75rem; color:#38bdf8;">${o.orderNum || '-'}</b>
+            ${statusBadge}
+          </div>
+          <div style="color:#fff; font-size:0.92rem; font-weight:700;">⚙️ ${o.machine || o.title || 'Maszyna'}</div>
+          <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:#94a3b8; margin-top:6px; border-top:1px solid #243550; padding-top:4px;">
+            <span>📅 ${o.date || 'Brak daty'} (${o.kw ? 'KW ' + o.kw : '-'})</span>
+            <span style="color:#38bdf8;">${o.title || 'Przegląd'}</span>
+          </div>
+        `;
+        sb.appendChild(d);
+      });
+    }
+
+    function loadActiveOrder(id) {
+      currentOrderId = id;
+      const o = activeOrders.find(x => x.id === id);
+      if (!o) return;
+
+      document.getElementById('orderEmptyState').style.display = 'none';
+      document.getElementById('activeOrderView').style.display = 'block';
+
+      const isDone = o.status === 'done';
+
+      document.getElementById('aoHeaderOrderNum').innerText = `${o.orderNum || '-'} (${o.kw ? 'KW ' + o.kw : ''})`;
+      document.getElementById('aoStatusBadge').className = isDone ? 'badge-status done' : 'badge-status active';
+      document.getElementById('aoStatusBadge').innerText = isDone ? '🔒 ZAKOŃCZONE' : 'W TOKU';
+      document.getElementById('aoLockNotice').style.display = isDone ? 'inline' : 'none';
+
+      const btnToggle = document.getElementById('btnToggleOrderDone');
+      const btnBottom = document.getElementById('btnBottomDone');
+      btnToggle.innerText = isDone ? '🔓 Odblokuj hasłem' : '✓ Zakończ zlecenie';
+      btnBottom.innerText = isDone ? '🔓 Odblokuj hasłem' : '✓ Zakończ zlecenie';
+      btnToggle.className = isDone ? 'btn btn-amber' : 'btn btn-green';
+      btnBottom.className = isDone ? 'btn btn-amber' : 'btn btn-green';
+
+      document.getElementById('aoClientName').value = o.client || '';
+      document.getElementById('aoMachineName').value = o.machine || '';
+      document.getElementById('aoOrderDate').value = o.date || '';
+      document.getElementById('aoOrderTitle').value = o.title || '';
+      document.getElementById('aoTechnician').value = o.technician || 'Arkadiusz Zimochod';
+      document.getElementById('aoSpecialNotes').value = o.specialNotes || '';
+
+      document.getElementById('aoOrderDate').disabled = isDone;
+      document.getElementById('aoOrderTitle').disabled = isDone;
+      document.getElementById('aoTechnician').disabled = isDone;
+      document.getElementById('aoSpecialNotes').disabled = isDone;
+
+      renderOrderModulesAndTasks(o.items || [], isDone);
+      filterOrdersList();
+    }
+
+    // KLUCZOWA POPRAWKA ZAKOŃCZENIA: ZLECENIE NATYCHMIAST ZNIKA Z GŁÓWNEGO EKRANU!
+    function handleToggleOrderStatusClick() {
+      if (!currentOrderId) return;
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      
+      if (o.status === 'done') {
+        requireAuth('🔓 Odblokowanie zlecenia', 'Zlecenie jest zamknięte. Wpisz hasło autoryzacji:', () => {
+          db.collection("active_orders").doc(currentOrderId).update({ status: 'active' });
+        });
+      } else {
+        if (confirm("Czy na pewno chcesz zamknąć to zlecenie? Zostanie ono przeniesione do zakończonych, a otwarte wady przejdą do kartoteki maszyny.")) {
+          syncUnresolvedDefectsToMachineTemplate(o);
+          
+          db.collection("active_orders").doc(currentOrderId).update({ status: 'done' }).then(() => {
+            // Natychmiast zdejmij z głównego ekranu roboczego, jeśli filtr to 'active'
+            const curFilter = document.getElementById('orderStatusFilter').value;
+            if (curFilter === 'active') {
+              currentOrderId = null;
+              document.getElementById('activeOrderView').style.display = 'none';
+              document.getElementById('orderEmptyState').style.display = 'block';
+            }
+            filterOrdersList();
+            renderDashboardOverview();
+          });
+        }
+      }
+    }
+
+    function syncUnresolvedDefectsToMachineTemplate(order) {
+      if (!order.machine || !order.items) return;
+      const tpl = templates.find(t => t.machine === order.machine);
+      if (!tpl) return;
+
+      let tplItems = tpl.items || [];
+      let updated = false;
+
+      order.items.forEach(ordItem => {
+        const defects = ordItem.defects || [];
+        const openDefects = defects.filter(d => d.status !== 'resolved');
+        if (openDefects.length > 0) {
+          const matchTplItem = tplItems.find(ti => ti.text === ordItem.text && ti.group === ordItem.group);
+          if (matchTplItem) {
+            matchTplItem.pendingDefects = openDefects;
+            updated = true;
+          }
+        }
+      });
+
+      if (updated) {
+        db.collection("templates").doc(tpl.id).update({ items: tplItems });
+      }
+    }
+
+    function handleDeleteOrderClick() {
+      if (!currentOrderId) return;
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      if (o.status === 'done') {
+        requireAuth('🗑️ Usunięcie zamkniętego zlecenia', 'Zlecenie jest zamknięte. Wpisz hasło aby trwale usunąć:', () => {
+          deleteOrderDirect(currentOrderId);
+        });
+      } else {
+        deleteOrderDirect(currentOrderId);
+      }
+    }
+
+    function updateActiveOrderField(k, v) {
+      if (!currentOrderId) return;
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      if (o.status === 'done') return;
+      db.collection("active_orders").doc(currentOrderId).update({ [k]: v });
+    }
+
+    function onOrderDateChanged(dateVal) {
+      if (!dateVal || !currentOrderId) return;
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      if (o.status === 'done') return;
+      const parsed = new Date(dateVal);
+      const kwInfo = getWeekNumber(parsed);
+      db.collection("active_orders").doc(currentOrderId).update({
+        date: dateVal,
+        kw: kwInfo.week,
+        year: kwInfo.year
+      });
+    }
+
+    function deleteOrderDirect(id) {
+      if (!confirm('Na pewno trwale usunąć to zlecenie?')) return;
+      db.collection("active_orders").doc(id).delete().then(() => {
+        if (currentOrderId === id) {
+          currentOrderId = null;
+          document.getElementById('activeOrderView').style.display = 'none';
+          document.getElementById('orderEmptyState').style.display = 'block';
+        }
+      });
+    }
+
+    // ==========================================
+    // CHECKLISTA: ROZWIĄZANA USTERKA ZNIKA Z EKRANU ROBOCZEGO
+    // ==========================================
+    function toggleTaskDone(idx) {
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      if (o.status === 'done') return;
+      let items = o.items || [];
+      items[idx].done = !items[idx].done;
+      db.collection("active_orders").doc(currentOrderId).update({ items });
+    }
+
+    function renderOrderModulesAndTasks(items, isLocked) {
+      const box = document.getElementById('activeOrderModules');
+      box.innerHTML = '';
+
+      const countDone = items.filter(x => x.done).length;
+      const total = items.length;
+      const pct = total ? Math.round((countDone / total) * 100) : 0;
+      document.getElementById('aoProgressBar').style.width = pct + '%';
+      document.getElementById('aoProgressTxt').innerText = `${pct}% (${countDone}/${total} wykonane)`;
+
+      if (!items.length) {
+        box.innerHTML = '<div style="color:#64748b; padding:10px;">Brak zadań w tym zleceniu.</div>';
+        return;
+      }
+
+      const grouped = {};
+      items.forEach((it, idx) => {
+        const g = it.group || 'Moduł Główny';
+        if (!grouped[g]) grouped[g] = [];
+        grouped[g].push({ ...it, originalIdx: idx });
+      });
+
+      for (const groupName in grouped) {
+        const gTasks = grouped[groupName];
+        const gDone = gTasks.filter(x => x.done).length;
+        const modCard = document.createElement('div');
+        modCard.className = 'chk-mod-container';
+
+        let headerHtml = `
+          <div class="chk-mod-header">
+            <div>
+              <div class="chk-mod-title">📦 ${groupName}</div>
+              <div style="font-size:0.75rem; color:#94a3b8;">${gTasks.length} zadań (wykonano: ${gDone})</div>
+            </div>
+            ${!isLocked ? `<button class="btn btn-green no-print" style="padding:2px 8px; font-size:0.75rem;" onclick="markAllInOrderGroup('${groupName}')">✓ Zaznacz wszystkie</button>` : ''}
+          </div>
+        `;
+
+        let rowsHtml = '<div class="chk-mod-list">';
+        gTasks.forEach(it => {
+          const defects = it.defects || (it.problem ? [it.problem] : []);
+          const activeDefects = defects.filter(d => d.status !== 'resolved');
+          const hasAnyDefect = defects.length > 0;
+          const hasActiveDefects = activeDefects.length > 0;
+
+          let problemHtml = '';
+          if (!it.done && hasActiveDefects) {
+            problemHtml = '<div class="problem-snippet">';
+            activeDefects.forEach((df, dIdx) => {
+              let pPartsHtml = '';
+              (df.parts || []).forEach(p => pPartsHtml += `<span class="prob-parts-tag">🔩 ${p.name} (${p.qty}x)</span>`);
+              problemHtml += `
+                <div class="prob-item-row">
+                  <div>
+                    <span class="prob-dot"></span> <b>Wada #${dIdx+1}:</b> ${df.desc || '-'}<br>
+                    <span style="color:#94a3b8; font-size:0.78rem;"><b>Restarbeit:</b> ${df.rest || '-'} (${df.author || ''})</span>
+                    <div style="margin-top:2px;">${pPartsHtml}</div>
+                  </div>
+                  <div>
+                    ${!isLocked ? `<button class="btn btn-green" style="padding:2px 6px; font-size:0.7rem;" onclick="quickResolveDefect(${it.originalIdx}, ${dIdx})">✓ Zakończ tę usterkę</button>` : ''}
+                  </div>
+                </div>
+              `;
+            });
+            problemHtml += '</div>';
+          }
+
+          const hasNote = it.note && it.note.trim() !== '';
+          let noteHtml = hasNote ? `<div style="font-size:0.8rem; color:#38bdf8; margin-top:4px;">💬 ${it.note}</div>` : '';
+          
+          const photosCount = (it.photos || []).length;
+          let photosHtml = '';
+          if (photosCount > 0) {
+            photosHtml = '<div style="display:flex; gap:6px; margin-top:6px;">';
+            it.photos.forEach(src => {
+              photosHtml += `<img src="${src}" style="width:45px; height:45px; object-fit:cover; border-radius:3px; cursor:pointer;" onclick="window.open('${src}')">`;
+            });
+            photosHtml += '</div>';
+          }
+
+          const checkIcon = it.done ? '<span style="color:#10b981; font-weight:800; margin-right:6px;">✓</span>' : '';
+
+          rowsHtml += `
+            <div class="task-card-row ${it.done ? 'done' : ''}">
+              <div class="task-left-box">
+                <div class="task-main-text" onclick="${!isLocked ? `toggleTaskDone(${it.originalIdx})` : ''}">
+                  ${checkIcon}${it.text}
+                </div>
+                ${problemHtml}
+                ${noteHtml}
+                ${photosHtml}
+
+                <div class="task-sub-toolbar no-print">
+                  <span class="sub-icon" title="Dodaj zdjęcie" onclick="${!isLocked ? `triggerPhoto(${it.originalIdx})` : ''}">
+                    📷 ${photosCount ? `<span class="badge-counter">${photosCount}</span>` : ''}
+                  </span>
+                  <span class="sub-icon" title="Usterki & Restarbeit" style="color:#fbbf24;" onclick="openProblemModal(${it.originalIdx})">
+                    ⚠️ ${hasAnyDefect ? `<span class="badge-counter">${defects.length}</span>` : ''}
+                  </span>
+                  <span class="sub-icon" title="Notatka" onclick="${!isLocked ? `openNoteModal(${it.originalIdx})` : ''}">
+                    💬 ${hasNote ? '•' : ''}
+                  </span>
+                  <span class="sub-icon" title="Części" onclick="${!isLocked ? `openRegularPartsModal(${it.originalIdx})` : ''}">
+                    🔧 ${(it.parts || []).length ? `<span class="badge-counter">${it.parts.length}</span>` : ''}
+                  </span>
+                </div>
+              </div>
+
+              <div class="no-print" style="display:flex; align-items:center; gap:8px;">
+                <span class="status-badge ${it.done ? 'ok' : 'open'}" onclick="${!isLocked ? `toggleTaskDone(${it.originalIdx})` : ''}">
+                  ${it.done ? '✓ Wykonano' : 'Do zrobienia'}
+                </span>
+              </div>
+            </div>
+          `;
+        });
+        rowsHtml += '</div>';
+        modCard.innerHTML = headerHtml + rowsHtml;
+        box.appendChild(modCard);
+      }
+    }
+
+    function quickResolveDefect(taskIdx, defectIdx) {
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      if (o.status === 'done') return;
+      let items = o.items || [];
+      let defects = items[taskIdx].defects || (items[taskIdx].problem ? [items[taskIdx].problem] : []);
+      if (defects[defectIdx]) {
+        defects[defectIdx].status = 'resolved';
+        items[taskIdx].defects = defects;
+        db.collection("active_orders").doc(currentOrderId).update({ items });
+      }
+    }
+
+    function markAllInOrderGroup(groupName) {
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      if (o.status === 'done') return;
+      let items = o.items || [];
+      const current = items.filter(it => (it.group || 'Moduł Główny') === groupName);
+      const allDone = current.every(it => it.done);
+      items.forEach(it => {
+        if ((it.group || 'Moduł Główny') === groupName) it.done = !allDone;
+      });
+      db.collection("active_orders").doc(currentOrderId).update({ items });
+    }
+
+    // ==========================================
+    // ŻÓŁTY TRÓJKĄT - ZARZĄDZANIE WADAMI
+    // ==========================================
+    function openProblemModal(idx) {
+      activeTaskIdx = idx;
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      const it = o.items[idx];
+      document.getElementById('problemTaskTitle').innerText = 'Punkt: ' + it.text;
+      
+      const defects = it.defects || (it.problem ? [it.problem] : []);
+      tempDefects = JSON.parse(JSON.stringify(defects));
+      if (!tempDefects.length) {
+        tempDefects.push({ desc: "", rest: "", author: "Arkadiusz Zimochod", status: "open", parts: [] });
+      }
+      renderDefectsList(o.status === 'done');
+      openModal('modalProblem');
+    }
+
+    function renderDefectsList(isLocked) {
+      const container = document.getElementById('defectsListContainer');
+      container.innerHTML = '';
+
+      tempDefects.forEach((df, idx) => {
+        const isResolved = df.status === 'resolved';
+        const div = document.createElement('div');
+        div.className = 'module-builder-row';
+        div.style.borderColor = isResolved ? '#10b981' : '#f59e0b';
+
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <b style="color:${isResolved ? '#10b981' : '#fbbf24'}; font-size:0.85rem;">
+              ${isResolved ? '🟢 Rozwiązana Wada #' : '⚠️ Wada #'}${idx + 1}
+            </b>
+            <div style="display:flex; gap:6px;">
+              ${!isLocked ? `
+                <button class="btn btn-green" style="padding:1px 6px; font-size:0.7rem;" onclick="toggleDefectStatusInTemp(${idx})">
+                  ${isResolved ? 'Oznacz jako otwartą' : '✓ Zakończ tę usterkę'}
+                </button>
+                <button class="btn btn-del" style="padding:1px 6px; font-size:0.7rem;" onclick="removeDefectFromTemp(${idx})">✕</button>
+              ` : ''}
+            </div>
+          </div>
+          
+          <label style="font-size:0.75rem; color:#cbd5e1;">Opis uszkodzenia / usterki:</label>
+          <input type="text" value="${df.desc || ''}" ${isLocked ? 'disabled' : ''} placeholder="np. Zużyty simmerring" oninput="tempDefects[${idx}].desc = this.value">
+
+          <label style="font-size:0.75rem; color:#cbd5e1; margin-top:6px; display:block;">Restarbeit (Czynność do wykonania):</label>
+          <input type="text" value="${df.rest || ''}" ${isLocked ? 'disabled' : ''} placeholder="np. Wymiana na nowy" oninput="tempDefects[${idx}].rest = this.value">
+
+          <div class="grid" style="margin-top:6px;">
+            <div>
+              <label style="font-size:0.75rem; color:#cbd5e1;">Technik:</label>
+              <input type="text" value="${df.author || 'Arkadiusz Zimochod'}" ${isLocked ? 'disabled' : ''} oninput="tempDefects[${idx}].author = this.value">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:#cbd5e1;">Status:</label>
+              <select ${isLocked ? 'disabled' : ''} onchange="tempDefects[${idx}].status = this.value; renderDefectsList(${isLocked});">
+                <option value="open" ${!isResolved ? 'selected' : ''}>🔴 Otwarte (W toku)</option>
+                <option value="resolved" ${isResolved ? 'selected' : ''}>🟢 Rozwiązane (Zakończona)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-top:8px; border-top:1px solid #1f3454; padding-top:6px;">
+            <label style="font-size:0.75rem; color:#38bdf8; font-weight:700;">🔩 Potrzebna część zamienna:</label>
+            ${!isLocked ? `
+              <div style="display:flex; gap:6px; margin-top:2px;">
+                <select id="defectPartSelect_${idx}" style="flex:2;"></select>
+                <input type="number" id="defectPartQty_${idx}" value="1" min="1" style="flex:1;" placeholder="Sztuk">
+                <button class="btn btn-amber" style="padding:2px 8px; font-size:0.75rem;" onclick="addPartToDefect(${idx})">+ Przypisz</button>
+              </div>
+            ` : ''}
+            <div id="defectPartsList_${idx}" style="margin-top:4px; display:flex; flex-wrap:wrap; gap:4px;"></div>
+          </div>
+        `;
+        container.appendChild(div);
+
+        if (!isLocked) {
+          const sel = div.querySelector(`#defectPartSelect_${idx}`);
+          sel.innerHTML = '<option value="">-- Wybierz część z magazynu --</option>';
+          parts.forEach(p => sel.innerHTML += `<option value="${p.id}">${p.name} (${p.num||'-'}) [Stan: ${p.stock}]</option>`);
+        }
+
+        const partsBox = div.querySelector(`#defectPartsList_${idx}`);
+        (df.parts || []).forEach((pt, pIdx) => {
+          partsBox.innerHTML += `
+            <span class="prob-parts-tag">
+              ${pt.name} (${pt.qty}x)
+              ${!isLocked ? `<b style="cursor:pointer; color:#ef4444;" onclick="removePartFromDefect(${idx}, ${pIdx})">✕</b>` : ''}
+            </span>
+          `;
+        });
+      });
+    }
+
+    function toggleDefectStatusInTemp(idx) {
+      tempDefects[idx].status = tempDefects[idx].status === 'resolved' ? 'open' : 'resolved';
+      renderDefectsList(false);
+    }
+
+    function addNewDefectToProblem() {
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      if (o.status === 'done') return alert('Zlecenie zamknięte!');
+      tempDefects.push({ desc: "", rest: "", author: "Arkadiusz Zimochod", status: "open", parts: [] });
+      renderDefectsList(false);
+    }
+
+    function removeDefectFromTemp(idx) {
+      tempDefects.splice(idx, 1);
+      renderDefectsList(false);
+    }
+
+    function addPartToDefect(idx) {
+      const pId = document.getElementById(`defectPartSelect_${idx}`).value;
+      const qty = parseInt(document.getElementById(`defectPartQty_${idx}`).value) || 1;
+      if (!pId) return alert('Wybierz część z magazynu!');
+      const p = parts.find(x => x.id === pId);
+      if (!tempDefects[idx].parts) tempDefects[idx].parts = [];
+      tempDefects[idx].parts.push({ id: p.id, name: p.name, num: p.num || '', qty });
+      renderDefectsList(false);
+    }
+
+    function removePartFromDefect(dfIdx, ptIdx) {
+      tempDefects[dfIdx].parts.splice(ptIdx, 1);
+      renderDefectsList(false);
+    }
+
+    function saveAllDefectsToTask() {
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      if (o.status === 'done') return;
+      const valid = tempDefects.filter(d => (d.desc && d.desc.trim()) || (d.rest && d.rest.trim()));
+      let items = o.items || [];
+      items[activeTaskIdx].defects = valid;
+      items[activeTaskIdx].problem = valid.length ? valid[0] : null;
+
+      db.collection("active_orders").doc(currentOrderId).update({ items }).then(() => {
+        closeModal('modalProblem');
+      });
+    }
+
+    // ==========================================
+    // 2. NOWY ZEITNACHWEIS: EDYCJA WPISU BEZ KASOWANIA + NIEMIECKIE DIETY W EURO (€)
+    // ==========================================
+    function changeZeitMonth(delta) {
+      currentZeitMonthDate.setMonth(currentZeitMonthDate.getMonth() + delta);
+      renderZeitnachweisView();
+    }
+
+    function calculateHoursDecimal(startStr, endStr, breakMin) {
+      if (!startStr || !endStr) return 0;
+      const [sh, sm] = startStr.split(':').map(Number);
+      const [eh, em] = endStr.split(':').map(Number);
+      let startMinutes = sh * 60 + sm;
+      let endMinutes = eh * 60 + em;
+      if (endMinutes < startMinutes) endMinutes += 24 * 60;
+      const workedMinutes = Math.max(0, (endMinutes - startMinutes) - (parseInt(breakMin) || 0));
+      return (workedMinutes / 60);
+    }
+
+    function updateDietRatesDisplay() {
+      const countryCode = document.getElementById('zeCountry').value;
+      const customBox = document.getElementById('customDietRateBox');
+      const badge = document.getElementById('zeCountryDietInfoBadge');
+      const lblPart = document.getElementById('labelDietPart');
+      const lblFull = document.getElementById('labelDietFull');
+
+      if (countryCode === 'CUSTOM') {
+        customBox.style.display = 'block';
+        badge.innerText = 'Własna stawka w €';
+        lblPart.innerText = 'Dzień wyjazdowy / powrotny (>8h) – stawka częściowa';
+        lblFull.innerText = 'Dzień pełny całodobowy (24h) – stawka pełna';
+        return;
+      }
+
+      customBox.style.display = 'none';
+      const cData = BMF_DIET_RATES_EUR[countryCode] || BMF_DIET_RATES_EUR.DE;
+      badge.innerText = `${cData.name}: ${cData.part.toFixed(2)} € / ${cData.full.toFixed(2)} €`;
+      lblPart.innerText = `Dzień wyjazdowy / powrotny (>8h / Anreise / Abreise) – ${cData.part.toFixed(2)} €`;
+      lblFull.innerText = `Dzień pełny całodobowy (24h) – ${cData.full.toFixed(2)} €`;
+    }
+
+    function onDietRadioChanged() {
+      // pomocnicza przy zmianie radio
+    }
+
+    function openAddDayEntryModal() {
+      document.getElementById('zeEditingDocId').value = '';
+      document.getElementById('zeModalHeaderTitle').innerText = '⏱️ Nowy Wpis Czasu Pracy & Diety';
+      updateDispatchClientsDropdown();
+      const sel = document.getElementById('zeClientSelect');
+      sel.innerHTML = '';
+      clients.forEach(c => sel.innerHTML += `<option value="${c.name}">${c.name} (${c.location||''})</option>`);
+      document.getElementById('zeDate').value = new Date().toISOString().split('T')[0];
+      const curUser = getActiveUser();
+      document.getElementById('zeTechnician').value = curUser.name || 'Arkadiusz Zimochod';
+      document.getElementById('zeDesc').value = 'Prace konserwacyjne / Przegląd maszyny';
+      document.getElementById('zeStart').value = '06:00';
+      document.getElementById('zeEnd').value = '15:45';
+      document.getElementById('zePause').value = '30';
+      document.getElementById('zeKm').value = '';
+      document.getElementById('zeCountry').value = 'DE';
+      document.getElementById('radioDietPart').checked = true;
+      updateDietRatesDisplay();
+      openModal('modalAddZeitEntry');
+    }
+
+    function openEditZeitEntryModal(id) {
+      const ent = zeitEntries.find(z => z.id === id);
+      if (!ent) return;
+
+      document.getElementById('zeEditingDocId').value = ent.id;
+      document.getElementById('zeModalHeaderTitle').innerText = `✏️ Edycja Wpisu Czasu: ${ent.date}`;
+      updateDispatchClientsDropdown();
+      const sel = document.getElementById('zeClientSelect');
+      sel.innerHTML = '';
+      clients.forEach(c => sel.innerHTML += `<option value="${c.name}" ${c.name === ent.client ? 'selected' : ''}>${c.name} (${c.location||''})</option>`);
+      
+      document.getElementById('zeDate').value = ent.date || '';
+      document.getElementById('zeTechnician').value = ent.technician || 'Arkadiusz Zimochod';
+      document.getElementById('zeActivityType').value = ent.actType || 'arbeit';
+      document.getElementById('zeDesc').value = ent.desc || '';
+      document.getElementById('zeStart').value = ent.start || '06:00';
+      document.getElementById('zeEnd').value = ent.end || '15:45';
+      document.getElementById('zePause').value = ent.pause || '30';
+      document.getElementById('zeKm').value = ent.km || '';
+      document.getElementById('zeCountry').value = ent.countryCode || 'DE';
+      
+      updateDietRatesDisplay();
+
+      if (ent.dietAmount === 28.00 || (ent.dietType && ent.dietType.includes('Pełna'))) {
+        document.getElementById('radioDietFull').checked = true;
+      } else if (ent.dietAmount === 14.00 || (ent.dietType && ent.dietType.includes('Częściowa'))) {
+        document.getElementById('radioDietPart').checked = true;
+      } else if (ent.dietAmount === 0 || ent.dietType === 'Brak') {
+        document.querySelector('input[name="zeDietRadio"][value="none"]').checked = true;
+      }
+
+      openModal('modalAddZeitEntry');
+    }
+
+    function onZeActivityTypeChanged() {
+      const type = document.getElementById('zeActivityType').value;
+      const descInput = document.getElementById('zeDesc');
+      if (type === 'anreise') {
+        descInput.value = 'Anreise (Wyjazd / Dojazd do klienta)';
+        document.getElementById('radioDietPart').checked = true;
+      } else if (type === 'abreise') {
+        descInput.value = 'Abreise (Powrót / Odjazd od klienta)';
+        document.getElementById('radioDietPart').checked = true;
+      } else if (type === 'standby') {
+        descInput.value = 'Wsparcie produkcji (Standby)';
+        document.getElementById('radioDietFull').checked = true;
+      } else {
+        descInput.value = 'Prace serwisowe / Przegląd maszyny';
+        document.getElementById('radioDietFull').checked = true;
+      }
+    }
+
+    function saveZeitEntry() {
+      const editingId = document.getElementById('zeEditingDocId').value;
+      const date = document.getElementById('zeDate').value;
+      if (!date) return alert('Wybierz datę!');
+      const tech = document.getElementById('zeTechnician').value.trim() || 'Arkadiusz Zimochod';
+      const client = document.getElementById('zeClientSelect').value;
+      const actType = document.getElementById('zeActivityType').value;
+      const desc = document.getElementById('zeDesc').value.trim() || 'Czynność serwisowa';
+      const start = document.getElementById('zeStart').value || '06:00';
+      const end = document.getElementById('zeEnd').value || '15:45';
+      const pause = parseInt(document.getElementById('zePause').value) || 0;
+      const km = document.getElementById('zeKm').value || 0;
+      const countryCode = document.getElementById('zeCountry').value;
+      const kw = getWeekNumber(new Date(date)).week;
+
+      const dietRadio = document.querySelector('input[name="zeDietRadio"]:checked').value;
+      const cData = BMF_DIET_RATES_EUR[countryCode] || BMF_DIET_RATES_EUR.DE;
+      let chosenDietAmount = 0;
+      let chosenDietType = "Brak";
+
+      if (dietRadio === 'part') {
+        chosenDietAmount = cData.part;
+        chosenDietType = `Częściowa ${cData.part.toFixed(2)} € (${cData.name} >8h)`;
+      } else if (dietRadio === 'full') {
+        chosenDietAmount = cData.full;
+        chosenDietType = `Pełna ${cData.full.toFixed(2)} € (${cData.name} 24h)`;
+      } else if (dietRadio === 'custom') {
+        chosenDietAmount = parseFloat(document.getElementById('zeCustomDietEuroInput').value) || 0;
+        chosenDietType = `Własna ${chosenDietAmount.toFixed(2)} €`;
+      }
+
+      const payload = {
+        date: date,
+        kw: kw,
+        technician: tech,
+        client: client,
+        actType: actType,
+        desc: desc,
+        start: start,
+        end: end,
+        pause: pause,
+        km: km,
+        countryCode: countryCode,
+        countryName: cData.name,
+        dietType: chosenDietType,
+        dietAmount: chosenDietAmount,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      if (editingId) {
+        db.collection("zeitnachweis").doc(editingId).update(payload).then(() => {
+          closeModal('modalAddZeitEntry');
+          renderZeitnachweisView();
+        });
+      } else {
+        payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        db.collection("zeitnachweis").add(payload).then(() => {
+          closeModal('modalAddZeitEntry');
+          renderZeitnachweisView();
+        });
+      }
+    }
+
+    function renderZeitnachweisView() {
+      const container = document.getElementById('zeitDaysCardsContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const year = currentZeitMonthDate.getFullYear();
+      const month = currentZeitMonthDate.getMonth();
+      const monthNamesPl = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+      document.getElementById('zeitMonthDisplayTitle').innerText = `⏱️ Karta Czasu Pracy & Diety: ${monthNamesPl[month]} ${year}`;
+
+      const curUser = getActiveUser();
+      const techFilter = document.getElementById('zeitTechFilterSelect') ? document.getElementById('zeitTechFilterSelect').value : 'ALL';
+
+      const monthEntries = zeitEntries.filter(z => {
+        if (!z.date) return false;
+        const d = new Date(z.date);
+        if (d.getFullYear() !== year || d.getMonth() !== month) return false;
+
+        if (curUser.role !== 'admin' && !curUser.permViewAllTimes) {
+          return z.technician === curUser.name;
+        }
+
+        if (techFilter !== 'ALL' && z.technician !== techFilter) {
+          return false;
+        }
+
+        return true;
+      });
+
+      const daysGrouped = {};
+      monthEntries.forEach(item => {
+        if (!daysGrouped[item.date]) {
+          daysGrouped[item.date] = {
+            date: item.date,
+            kw: item.kw,
+            technician: item.technician,
+            entries: [],
+            dietDayAmount: 0,
+            dietDayName: "Brak",
+            dietCountry: ""
+          };
+        }
+        daysGrouped[item.date].entries.push(item);
+
+        const amt = parseFloat(item.dietAmount) || 0;
+        if (amt > daysGrouped[item.date].dietDayAmount) {
+          daysGrouped[item.date].dietDayAmount = amt;
+          daysGrouped[item.date].dietDayName = item.dietType;
+          daysGrouped[item.date].dietCountry = item.countryName || item.countryCode || '';
+        }
+      });
+
+      const sortedDays = Object.values(daysGrouped).sort((a,b) => b.date.localeCompare(a.date));
+
+      let totalMonthHours = 0;
+      let totalMonthBreaks = 0;
+      let totalDietDaysCount = 0;
+      let totalDietSumEur = 0;
+
+      sortedDays.forEach(dayObj => {
+        let dayHours = 0;
+        let dayBreaks = 0;
+
+        let entriesHtml = '';
+        dayObj.entries.forEach(ent => {
+          const hNet = calculateHoursDecimal(ent.start, ent.end, ent.pause);
+          dayHours += hNet;
+          dayBreaks += (parseInt(ent.pause) || 0);
+
+          let typeClass = 'arbeit';
+          let typeLbl = '⚙️ Praca';
+          if (ent.actType === 'anreise') { typeClass = 'anreise'; typeLbl = '🚗 Anreise'; }
+          else if (ent.actType === 'abreise') { typeClass = 'abreise'; typeLbl = '🏠 Abreise'; }
+          else if (ent.actType === 'standby') { typeClass = 'standby'; typeLbl = '⚡ Standby'; }
+
+          entriesHtml += `
+            <div class="day-entry-line ${typeClass}">
+              <div>
+                <b>${typeLbl} &bull; ${ent.client}:</b> ${ent.desc}
+                ${ent.km ? `<small style="color:#94a3b8; margin-left:6px;">(${ent.km} km)</small>` : ''}
+                <span style="font-size:0.75rem; color:#38bdf8; margin-left:6px;">[${ent.countryName || ent.countryCode || 'DE'}]</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="color:#cbd5e1;">${ent.start} - ${ent.end} (przerwa: ${ent.pause} min)</span>
+                <span style="color:#10b981; font-weight:bold; min-width:55px; text-align:right;">${hNet.toFixed(2)} h</span>
+                <button class="btn btn-amber" style="padding:1px 6px; font-size:0.7rem;" onclick="openEditZeitEntryModal('${ent.id}')" title="Edytuj godziny tego wpisu">✏️</button>
+                <button class="btn btn-del" style="padding:1px 6px; font-size:0.7rem;" onclick="deleteZeitEntryDoc('${ent.id}')" title="Usuń wpis">✕</button>
+              </div>
+            </div>
+          `;
+        });
+
+        totalMonthHours += dayHours;
+        totalMonthBreaks += dayBreaks;
+        if (dayObj.dietDayAmount > 0) {
+          totalDietDaysCount++;
+          totalDietSumEur += dayObj.dietDayAmount;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'day-sheet-card';
+        card.innerHTML = `
+          <div class="day-sheet-header">
+            <div>
+              <span>📅 Data: ${dayObj.date} (KW ${dayObj.kw || '-'})</span>
+              <span style="color:#94a3b8; font-weight:normal; margin-left:8px;">Technik: ${dayObj.technician}</span>
+            </div>
+            <div style="display:flex; gap:14px; align-items:center;">
+              <span style="color:#fbbf24;">🍽️ Dieta dnia: <b>+${dayObj.dietDayAmount.toFixed(2)} €</b> <small style="color:#94a3b8;">(${dayObj.dietDayName})</small></span>
+              <span style="color:#10b981;">Czas netto: <b>${dayHours.toFixed(2)} h</b></span>
+            </div>
+          </div>
+          <div class="day-sheet-entries">${entriesHtml}</div>
+        `;
+        container.appendChild(card);
+      });
+
+      document.getElementById('zeitKpiWorkHours').innerText = totalMonthHours.toFixed(2) + ' h';
+      document.getElementById('zeitKpiBreaks').innerText = totalMonthBreaks + ' min';
+      document.getElementById('zeitKpiDietDays').innerText = totalDietDaysCount + ' dni';
+      document.getElementById('zeitKpiDietTotal').innerText = totalDietSumEur.toFixed(2) + ' €';
+
+      if (!sortedDays.length) {
+        container.innerHTML = '<div style="text-align:center; color:#64748b; padding:24px;">Brak wpisów czasu pracy w wybranym miesiącu. Kliknij fioletowy przycisk „+ Dodaj czynność”.</div>';
+      }
+    }
+
+    function deleteZeitEntryDoc(id) {
+      if (confirm('Usunąć ten wpis z karty czasu?')) {
+        db.collection("zeitnachweis").doc(id).delete();
+      }
+    }
+
+    // ==========================================
+    // 3. KATALOG DANYCH: MODYFIKACJA MASZYN I MODUŁÓW PO AUTORYZACJI
+    // ==========================================
+    let editorModCount = 0;
+
+    function selectClientInData(id) {
+      currentClientId = id;
+      const c = clients.find(x => x.id === id);
+      const emptyBox = document.getElementById('dataClientViewEmpty');
+      const titleElem = document.getElementById('dataActiveClientName');
+      if (!c) {
+        if (emptyBox) emptyBox.style.display = 'block';
+        if (titleElem) titleElem.innerText = 'Wybierz klienta u góry';
+        return;
+      }
+      if (emptyBox) emptyBox.style.display = 'none';
+      if (titleElem) titleElem.innerText = `${c.name} (${c.location || ''})`;
+      renderClientTemplates(id);
+    }
+
+    function renderClientTemplates(clientId) {
+      const box = document.getElementById('clientTemplatesContainer');
+      box.innerHTML = '';
+      const clientTpls = templates.filter(t => t.clientId === clientId);
+      if (!clientTpls.length) {
+        box.innerHTML = '<div style="color:#64748b; padding:20px 0;">Brak maszyn w katalogu tego klienta. Utwórz nowy szablon maszyny.</div>';
+        return;
+      }
+
+      clientTpls.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'box';
+        let modulesPreview = '';
+        const groups = {};
+        (t.items || []).forEach(it => {
+          const g = it.group || 'Moduł';
+          groups[g] = (groups[g] || 0) + 1;
+        });
+
+        for (const g in groups) {
+          modulesPreview += `<span style="background:#0f172a; border:1px solid #283955; padding:3px 8px; border-radius:3px; font-size:0.75rem; margin-right:6px; color:#38bdf8;">📦 ${g} (${groups[g]} zadań)</span>`;
+        }
+
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <b style="font-size:1rem; color:#fff;">${t.machine}</b>
+              <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">Łącznie punktów kontrolnych: ${(t.items||[]).length}</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-amber" onclick="handleModifyModulesAuth('${t.id}')">✏️ Edytuj maszynę / moduły (Hasło)</button>
+              <button class="btn btn-purple" onclick="dispatchDirectFromTemplate('${t.id}')">+ Wystaw zlecenie</button>
+              <button class="btn btn-del" onclick="handleDeleteTemplateAuth('${t.id}')">✕</button>
+            </div>
+          </div>
+          <div style="margin-top:10px;">${modulesPreview}</div>
+        `;
+        box.appendChild(div);
+      });
+    }
+
+    function handleModifyModulesAuth(tplId) {
+      requireAuth('🔒 Modyfikacja Modułów Maszyny', 'Modyfikacja struktury modułów wymaga autoryzacji. Wpisz hasło:', () => {
+        openEditTemplateModal(tplId);
+      });
+    }
+
+    function handleDeleteTemplateAuth(tplId) {
+      requireAuth('🗑️ Usunięcie Szablonu', 'Usunięcie maszyny z katalogu wymaga autoryzacji. Wpisz hasło:', () => {
+        deleteTemplate(tplId);
+      });
+    }
+
+    function openEditTemplateModal(tplId) {
+      const tpl = templates.find(x => x.id === tplId);
+      if (!tpl) return;
+      document.getElementById('editTemplateId').value = tpl.id;
+      document.getElementById('editTplMachineName').value = tpl.machine || '';
+      document.getElementById('editTemplateModalTitle').innerText = `✏️ Modyfikacja: ${tpl.machine}`;
+
+      const container = document.getElementById('editTplModulesList');
+      container.innerHTML = '';
+      editorModCount = 0;
+
+      const groups = {};
+      (tpl.items || []).forEach(it => {
+        const g = it.group || 'Moduł Główny';
+        if (!groups[g]) groups[g] = [];
+        groups[g].push(it.text);
+      });
+
+      for (const gName in groups) {
+        addModuleBlockToEditor(gName, groups[gName].join('\n'));
+      }
+
+      openModal('modalEditTemplate');
+    }
+
+    function addModuleBlockToEditor(defName = '', defTasks = '') {
+      editorModCount++;
+      const container = document.getElementById('editTplModulesList');
+      const div = document.createElement('div');
+      div.className = 'module-builder-row';
+      div.id = 'editMod_' + editorModCount;
+      div.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <b style="color:#38bdf8; font-size:0.8rem;">Moduł #${editorModCount}</b>
+          <button class="btn btn-del" style="padding:1px 6px; font-size:0.7rem;" onclick="document.getElementById('editMod_${editorModCount}').remove()">✕ Usuń moduł</button>
+        </div>
+        <input class="edit-m-name" value="${defName}" placeholder="Nazwa modułu (np. Magazynek 1, F303, Moduł 2)..." style="margin-top:4px;">
+        <textarea class="edit-m-tasks" style="height:70px; margin-top:4px;" placeholder="Punkty kontrolne w tym module (każda linijka to punkt)...">${defTasks}</textarea>
+      `;
+      container.appendChild(div);
+    }
+
+    function saveEditedTemplateToDatabase() {
+      const tplId = document.getElementById('editTemplateId').value;
+      const machine = document.getElementById('editTplMachineName').value.trim();
+      if (!machine) return alert('Wpisz nazwę maszyny / linii!');
+
+      const rows = document.querySelectorAll('#editTplModulesList .module-builder-row');
+      if (!rows.length) return alert('Dodaj przynajmniej jeden moduł!');
+
+      const items = [];
+      rows.forEach(r => {
+        const mName = r.querySelector('.edit-m-name').value.trim() || 'Moduł';
+        const tasks = r.querySelector('.edit-m-tasks').value.trim();
+        const lines = tasks.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        lines.forEach(l => {
+          items.push({ group: mName, text: l, done: false, photos: [], note: '', parts: [], defects: [] });
+        });
+      });
+
+      if (!items.length) return alert('Wpisz punkty kontrolne w modułach!');
+
+      db.collection("templates").doc(tplId).update({
+        machine: machine,
+        items: items
+      }).then(() => {
+        closeModal('modalEditTemplate');
+        alert("Modyfikacja modułów została pomyślnie zapisana w katalogu!");
+      });
+    }
+
+    let tplModCount = 0;
+    function openTemplateCreatorModal() {
+      if (!currentClientId) return alert('Wybierz najpierw klienta!');
+      document.getElementById('tplMachineName').value = '';
+      const box = document.getElementById('tplModulesList');
+      box.innerHTML = '';
+      tplModCount = 0;
+      addModuleBlockToTemplateBuilder();
+      openModal('modalCreateTemplate');
+    }
+
+    function addModuleBlockToTemplateBuilder(defName = '', defTasks = '') {
+      tplModCount++;
+      const box = document.getElementById('tplModulesList');
+      const div = document.createElement('div');
+      div.className = 'module-builder-row';
+      div.id = 'tplMod_' + tplModCount;
+      div.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <b style="color:#38bdf8; font-size:0.8rem;">Moduł #${tplModCount}</b>
+          <button class="btn btn-del" style="padding:1px 6px; font-size:0.7rem;" onclick="document.getElementById('tplMod_${tplModCount}').remove()">✕</button>
+        </div>
+        <input class="tpl-m-name" value="${defName}" placeholder="Nazwa modułu (np. Magazynek 1, F303)..." style="margin-top:4px;">
+        <textarea class="tpl-m-tasks" style="height:65px; margin-top:4px;" placeholder="Punkty kontrolne (każda linijka to punkt)...">${defTasks}</textarea>
+      `;
+      box.appendChild(div);
+    }
+
+    function saveTemplateToClient() {
+      const machine = document.getElementById('tplMachineName').value.trim();
+      if (!machine) return alert('Wpisz nazwę maszyny / linii!');
+      const rows = document.querySelectorAll('.module-builder-row');
+      if (!rows.length) return alert('Dodaj przynajmniej jeden moduł!');
+
+      const items = [];
+      rows.forEach(r => {
+        const mName = r.querySelector('.tpl-m-name').value.trim() || 'Moduł';
+        const tasks = r.querySelector('.tpl-m-tasks').value.trim();
+        const lines = tasks.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        lines.forEach(l => {
+          items.push({ group: mName, text: l, done: false, photos: [], note: '', parts: [], defects: [] });
+        });
+      });
+
+      if (!items.length) return alert('Wpisz przynajmniej jeden punkt kontrolny!');
+
+      db.collection("templates").add({
+        clientId: currentClientId,
+        machine: machine,
+        items: items,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => closeModal('modalCreateTemplate'));
+    }
+
+    function addNewClientPrompt() {
+      const name = prompt("Nazwa nowego Klienta / Firmy (np. KFF Fulda, Nestlé):");
+      if (!name) return;
+      const loc = prompt("Lokalizacja zakładu (np. Fulda, Schwerin):") || "";
+      db.collection("clients").add({ name, location: loc });
+    }
+
+    function deleteTemplate(id) {
+      if (!confirm('Usunąć ten szablon z katalogu?')) return;
+      db.collection("templates").doc(id).delete();
+    }
+
+    // ==========================================
+    // PODGLĄD PDF (A4)
+    // ==========================================
+    function openPdfPreviewModal() {
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      if (!o) return;
+
+      const container = document.getElementById('pdfPreviewContentContainer');
+
+      let itemsHtml = '';
+      (o.items || []).forEach(it => {
+        const defects = it.defects || (it.problem ? [it.problem] : []);
+        let defectsDetail = '';
+        defects.forEach(df => {
+          const statusTxt = df.status === 'resolved' ? '🟢 ROZWIĄZANO' : '🔴 DO WYKONANIA';
+          let pStr = '';
+          (df.parts || []).forEach(p => pStr += `[${p.name} ${p.qty}x] `);
+          defectsDetail += `
+            <div class="pdf-prob-box">
+              <b>${statusTxt}:</b> ${df.desc || '-'} | <b>Restarbeit:</b> ${df.rest || '-'} ${pStr ? '| Części: ' + pStr : ''}
+            </div>
+          `;
+        });
+
+        const statusIcon = it.done ? '<b style="color:#047857;">[✓ WYKONANO]</b>' : '<b style="color:#b45309;">[DO ZROBIENIA]</b>';
+        itemsHtml += `
+          <div class="pdf-item-row">
+            <div style="flex:1;">
+              <div><b>${it.group}:</b> ${it.text}</div>
+              ${defectsDetail}
+              ${it.note ? '<div style="font-size:0.75rem; color:#475569;">Uwagi: ' + it.note + '</div>' : ''}
+            </div>
+            <div style="width:140px; text-align:right;">${statusIcon}</div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = `
+        <div class="pdf-preview-sheet">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>⚙️ PROTOKÓŁ SERWISOWY I PRZEGLĄDU MASZYNY</h2>
+            <div style="font-size:0.85rem; font-weight:bold; color:#0284c7;">SerwisMaster Pro</div>
+          </div>
+          
+          <table class="pdf-meta-table">
+            <tr>
+              <td><b>Klient / Zakład:</b> ${o.client}</td>
+              <td><b>Zlecenie Nr:</b> ${o.orderNum}</td>
+              <td><b>Data serwisu:</b> ${o.date || '-'} (KW ${o.kw || '-'})</td>
+            </tr>
+            <tr>
+              <td><b>Maszyna / Linia:</b> ${o.machine}</td>
+              <td><b>Technik:</b> ${o.technician || 'Arkadiusz Zimochod'}</td>
+              <td><b>Status zlecenia:</b> ${o.status === 'done' ? 'ZAKOŃCZONE' : 'W TOKU'}</td>
+            </tr>
+          </table>
+
+          ${o.specialNotes ? '<div class="pdf-sec-title">📝 PRZEBIEG PRAC / NOTATKI TECHNICZNE</div><div style="font-size:0.82rem; padding:8px; background:#f8fafc; border:1px solid #e2e8f0; margin-bottom:10px;">' + o.specialNotes + '</div>' : ''}
+
+          ${(o.items && o.items.length) ? '<div class="pdf-sec-title">✅ PUNKTY KONTROLNE & ROZWIĄZANE/OTWARTE USTERKI (REST)</div>' + itemsHtml : ''}
+
+          <div style="margin-top:36px; display:flex; justify-content:space-between; font-size:0.8rem; border-top:1px solid #cbd5e1; padding-top:14px;">
+            <div>Data: .........................</div>
+            <div>Podpis technika: .........................</div>
+            <div>Podpis klienta: .........................</div>
+          </div>
+        </div>
+      `;
+
+      openModal('modalPdfPreview');
+    }
+
+    // ==========================================
+    // WYSTAWIANIE ZLECENIA SERWISOWEGO
+    // ==========================================
+    function generateNextOrderNumber() {
+      const year = new Date().getFullYear();
+      const count = (activeOrders.length + 1).toString().padStart(3, '0');
+      const randomSuffix = Math.floor(10 + Math.random() * 90);
+      return `AUF-${year}-${count}${randomSuffix}`;
+    }
+
+    function updateDispatchClientsDropdown() {
+      const sel1 = document.getElementById('dispatchClientSelect');
+      if (!sel1) return;
+      sel1.innerHTML = '<option value="">-- Wybierz Klienta --</option>';
+      clients.forEach(c => sel1.innerHTML += `<option value="${c.id}">${c.name} (${c.location||''})</option>`);
+    }
+
+    function loadTemplatesForDispatch(cId) {
+      const sel = document.getElementById('dispatchTemplateSelect');
+      sel.innerHTML = '<option value="">-- Wybierz Maszynę --</option>';
+      const filtered = templates.filter(t => t.clientId === cId);
+      filtered.forEach(t => sel.innerHTML += `<option value="${t.id}">${t.machine} (${(t.items||[]).length} zadań)</option>`);
+    }
+
+    function openOrderDispatchModal() {
+      updateDispatchClientsDropdown();
+      if (selectedClientId) {
+        document.getElementById('dispatchClientSelect').value = selectedClientId;
+        loadTemplatesForDispatch(selectedClientId);
+      }
+      document.getElementById('dispatchOrderNum').value = generateNextOrderNumber();
+      const todayStr = new Date().toISOString().split('T')[0];
+      document.getElementById('dispatchOrderDate').value = todayStr;
+      const kw = getWeekNumber(new Date());
+      document.getElementById('dispatchKWDisplay').value = `KW ${kw.week} (${kw.year})`;
+      openModal('modalDispatchOrder');
+    }
+
+    function executeDispatchOrder() {
+      const cId = document.getElementById('dispatchClientSelect').value;
+      const tId = document.getElementById('dispatchTemplateSelect').value;
+      const orderNum = document.getElementById('dispatchOrderNum').value.trim() || generateNextOrderNumber();
+      const orderDate = document.getElementById('dispatchOrderDate').value || new Date().toISOString().split('T')[0];
+      const curUser = getActiveUser();
+      const tech = curUser.name || 'Arkadiusz Zimochod';
+      if (!cId || !tId) return alert('Wybierz klienta i maszynę!');
+
+      const client = clients.find(x => x.id === cId);
+      const template = templates.find(x => x.id === tId);
+      const kwInfo = getWeekNumber(new Date(orderDate));
+
+      const clonedItems = JSON.parse(JSON.stringify(template.items || []));
+      clonedItems.forEach(it => { 
+        it.done = false; 
+        it.defects = it.pendingDefects ? JSON.parse(JSON.stringify(it.pendingDefects)) : [];
+        it.photos = []; 
+        it.parts = []; 
+      });
+
+      db.collection("active_orders").add({
+        type: "service",
+        status: "active",
+        clientId: cId,
+        client: client.name,
+        machine: template.machine,
+        title: "Przegląd okresowy",
+        orderNum: orderNum,
+        date: orderDate,
+        kw: kwInfo.week,
+        year: kwInfo.year,
+        technician: tech,
+        specialNotes: "",
+        items: clonedItems,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(docRef => {
+        closeModal('modalDispatchOrder');
+        // Synchronizuj aktywnego klienta, aby wystawione zlecenie od razu było widoczne!
+        selectedClientId = cId;
+        localStorage.setItem('serwismaster_active_client_id', cId);
+        const globSel = document.getElementById('globalClientSelector');
+        if (globSel) globSel.value = cId;
+        
+        switchTab('orders');
+        const stSel = document.getElementById('orderStatusFilter');
+        if (stSel) stSel.value = 'active';
+        filterOrdersList();
+        loadActiveOrder(docRef.id);
+      });
+    }
+
+    function dispatchDirectFromTemplate(tId) {
+      const template = templates.find(x => x.id === tId);
+      const client = clients.find(x => x.id === template.clientId);
+      const clonedItems = JSON.parse(JSON.stringify(template.items || []));
+      clonedItems.forEach(it => { 
+        it.done = false; 
+        it.defects = it.pendingDefects ? JSON.parse(JSON.stringify(it.pendingDefects)) : [];
+        it.photos = []; 
+        it.parts = []; 
+      });
+
+      const autoNum = generateNextOrderNumber();
+      const todayStr = new Date().toISOString().split('T')[0];
+      const kwInfo = getWeekNumber(new Date(todayStr));
+      const curUser = getActiveUser();
+
+      db.collection("active_orders").add({
+        type: "service",
+        status: "active",
+        clientId: client.id,
+        client: client.name,
+        machine: template.machine,
+        title: "Przegląd okresowy",
+        orderNum: autoNum,
+        date: todayStr,
+        kw: kwInfo.week,
+        year: kwInfo.year,
+        technician: curUser.name || 'Arkadiusz Zimochod',
+        specialNotes: "",
+        items: clonedItems,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(docRef => {
+        switchTab('orders');
+        loadActiveOrder(docRef.id);
+      });
+    }
+
+    // ==========================================
+    // NOTATKI, FOTO, MAGAZYN
+    // ==========================================
+    function triggerPhoto(idx) {
+      activeTaskIdx = idx;
+      document.getElementById('hiddenPhotoInput').click();
+    }
+
+    function handlePhotoUpload(e) {
+      const f = e.target.files[0];
+      if (!f || activeTaskIdx === null || !currentOrderId) return;
+      const r = new FileReader();
+      r.onload = ev => {
+        const im = new Image();
+        im.onload = () => {
+          const cv = document.createElement('canvas');
+          let mx = 800, w = im.width, h = im.height;
+          if (w > mx) { h = Math.round(h * mx / w); w = mx; }
+          cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(im, 0, 0, w, h);
+          const u = cv.toDataURL('image/jpeg', 0.65);
+
+          const o = activeOrders.find(x => x.id === currentOrderId);
+          let items = o.items || [];
+          if (!items[activeTaskIdx].photos) items[activeTaskIdx].photos = [];
+          items[activeTaskIdx].photos.push(u);
+          db.collection("active_orders").doc(currentOrderId).update({ items });
+        };
+        im.src = ev.target.result;
+      };
+      r.readAsDataURL(f);
+      e.target.value = '';
+    }
+
+    function openNoteModal(idx) {
+      activeTaskIdx = idx;
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      document.getElementById('taskNoteInput').value = o.items[idx].note || '';
+      openModal('modalNote');
+    }
+
+    function saveTaskNote() {
+      const n = document.getElementById('taskNoteInput').value.trim();
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      let items = o.items || [];
+      items[activeTaskIdx].note = n;
+      db.collection("active_orders").doc(currentOrderId).update({ items }).then(() => closeModal('modalNote'));
+    }
+
+    function openRegularPartsModal(idx) {
+      activeTaskIdx = idx;
+      updatePartsDropdowns();
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      const it = o.items[idx];
+      const box = document.getElementById('regularPartsContainer');
+      const pList = it.parts || [];
+      box.innerHTML = pList.length ? '' : 'Brak przypisanych części.';
+      pList.forEach((p, pIdx) => {
+        box.innerHTML += `
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px; background:#0b1329; padding:4px 8px; border-radius:3px;">
+            <span>${p.name} (${p.num || '-'}) - ${p.qty} szt.</span>
+            <b style="cursor:pointer; color:#ef4444;" onclick="removeRegularPart(${pIdx})">✕</b>
+          </div>
+        `;
+      });
+      openModal('modalParts');
+    }
+
+    function assignRegularPart() {
+      const pId = document.getElementById('selectRegularPart').value;
+      const qty = parseInt(document.getElementById('selectRegularQty').value) || 1;
+      if (!pId) return alert('Wybierz część!');
+      const part = parts.find(x => x.id === pId);
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      let items = o.items || [];
+      if (!items[activeTaskIdx].parts) items[activeTaskIdx].parts = [];
+      items[activeTaskIdx].parts.push({ id: part.id, name: part.name, num: part.num || '', qty });
+      db.collection("active_orders").doc(currentOrderId).update({ items }).then(() => openRegularPartsModal(activeTaskIdx));
+    }
+
+    function removeRegularPart(pIdx) {
+      const o = activeOrders.find(x => x.id === currentOrderId);
+      let items = o.items || [];
+      items[activeTaskIdx].parts.splice(pIdx, 1);
+      db.collection("active_orders").doc(currentOrderId).update({ items }).then(() => openRegularPartsModal(activeTaskIdx));
+    }
+
+    function updatePartsDropdowns() {
+      const sel = document.getElementById('selectRegularPart');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">-- Wybierz część z magazynu --</option>';
+      parts.forEach(p => sel.innerHTML += `<option value="${p.id}">${p.name} (${p.num || '-'}) [Stan: ${p.stock}]</option>`);
+    }
+
+    function saveNewPart() {
+      const name = document.getElementById('npName').value.trim();
+      const num = document.getElementById('npNum').value.trim();
+      const stock = parseInt(document.getElementById('npStock').value) || 0;
+      if (!name) return alert('Wpisz nazwę części!');
+      db.collection("parts").add({ name, num, stock }).then(() => {
+        document.getElementById('npName').value = '';
+        document.getElementById('npNum').value = '';
+        document.getElementById('npStock').value = '1';
+      });
+    }
+
+    function renderPartsCatalog() {
+      const tb = document.getElementById('partsCatalogList');
+      if (!tb) return;
+      tb.innerHTML = '';
+      if (!parts.length) {
+        tb.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">Katalog części jest pusty</td></tr>';
+        return;
+      }
+      parts.forEach(p => {
+        tb.innerHTML += `
+          <tr>
+            <td><b>${p.name}</b></td><td>${p.num || '-'}</td>
+            <td><input type="number" value="${p.stock}" style="width:60px; padding:2px;" onchange="db.collection('parts').doc('${p.id}').update({stock: parseInt(this.value)||0})"> szt.</td>
+            <td><button class="btn btn-del" style="padding:2px 6px; font-size:0.75rem;" onclick="if(confirm('Usunąć część?'))db.collection('parts').doc('${p.id}').delete()">Usuń</button></td>
+          </tr>
+        `;
+      });
+    }
+
+    // ==========================================
+    // DASHBOARD USTEREK Z BEZPOŚREDNIM SKOKIEM DO TRÓJKĄTA
+    // ==========================================
+    function renderDashboardProblems() {
+      const tbody = document.getElementById('dashProblemsTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const filterVal = document.getElementById('dashFilterSelect').value;
+      const activeClient = clients.find(c => c.id === selectedClientId);
+      activeOrders.forEach(o => {
+        if (selectedClientId && o.clientId && o.clientId !== selectedClientId) return;
+        if (activeClient && !o.clientId && o.client && o.client !== activeClient.name) return;
+        (o.items || []).forEach((it, itIdx) => {
+          const defects = it.defects || (it.problem ? [it.problem] : []);
+          defects.forEach((df, dfIdx) => {
+            const isResolved = df.status === 'resolved';
+            if (filterVal === 'open' && isResolved) return;
+            if (filterVal === 'resolved' && !isResolved) return;
+
+            let partsStr = '';
+            (df.parts || []).forEach(p => partsStr += `<span class="prob-parts-tag">${p.name} (${p.qty}x)</span>`);
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${isResolved ? '<span style="color:#10b981; font-weight:bold;">🟢 Rozwiązana</span>' : '<span style="color:#ef4444; font-weight:bold;">🔴 Wymaga naprawy</span>'}</td>
+              <td><b>${o.machine || o.title}</b></td>
+              <td>${it.text}</td>
+              <td style="color:#fbbf24; font-weight:600;">${df.desc || '-'}</td>
+              <td><b>${df.rest || '-'}</b></td>
+              <td>${partsStr || '-'}</td>
+              <td>${df.author || '-'}</td>
+              <td>
+                <button class="btn btn-purple" style="padding:2px 8px; font-size:0.75rem;" onclick="jumpDirectToProblemModal('${o.id}', ${itIdx})">⚠️ Otwórz trójkąt</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        });
+      });
+
+      if (!tbody.children.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#64748b; padding:14px;">Brak usterek dla tego klienta.</td></tr>';
+      }
+    }
+
+    function jumpDirectToProblemModal(orderId, taskIdx) {
+      switchTab('orders');
+      loadActiveOrder(orderId);
+      setTimeout(() => {
+        openProblemModal(taskIdx);
+      }, 100);
+    }
+
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('PWA ServiceWorker zarejestrowany:', reg.scope))
+          .catch(err => console.log('Błąd rejestracji ServiceWorker:', err));
+      });
+    }
+  </script>
 </body>
 </html>
