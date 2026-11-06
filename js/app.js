@@ -100,14 +100,21 @@ async function guarded(label, fn) {
   catch (e) { status((e instanceof ConflictError ? 'KONFLIKT: ' : 'BŁĄD: ') + humanError(e), e instanceof ConflictError ? 'warn' : 'err'); return false; }
 }
 const byId = list => Object.fromEntries(list.map(x => [x.id, x]));
+function ratesConfigured(tenant) {
+  return tenant && typeof tenant.vatPercent === 'number' && typeof tenant.workPerHour === 'number' && typeof tenant.travelPerHour === 'number';
+}
+function photosOn() { if (store?.mode === 'demo') return true; return cfg?.features?.photos === true; }
+
 
 // ---------- widoki ----------
 const VIEWS = {
   async orders() {
     const orders = await store.listOrders();
     let extra = '';
+    let ratesWarn = '';
     if (me.role === 'admin') {
-      const [clients, machines, templates, members] = await Promise.all([store.list('clients'), store.list('machines'), store.list('templates'), store.list('members')]);
+      const [clients, machines, templates, members, tenant] = await Promise.all([store.list('clients'), store.list('machines'), store.list('templates'), store.list('members'), store.tenant()]);
+      if (!ratesConfigured(tenant)) ratesWarn = `<p class="warn-box">Uzupełnij VAT i stawki €/h w zakładce <b>Ustawienia</b> (wymagane do szkiców rachunków; bez milczących domyślnych).</p>`;
       const techs = members.filter(m => m.role === 'tech' && m.active);
       extra = `<details class="panel"><summary><b>+ Nowe zlecenie</b></summary>
         <form id="newOrder" class="grid">
@@ -118,7 +125,7 @@ const VIEWS = {
         <label>Termin<input type="date" name="dueDate" required></label>
         <button class="btn btn-green" ${machines.length && templates.length && techs.length ? '' : 'disabled title="Najpierw dodaj maszynę, szablon i technika"'}>Utwórz</button></form></details>`;
     }
-    app().innerHTML = `${extra}<section class="panel"><h2>${me.role === 'admin' ? 'Wszystkie zlecenia' : 'Moje przypisane zlecenia'}</h2>
+    app().innerHTML = `${ratesWarn}${extra}<section class="panel"><h2>${me.role === 'admin' ? 'Wszystkie zlecenia' : 'Moje przypisane zlecenia'}</h2>
       ${orders.length ? `<table class="tbl"><tr><th>Tytuł</th><th>Termin</th><th>Status</th><th>Szablon</th><th></th></tr>
       ${orders.sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || '')).map(o => `<tr><td>${esc(o.title)}</td><td>${esc(o.dueDate)}</td><td><span class="st st-${o.status}">${ORDER_STATUSES[o.status]}</span></td><td>${esc(o.snapshot?.templateName)} v${o.snapshot?.templateVersion}</td>
       <td><button class="btn" data-action="openOrder" data-id="${o.id}">Otwórz</button></td></tr>`).join('')}</table>` : '<p class="muted">Brak zleceń.</p>'}</section>`;
@@ -167,7 +174,7 @@ const VIEWS = {
         ${me.role === 'admin' && o.status === 'submitted' ? `<label>Uwaga do decyzji<input id="decisionNote" maxlength="1000"></label>
           <button class="btn btn-green" data-action="decide" data-to="approved">Zatwierdź (zablokuje protokół)</button> <button class="btn btn-del" data-action="decide" data-to="rejected">Odrzuć do poprawy</button>` : ''}
         <button class="btn btn-gray" data-action="printOrder">Drukuj protokół</button></section>`;
-    for (const img of $$('img[data-path]')) store.photoUrl(img.dataset.path).then(u => img.src = u).catch(() => img.alt = 'brak dostępu');
+    if (photosOn()) for (const img of $$('img[data-path]')) store.photoUrl(img.dataset.path).then(u => img.src = u).catch(() => img.alt = 'brak dostępu');
     bindOrderForms(o, parts);
   },
 
@@ -259,7 +266,8 @@ const VIEWS = {
     app().innerHTML = `<section class="panel"><h2>Szkice rachunków</h2>
       <p class="warn-box">To wyłącznie SZKIC z zatwierdzonych godzin i materiałów. Aplikacja nie nadaje numeru faktury, nie archiwizuje zgodnie z GoBD i nie tworzy E-Rechnung (XRechnung/ZUGFeRD). Fakturę wystaw w programie księgowym. Stawka VAT jest ustawieniem firmy (${tenant.vatPercent ?? '—'}%), nie oceną prawną (np. reverse charge dla klienta z UE wymaga decyzji księgowej).</p>
       <label>Zatwierdzone zlecenie<select id="invOrder">${opt(approved, null, o => `${o.title} – ${byId(clients)[o.clientId]?.name || ''}`)}</select></label>
-      <button class="btn" data-action="buildInvoice" ${approved.length && tenant.vatPercent != null ? '' : 'disabled title="Brak zatwierdzonych zleceń lub stawki VAT w Ustawieniach"'}>Utwórz szkic</button>
+      ${!ratesConfigured(tenant) ? '<p class="err-box">Ustaw VAT oraz stawki €/h w <b>Ustawieniach</b> zanim utworzysz szkic – brak milczących domyślnych stawek finansowych.</p>' : ''}
+      <button class="btn" data-action="buildInvoice" ${approved.length && ratesConfigured(tenant) ? '' : 'disabled title="Brak zatwierdzonych zleceń lub brak VAT/stawek w Ustawieniach"'}>Utwórz szkic</button>
       <div id="invPreview"></div></section>
       <section class="panel"><h3>Zapisane szkice</h3>${listOrEmpty(drafts, d => `<tr><td>${esc(byId(orders)[d.workOrderId]?.title)}</td><td>${fmtEur(d.netCents)} netto</td><td>${fmtEur(d.grossCents)} brutto</td><td>SZKIC</td></tr>`)}</section>`;
     VIEWS._invData = { orders, time, mats, tenant, clients };
@@ -279,15 +287,20 @@ const VIEWS = {
 
   async settings() {
     const t = await store.tenant();
-    app().innerHTML = `<section class="panel narrow"><h2>Ustawienia firmy</h2><form id="setForm">
-      <label>Nazwa<input name="name" required maxlength="120" value="${esc(t.name)}"></label>
+    app().innerHTML = `<section class="panel narrow"><h2>Ustawienia firmy</h2>
+      ${!ratesConfigured(t) ? '<p class="warn-box">Brak kompletnych stawek (VAT, praca €/h, dojazd €/h). Wpisz je świadomie – aplikacja nie podstawia domyślnych wartości do rachunków.</p>' : ''}
+      <form id="setForm">
+      <label>Nazwa<input name="name" required maxlength="120" value="${esc(t.name || '')}"></label>
       <label>Stawka VAT % (konfigurowalna)<input name="vatPercent" type="number" step="0.01" min="0" max="100" required value="${esc(t.vatPercent ?? '')}"></label>
       <label>Stawka pracy €/h<input name="workPerHour" type="number" step="0.01" min="0" required value="${esc(t.workPerHour ?? '')}"></label>
       <label>Stawka dojazdu €/h<input name="travelPerHour" type="number" step="0.01" min="0" required value="${esc(t.travelPerHour ?? '')}"></label>
       <button class="btn">Zapisz</button></form>
-      <p class="muted">Tryb: ${esc(store.label)}</p></section>`;
+      <p class="muted">Tryb: ${esc(store.label)}</p>
+      ${!photosOn() ? '<p class="muted">Zdjęcia protokołów: wyłączone (Spark / features.photos=false). Włączenie wymaga planu Blaze i storage.rules.</p>' : ''}</section>`;
     $('#setForm').onsubmit = async e => { e.preventDefault(); const d = formData(e.target);
-      await guarded('Ustawienia', () => store.saveTenant({ name: d.name.trim(), vatPercent: Number(d.vatPercent), workPerHour: Number(d.workPerHour), travelPerHour: Number(d.travelPerHour) })); };
+      const vat = Number(d.vatPercent), wh = Number(d.workPerHour), th = Number(d.travelPerHour);
+      if (![vat, wh, th].every(Number.isFinite) || vat < 0 || vat > 100 || wh < 0 || th < 0) return status('Podaj poprawne liczby: VAT 0–100 oraz stawki ≥ 0.', 'err');
+      await guarded('Ustawienia', () => store.saveTenant({ name: d.name.trim(), vatPercent: vat, workPerHour: wh, travelPerHour: th })); };
   },
 };
 
@@ -313,7 +326,8 @@ function itemHtml(it, r = {}, editable) {
     <div class="row"><input name="note" value="${esc(r.note || '')}" placeholder="${it.type === 'text' ? 'odpowiedź' : 'opis / uwagi'}" maxlength="2000" ${dis}>
     <input name="na" value="${esc(r.naReason || '')}" placeholder="uzasadnienie „nie dotyczy”" maxlength="500" ${dis}></div>
     <div class="photos">${(r.photos || []).map(p => `<img data-path="${esc(p)}" alt="zdjęcie">`).join('')}</div>
-    ${editable ? `<div class="row"><input type="file" accept="image/jpeg,image/png,image/webp" name="photo"> <button class="btn" data-action="saveItem" data-id="${esc(it.id)}">Zapisz punkt</button>
+    ${editable ? `<div class="row">${photosOn() ? `<input type="file" accept="image/jpeg,image/png,image/webp" name="photo">` : `<span class="muted" title="Cloud Storage wymaga planu Blaze">Zdjęcia niedostępne (Spark / features.photos=false)</span>`}
+      <button class="btn" data-action="saveItem" data-id="${esc(it.id)}">Zapisz punkt</button>
       ${out === 'defect' ? `<select name="sev"><option value="low">niska</option><option value="medium" selected>średnia</option><option value="high">wysoka</option></select><button class="btn btn-amber" data-action="reportDefect" data-id="${esc(it.id)}">Utwórz zadanie naprawcze</button>` : ''}</div>` : ''}
     ${r.updatedAt ? '' : ''}</div>`;
 }
@@ -347,9 +361,11 @@ const ACTIONS = {
     const r = { outcome: $(`input[type=radio]:checked`, box)?.value, note: $('[name=note]', box).value.trim(), naReason: $('[name=na]', box).value.trim(), photos: [...(prev.photos || [])] };
     if (it.type === 'measure') { const v = $('[name=val]', box).value; r.value = v === '' ? null : Number(v); }
     const errs = validateResult(it, r); if (errs.length) return status(errs.join(' · '), 'err');
-    const file = $('[name=photo]', box).files[0];
+    const fileInput = $('[name=photo]', box);
+    const file = (photosOn() && fileInput && fileInput.files && fileInput.files[0]) ? fileInput.files[0] : null;
     const ok = await guarded('Zapis punktu', async () => {
-      if (file) r.photos.push(await store.uploadPhoto(current.id, file));
+      if (file && photosOn()) r.photos.push(await store.uploadPhoto(current.id, file));
+      // Gdy zdjęcia wyłączone, obecność inputu pliku nie może przerwać zapisu wyniku.
       return store.patchOrder(current.id, current.rev, { ['results.' + it.id]: { ...r, by: me.uid } });
     });
     if (ok) go('order', current.id);

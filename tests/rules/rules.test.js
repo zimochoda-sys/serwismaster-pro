@@ -150,3 +150,41 @@ test('usuwanie szkicu czasu: tylko własny, aktywny, przypisane otwarte zlecenie
 test('członek (technik) czyta wspólny katalog klientów/maszyn – zamierzone, udokumentowane', async () => {
   await assertSucceeds(getDoc(doc(db('tech2'), p('clients', 'c1'))));
 });
+
+test('anonim, niesczłonek i legacy root: deny; wyłączony bez danych biznesowych', async () => {
+  await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), 'tenants', T)));
+  await assertFails(getDoc(doc(db('stranger'), p('members', 'admin1'))));
+  await assertFails(getDoc(doc(db('stranger'), 'tenants', T)));
+  await assertFails(getDoc(doc(db('admin1'), 'active_orders', 'x')));
+  await assertFails(setDoc(doc(db('admin1'), 'clients', 'legacy'), { name: 'no' }));
+  await assertFails(getDoc(doc(db('gone'), p('workOrders', 'og'))));
+});
+
+test('admin ze świeżym tenantem (jak AZ Service: name-only) zapisuje stawki; tworzy klienta', async () => {
+  await env.withSecurityRulesDisabled(async c => {
+    await setDoc(doc(c.firestore(), 'tenants', 'fresh'), { name: 'AZ Service' });
+    await setDoc(doc(c.firestore(), 'tenants', 'fresh', 'members', 'admin1'), { role: 'admin', active: true, displayName: 'Arkadiusz' });
+  });
+  const a = db('admin1');
+  await assertSucceeds(updateDoc(doc(a, 'tenants', 'fresh'), { name: 'AZ Service', vatPercent: 19, workPerHour: 85, travelPerHour: 55, updatedAt: new Date() }));
+  await assertSucceeds(setDoc(doc(a, 'tenants', 'fresh', 'clients', 'c1'), { name: 'Klient', address: '', vatId: '', updatedAt: new Date() }));
+  await assertFails(updateDoc(doc(a, 'tenants', 'fresh'), { name: 'AZ Service', vatPercent: '19', workPerHour: 85, travelPerHour: 55, updatedAt: new Date() }));
+});
+
+test('LUKA udokumentowana: pusty wynik z kluczem przechodzi submit w regułach (treść = UI+admin)', async () => {
+  await assertSucceeds(updateDoc(doc(db('tech1'), p('workOrders', 'o1')), { status: 'in_progress', rev: 1, updatedBy: 'tech1' }));
+  await assertSucceeds(updateDoc(doc(db('tech1'), p('workOrders', 'o1')), { 'results.a': { outcome: null, note: null }, rev: 2, updatedBy: 'tech1' }));
+  await assertSucceeds(updateDoc(doc(db('tech1'), p('workOrders', 'o1')), { status: 'submitted', rev: 3, updatedBy: 'tech1' }));
+});
+
+test('technik listFor: zapytanie złożone workOrderId+uid (wymaga indeksu złożonego w produkcji)', async () => {
+  await env.withSecurityRulesDisabled(async c => {
+    await setDoc(doc(c.firestore(), p('timeEntries', 'te1')), { workOrderId: 'o1', uid: 'tech1', status: 'draft', kind: 'work', minutes: 10, date: '2026-01-01' });
+    await setDoc(doc(c.firestore(), p('materials', 'mat1')), { workOrderId: 'o1', uid: 'tech1', status: 'draft', partId: 'p1', name: 'F', qty: 1 });
+    await setDoc(doc(c.firestore(), p('defects', 'd1')), { workOrderId: 'o1', createdBy: 'tech1', status: 'open', severity: 'low', description: 'x', machineId: 'm1', itemId: 'a' });
+  });
+  await assertSucceeds(getDocs(query(collection(db('tech1'), p('timeEntries')), where('workOrderId', '==', 'o1'), where('uid', '==', 'tech1'))));
+  await assertSucceeds(getDocs(query(collection(db('tech1'), p('materials')), where('workOrderId', '==', 'o1'), where('uid', '==', 'tech1'))));
+  await assertSucceeds(getDocs(query(collection(db('tech1'), p('defects')), where('workOrderId', '==', 'o1'), where('createdBy', '==', 'tech1'))));
+  await assertFails(getDocs(query(collection(db('tech2'), p('timeEntries')), where('workOrderId', '==', 'o1'), where('uid', '==', 'tech1'))));
+});

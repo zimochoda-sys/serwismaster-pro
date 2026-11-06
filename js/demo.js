@@ -39,7 +39,7 @@ export function createDemoStore() {
   const assigned = oid => db.workOrders[oid]?.assignedTo === me.uid;
 
   const store = {
-    mode: 'demo', label: 'TRYB DEMO – dane przykładowe tylko w pamięci, bez chmury',
+    mode: 'demo', photosEnabled: true, label: 'TRYB DEMO – dane przykładowe tylko w pamięci, bez chmury',
     users: Object.values(DEMO_USERS),
     onAuth(cb) { listeners.push(cb); cb(me); return () => {}; },
     async signInDemo(uid) { me = { ...DEMO_USERS[uid] }; listeners.forEach(l => l(me)); },

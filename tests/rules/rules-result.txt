@@ -1,21 +1,121 @@
-✔ niezalogowany nic nie czyta (1340.607159ms)
-✔ technik czyta przypisane, nie czyta cudzych (274.687861ms)
-✔ izolacja tenantów: admin innej firmy nie ma dostępu (118.575914ms)
-✔ eskalacja ról: technik nie nadaje sobie admina; admin nie zmienia siebie (173.587835ms)
-✔ technik zapisuje wynik z rev+1; zły rev = konflikt (135.198309ms)
-✔ podszywanie się: updatedBy musi być autorem; technik nie zmienia snapshotu/przypisania (121.941638ms)
-✔ zgłoszenie wymaga odpowiedzi na wymagane punkty; technik nie zatwierdza (182.780238ms)
-✔ zatwierdzony protokół zablokowany także dla admina (102.630365ms)
-✔ czas pracy: tylko własny, do przypisanego zlecenia; technik nie zatwierdza (138.256552ms)
-✔ materiał: zatwierdzenie tylko z atomowym zdjęciem ze stanu (88.214338ms)
-✔ szkic rachunku tylko admin, tylko dla zatwierdzonego, bez numeru (121.452668ms)
-✔ wersje szablonów niezmienne (92.33087ms)
-✔ Storage: zdjęcie tylko przypisany technik, obraz <10MB, własny folder (289.01871ms)
-✔ wyłączone konto: brak odczytu/zapisu/usuwania własnych danych; własny wpis członkostwa czytelny (125.443342ms)
-✔ dieta: powiązanie tylko z własnym otwartym zleceniem; walidacja pól (189.649897ms)
-✔ usuwanie szkicu czasu: tylko własny, aktywny, przypisane otwarte zlecenie (115.765076ms)
-✔ członek (technik) czyta wspólny katalog klientów/maszyn – zamierzone, udokumentowane (61.703617ms)
-ℹ tests 17
-ℹ pass 17
+i  emulators: Starting emulators: firestore, storage
+i  emulators: Detected demo project ID "demo-serwismaster", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+i  firestore: Firestore Emulator logging to firestore-debug.log
+✔  firestore: Firestore Emulator was started in standard edition.
+✔  firestore: Firestore Emulator UI websocket is running on 9150.
+i  Running script: node --test rules.test.js
+✔ niezalogowany nic nie czyta (1582.374194ms)
+✔ technik czyta przypisane, nie czyta cudzych (314.307076ms)
+[2026-11-06T15:50:27.247Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584d2 error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L43:34 for 'create' @ L43, false for 'create' @ L179, evaluation error at L43:34 for 'update' @ L43, false for 'update' @ L179, false for 'create' @ L43, false for 'create' @ L179
+✔ izolacja tenantów: admin innej firmy nie ma dostępu (129.591029ms)
+[2026-11-06T15:50:27.326Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584d4 error. Code: 7 Message: 7 PERMISSION_DENIED:
+false for 'update' @ L34, false for 'update' @ L179
+[2026-11-06T15:50:27.351Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584d5 error. Code: 7 Message: 7 PERMISSION_DENIED:
+false for 'create' @ L34, false for 'create' @ L179, false for 'update' @ L34, false for 'update' @ L179
+[2026-11-06T15:50:27.370Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584d6 error. Code: 7 Message: 7 PERMISSION_DENIED:
+false for 'update' @ L34, false for 'update' @ L179
+[2026-11-06T15:50:27.418Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584d8 error. Code: 7 Message: 7 PERMISSION_DENIED:
+false for 'create' @ L34, false for 'create' @ L179, false for 'update' @ L34, false for 'update' @ L179
+✔ eskalacja ról: technik nie nadaje sobie admina; admin nie zmienia siebie (169.444265ms)
+[2026-11-06T15:50:27.535Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584db error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L84:26 for 'update' @ L84, false for 'update' @ L179, false for 'update' @ L84, false for 'update' @ L179
+[2026-11-06T15:50:27.561Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584dc error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L84:26 for 'update' @ L84, false for 'update' @ L179, false for 'update' @ L84, false for 'update' @ L179
+✔ technik zapisuje wynik z rev+1; zły rev = konflikt (142.82091ms)
+[2026-11-06T15:50:27.633Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584de error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L84:26 for 'update' @ L84, false for 'update' @ L179, false for 'update' @ L84, false for 'update' @ L179
+[2026-11-06T15:50:27.666Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584df error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L84:26 for 'update' @ L84, false for 'update' @ L179, false for 'update' @ L84, false for 'update' @ L179
+[2026-11-06T15:50:27.697Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584e0 error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L84:26 for 'update' @ L84, false for 'update' @ L179, false for 'update' @ L84, false for 'update' @ L179
+✔ podszywanie się: updatedBy musi być autorem; technik nie zmienia snapshotu/przypisania (136.098356ms)
+[2026-11-06T15:50:27.793Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584e3 error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L84:26 for 'update' @ L84, false for 'update' @ L179, false for 'update' @ L84, false for 'update' @ L179
+[2026-11-06T15:50:27.842Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584e5 error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L84:26 for 'update' @ L84, false for 'update' @ L179, false for 'update' @ L84, false for 'update' @ L179
+[2026-11-06T15:50:27.889Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584e7 error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L84:26 for 'update' @ L84, false for 'update' @ L179, false for 'update' @ L84, false for 'update' @ L179
+✔ zgłoszenie wymaga odpowiedzi na wymagane punkty; technik nie zatwierdza (221.082839ms)
+[2026-11-06T15:50:28.006Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584ea error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L84:26 for 'update' @ L84, false for 'update' @ L179, false for 'update' @ L84, false for 'update' @ L179
+[2026-11-06T15:50:28.029Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584eb error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L84:26 for 'update' @ L84, false for 'update' @ L179, false for 'update' @ L84, false for 'update' @ L179
+[2026-11-06T15:50:28.066Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584ec error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L84:26 for 'update' @ L84, false for 'update' @ L179, false for 'update' @ L84, false for 'update' @ L179
+✔ zatwierdzony protokół zablokowany także dla admina (148.832096ms)
+[2026-11-06T15:50:28.160Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584ef error. Code: 7 Message: 7 PERMISSION_DENIED:
+false for 'create' @ L121, false for 'create' @ L179, false for 'update' @ L126, false for 'update' @ L179
+[2026-11-06T15:50:28.181Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584f0 error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L121:26 for 'create' @ L121, false for 'create' @ L179, false for 'update' @ L126, false for 'update' @ L179, false for 'create' @ L121, false for 'create' @ L179
+[2026-11-06T15:50:28.209Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584f1 error. Code: 7 Message: 7 PERMISSION_DENIED:
+false for 'create' @ L121, false for 'create' @ L179, evaluation error at L126:26 for 'update' @ L126, false for 'update' @ L179, false for 'create' @ L121, false for 'create' @ L179
+[2026-11-06T15:50:28.247Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584f2 error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L121:26 for 'create' @ L121, false for 'create' @ L179, false for 'update' @ L126, false for 'update' @ L179, false for 'create' @ L121, false for 'create' @ L179
+✔ czas pracy: tylko własny, do przypisanego zlecenia; technik nie zatwierdza (179.515268ms)
+[2026-11-06T15:50:28.333Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584f4 error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L145:26 for 'update' @ L145, false for 'update' @ L179, false for 'update' @ L145, false for 'update' @ L179
+✔ materiał: zatwierdzenie tylko z atomowym zdjęciem ze stanu (103.973969ms)
+[2026-11-06T15:50:28.433Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584f8 error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L173:34 for 'create' @ L173, false for 'create' @ L179, evaluation error at L173:34 for 'update' @ L173, false for 'update' @ L179, false for 'create' @ L173, false for 'create' @ L179
+[2026-11-06T15:50:28.455Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584f9 error. Code: 7 Message: 7 PERMISSION_DENIED:
+false for 'create' @ L173, false for 'create' @ L179, false for 'update' @ L173, false for 'update' @ L179
+[2026-11-06T15:50:28.479Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584fa error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L173:34 for 'create' @ L173, false for 'create' @ L179, evaluation error at L173:34 for 'update' @ L173, false for 'update' @ L179, false for 'create' @ L173, false for 'create' @ L179
+✔ szkic rachunku tylko admin, tylko dla zatwierdzonego, bez numeru (127.710553ms)
+[2026-11-06T15:50:28.568Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584fc error. Code: 7 Message: 7 PERMISSION_DENIED:
+false for 'update' @ L73, false for 'update' @ L179
+[2026-11-06T15:50:28.585Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de584fd error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L69:26 for 'create' @ L69, false for 'create' @ L179, false for 'update' @ L73, false for 'update' @ L179, false for 'create' @ L69, false for 'create' @ L179
+✔ wersje szablonów niezmienne (105.974085ms)
+✔ Storage: zdjęcie tylko przypisany technik, obraz <10MB, własny folder (310.042277ms)
+[2026-11-06T15:50:28.989Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de58501 error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L128:26 for 'delete' @ L128, false for 'delete' @ L179, false for 'delete' @ L128, false for 'delete' @ L179
+[2026-11-06T15:50:28.996Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de58502 error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L149:26 for 'delete' @ L149, false for 'delete' @ L179, false for 'delete' @ L149, false for 'delete' @ L179
+[2026-11-06T15:50:29.003Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de58503 error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L121:26 for 'create' @ L121, false for 'create' @ L179, false for 'update' @ L126, false for 'update' @ L179, false for 'create' @ L121, false for 'create' @ L179
+[2026-11-06T15:50:29.011Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de58504 error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L155:26 for 'create' @ L155, false for 'create' @ L179, false for 'update' @ L165, false for 'update' @ L179, false for 'create' @ L155, false for 'create' @ L179
+✔ wyłączone konto: brak odczytu/zapisu/usuwania własnych danych; własny wpis członkostwa czytelny (115.917958ms)
+[2026-11-06T15:50:29.095Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de58507 error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L155:26 for 'create' @ L155, false for 'create' @ L179, false for 'update' @ L165, false for 'update' @ L179, false for 'create' @ L155, false for 'create' @ L179
+[2026-11-06T15:50:29.119Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de58508 error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L155:26 for 'create' @ L155, false for 'create' @ L179, false for 'update' @ L165, false for 'update' @ L179, false for 'create' @ L155, false for 'create' @ L179
+[2026-11-06T15:50:29.163Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de5850a error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L155:26 for 'create' @ L155, false for 'create' @ L179, false for 'update' @ L165, false for 'update' @ L179, false for 'create' @ L155, false for 'create' @ L179
+[2026-11-06T15:50:29.184Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de5850b error. Code: 7 Message: 7 PERMISSION_DENIED:
+false for 'create' @ L155, false for 'create' @ L179, false for 'update' @ L165, false for 'update' @ L179
+[2026-11-06T15:50:29.205Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de5850c error. Code: 7 Message: 7 PERMISSION_DENIED:
+false for 'create' @ L155, false for 'create' @ L179, false for 'update' @ L165, false for 'update' @ L179
+[2026-11-06T15:50:29.235Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de5850d error. Code: 7 Message: 7 PERMISSION_DENIED:
+false for 'create' @ L155, false for 'create' @ L179, evaluation error at L165:26 for 'update' @ L165, false for 'update' @ L179, false for 'create' @ L155, false for 'create' @ L179
+✔ dieta: powiązanie tylko z własnym otwartym zleceniem; walidacja pól (224.5971ms)
+[2026-11-06T15:50:29.308Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de58510 error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L128:26 for 'delete' @ L128, false for 'delete' @ L179, false for 'delete' @ L128, false for 'delete' @ L179
+[2026-11-06T15:50:29.327Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de58511 error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L128:26 for 'delete' @ L128, false for 'delete' @ L179, false for 'delete' @ L128, false for 'delete' @ L179
+✔ usuwanie szkicu czasu: tylko własny, aktywny, przypisane otwarte zlecenie (110.281832ms)
+✔ członek (technik) czyta wspólny katalog klientów/maszyn – zamierzone, udokumentowane (70.29921ms)
+[2026-11-06T15:50:29.526Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de5851a error. Code: 7 Message: 7 PERMISSION_DENIED:
+false for 'create' @ L179, false for 'update' @ L179
+✔ anonim, niesczłonek i legacy root: deny; wyłączony bez danych biznesowych (127.199719ms)
+[2026-11-06T15:50:29.632Z]  @firebase/firestore: Firestore (13.2.0): GrpcConnection RPC 'Write' stream 0x1de5851e error. Code: 7 Message: 7 PERMISSION_DENIED:
+evaluation error at L23:24 for 'update' @ L23, false for 'update' @ L179, false for 'update' @ L23, false for 'update' @ L179
+✔ admin ze świeżym tenantem (jak AZ Service: name-only) zapisuje stawki; tworzy klienta (88.338991ms)
+✔ LUKA udokumentowana: pusty wynik z kluczem przechodzi submit w regułach (treść = UI+admin) (97.468482ms)
+✔ technik listFor: zapytanie złożone workOrderId+uid (wymaga indeksu złożonego w produkcji) (172.364634ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
 ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4913.40614
 ✔  Script exited successfully (code 0)
+i  emulators: Shutting down emulators.
+i  firestore: Stopping Firestore Emulator
+i  storage: Stopping Storage Emulator
+i  hub: Stopping emulator hub
+i  logging: Stopping Logging Emulator

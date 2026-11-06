@@ -4,7 +4,9 @@
 // NIE wpisuj tu kluczy konta serwisowego ani haseł.
 export const CONFIG = {
   firebase: null, // np. { apiKey: '...', authDomain: '<projekt>.firebaseapp.com', projectId: '<projekt>', storageBucket: '<projekt>.firebasestorage.app', appId: '...' }
-  tenantId: null, // ID firmy utworzone skryptem tools/bootstrap-admin.mjs, np. 'firma-gmbh'
+  tenantId: null, // ID firmy (np. 'serwismaster') – dokument tenants/{id} + members/{uid}
   authPersistence: 'session', // 'session' = sesja tylko w tej karcie; 'local' = zapamiętaj (IndexedDB SDK Firebase)
   useEmulators: false, // true tylko do testów lokalnych z Firebase Emulator Suite
+  // photos: false na planie Spark (Cloud Storage wymaga Blaze). true dopiero po Blaze + storage.rules.
+  features: { photos: false },
 };

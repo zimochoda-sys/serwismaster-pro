@@ -1,19 +1,28 @@
-// Integracja z Firebase (Auth, Firestore, Storage) – modularny SDK ładowany z oficjalnego CDN dopiero po wykryciu konfiguracji.
+// Integracja z Firebase (Auth, Firestore, opcjonalnie Storage) – modularny SDK z oficjalnego CDN.
 import { ConflictError, PermissionError } from './errors.js';
 const V = '13.2.0';
 const CDN = m => `https://www.gstatic.com/firebasejs/${V}/firebase-${m}.js`;
 
+export function photosEnabled(config) {
+  return config?.features?.photos === true;
+}
+
 export async function createCloudStore(config) {
-  const [{ initializeApp }, A, F, S] = await Promise.all([import(CDN('app')), import(CDN('auth')), import(CDN('firestore')), import(CDN('storage'))]);
+  const usePhotos = photosEnabled(config);
+  const mods = [import(CDN('app')), import(CDN('auth')), import(CDN('firestore'))];
+  if (usePhotos) mods.push(import(CDN('storage')));
+  const loaded = await Promise.all(mods);
+  const [{ initializeApp }, A, F] = loaded;
+  const S = usePhotos ? loaded[3] : null;
   const app = initializeApp(config.firebase);
   const auth = A.getAuth(app);
   // Bez persistentLocalCache: zapis offline nie jest udawany – transakcje wymagają serwera.
   const db = F.getFirestore(app);
-  const storage = S.getStorage(app);
+  const storage = usePhotos ? S.getStorage(app) : null;
   if (config.useEmulators) {
     A.connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
     F.connectFirestoreEmulator(db, '127.0.0.1', 8080);
-    S.connectStorageEmulator(storage, '127.0.0.1', 9199);
+    if (usePhotos && storage) S.connectStorageEmulator(storage, '127.0.0.1', 9199);
   }
   await A.setPersistence(auth, config.authPersistence === 'local' ? A.browserLocalPersistence : A.browserSessionPersistence);
   const T = config.tenantId;
@@ -22,9 +31,12 @@ export async function createCloudStore(config) {
   const now = () => F.serverTimestamp();
   const snap2 = s => s.docs.map(x => ({ id: x.id, ...x.data() }));
   let me = null;
+  const noPhotos = () => { throw new Error('Zdjęcia wyłączone (features.photos=false / plan Spark bez Cloud Storage).'); };
 
   const store = {
-    mode: 'cloud', label: `Chmura Firebase (projekt ${config.firebase.projectId}, firma ${T})`,
+    mode: 'cloud',
+    label: `Chmura Firebase (projekt ${config.firebase.projectId}, firma ${T}${usePhotos ? '' : ', bez zdjęć'})`,
+    photosEnabled: usePhotos,
     onAuth(cb) {
       return A.onAuthStateChanged(auth, async user => {
         if (!user) { me = null; return cb(null); }
@@ -95,6 +107,7 @@ export async function createCloudStore(config) {
       });
     },
     async uploadPhoto(orderId, file) {
+      if (!usePhotos || !storage) noPhotos();
       if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error('Dozwolone: JPG, PNG, WEBP.');
       if (file.size >= 10 * 1024 * 1024) throw new Error('Maks. 10 MB.');
       const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[file.type];
@@ -102,7 +115,10 @@ export async function createCloudStore(config) {
       await S.uploadBytes(S.ref(storage, path), file, { contentType: file.type });
       return path;
     },
-    photoUrl: path => S.getDownloadURL(S.ref(storage, path)),
+    photoUrl: path => {
+      if (!usePhotos || !storage) return Promise.reject(new Error('Zdjęcia wyłączone.'));
+      return S.getDownloadURL(S.ref(storage, path));
+    },
     now: () => '__now__',
   };
   function stamp(name) { return ['timeEntries', 'materials', 'trips', 'defects'].includes(name) ? { createdAt: now() } : { updatedAt: now() }; }

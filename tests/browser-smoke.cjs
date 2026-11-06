@@ -4,7 +4,11 @@ const { chromium } = require(process.env.PLAYWRIGHT_DIR || 'playwright');
 const http = require('http'), fs = require('fs'), path = require('path'), assert = require('assert/strict');
 const root = path.join(__dirname, '..');
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
-const srv = http.createServer((q, r) => { const p = path.join(root, decodeURIComponent(q.url.split('?')[0]) === '/' ? 'index.html' : decodeURIComponent(q.url.split('?')[0]));
+const srv = http.createServer((q, r) => {
+  const u = decodeURIComponent(q.url.split('?')[0]);
+  // Smoke = wyłącznie DEMO: nie serwuj produkcyjnego js/config.js (unikamy CDN/Firebase).
+  if (u === '/js/config.js') { r.writeHead(404); return r.end(); }
+  const p = path.join(root, u === '/' ? 'index.html' : u);
   if (!p.startsWith(root) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) { r.writeHead(404); return r.end(); }
   r.writeHead(200, { 'content-type': types[path.extname(p)] || 'application/octet-stream' }); fs.createReadStream(p).pipe(r); });
 const log = [];

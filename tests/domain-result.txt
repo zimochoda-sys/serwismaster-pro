@@ -1,19 +1,26 @@
-✔ DE krajowe 2026: >8h = 14 €, ≤8h = 0 (1.258697ms)
-✔ DE z noclegiem: 14 + 28 + 14 (0.600033ms)
-✔ BMF 2026: Warszawa 40/27, Wrocław 34/23, reszta Polski 34/23 (5.673417ms)
-✔ Nieznany kraj / rok / brak miasta blokuje (bez fallbacku) (0.403943ms)
-✔ Posiłki 20/40/40 od stawki dobowej, min. 0, dopłata pracownika (0.273334ms)
-✔ Przypadki złożone => ręczna weryfikacja (0.188816ms)
-✔ Rozdzielenie: podatkowe / zwrot firmy / klient (0.167342ms)
-✔ Szablon: walidacja granic wymaga źródła (0.33249ms)
-✔ Snapshot + walidacja zgłoszenia (0.329652ms)
-✔ Przejścia statusów (0.319052ms)
-✔ Czas i szkic rachunku tylko z zatwierdzonych, VAT konfigurowalny (0.55525ms)
-ℹ tests 11
+
+> test
+> node --test tests/domain.test.js
+
+✔ DE krajowe 2026: >8h = 14 €, ≤8h = 0 (1.601308ms)
+✔ DE z noclegiem: 14 + 28 + 14 (0.857394ms)
+✔ BMF 2026: Warszawa 40/27, Wrocław 34/23, reszta Polski 34/23 (6.022389ms)
+✔ Nieznany kraj / rok / brak miasta blokuje (bez fallbacku) (0.510937ms)
+✔ Posiłki 20/40/40 od stawki dobowej, min. 0, dopłata pracownika (0.34107ms)
+✔ Przypadki złożone => ręczna weryfikacja (0.239006ms)
+✔ Rozdzielenie: podatkowe / zwrot firmy / klient (0.195671ms)
+✔ Szablon: walidacja granic wymaga źródła (0.402726ms)
+✔ Snapshot + walidacja zgłoszenia (0.402211ms)
+✔ Przejścia statusów (0.353646ms)
+✔ Czas i szkic rachunku tylko z zatwierdzonych, VAT konfigurowalny (0.534095ms)
+✔ features.photos: wyłączone domyślnie / jawnie; włączone tylko przy true (0.099238ms)
+✔ validateSubmission odrzuca pusty/null wynik wymaganego punktu (bramka UI) (0.154709ms)
+✔ ratesConfigured: brak milczących stawek – wymaga VAT i obu €/h (0.082297ms)
+ℹ tests 14
 ℹ suites 0
-ℹ pass 11
+ℹ pass 14
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 60.290207
+ℹ duration_ms 83.166666

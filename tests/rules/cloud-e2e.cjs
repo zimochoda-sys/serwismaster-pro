@@ -4,7 +4,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_DIR || 'playwright');
 const http = require('http'), fs = require('fs'), path = require('path'), assert = require('assert/strict'), { execFileSync } = require('child_process');
 const root = path.join(__dirname, '..', '..'); const P = 'demo-serwismaster', T = 'firma-test';
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
-const CONFIG = `export const CONFIG = { firebase: { apiKey: 'demo-key', authDomain: '${P}.firebaseapp.com', projectId: '${P}', storageBucket: '${P}.appspot.com', appId: 'demo' }, tenantId: '${T}', authPersistence: 'session', useEmulators: true };`;
+const CONFIG = `export const CONFIG = { firebase: { apiKey: 'demo-key', authDomain: '${P}.firebaseapp.com', projectId: '${P}', storageBucket: '${P}.appspot.com', appId: 'demo' }, tenantId: '${T}', authPersistence: 'session', useEmulators: true, features: { photos: false } };`;
 const srv = http.createServer((q, r) => { const u = decodeURIComponent(q.url.split('?')[0]);
   if (u === '/js/config.js') { r.writeHead(200, { 'content-type': 'text/javascript' }); return r.end(CONFIG); }
   const p = path.join(root, u === '/' ? 'index.html' : u); if (!p.startsWith(root) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) { r.writeHead(404); return r.end(); }
@@ -40,8 +40,12 @@ async function seed(docPath, data) { const r = await fetch(`${FS}/${docPath}`, {
     await login('tech@example.invalid'); await page.waitForSelector('text=Moje przypisane zlecenia');
     const list = await page.textContent('main'); assert.match(list, /Zlecenie T1/); assert.doesNotMatch(list, /cudze/); pass('technik (chmura) widzi tylko przypisane zlecenia');
     await page.click('[data-action=openOrder]'); await page.click('[data-action=startOrder]'); await page.waitForSelector('[data-action=saveItem]');
-    await page.check('[data-item=a] input[value=ok]'); await page.click('[data-item=a] [data-action=saveItem]'); await page.waitForSelector('[data-item=a].res-ok');
-    assert.match(await page.textContent('#statusBar'), /zapisano w chmurze/); pass('zapis wyniku w Firestore przez transakcję (rev)');
+    await page.check('[data-item=a] input[value=ok]');
+    assert.equal(await page.locator('[data-item=a] input[type=file]').count(), 0);
+    assert.match(await page.textContent('[data-item=a]'), /Zdjęcia niedostępne/);
+    pass('features.photos=false: brak inputu pliku, komunikat niedostępności');
+    await page.click('[data-item=a] [data-action=saveItem]'); await page.waitForSelector('[data-item=a].res-ok');
+    assert.match(await page.textContent('#statusBar'), /zapisano w chmurze/); pass('zapis wyniku w Firestore przez transakcję (rev) bez Storage');
     await seed(`tenants/${T}/workOrders/o1`, { title: 'Zlecenie T1', clientId: 'c1', siteId: '', machineId: 'm1', assignedTo: tech, dueDate: '2026-12-01', status: 'in_progress', snapshot: snap, results: { a: { outcome: 'ok' } }, rev: 99, createdBy: admin });
     await page.check('[data-item=a] input[value=ok]'); await page.click('[data-item=a] [data-action=saveItem]');
     await page.waitForFunction(() => /KONFLIKT/.test(document.querySelector('#statusBar').textContent)); pass('konflikt rev wykryty w chmurze');

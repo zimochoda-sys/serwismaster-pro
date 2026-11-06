@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { calculateAllowance, rateFor, splitAmounts, AllowanceError, listCountries } from '../js/domain/allowance.js';
 import { validateTemplate, snapshotFor, validateSubmission, validateResult, canTransition } from '../js/domain/checklist.js';
 import { buildInvoiceDraft, validateTimeEntry, sumTime } from '../js/domain/billing.js';
+import { photosEnabled } from '../js/cloud.js';
 
 test('DE krajowe 2026: >8h = 14 €, ≤8h = 0', () => {
   assert.equal(calculateAllowance({ country: 'DE', start: '2026-03-02T06:00', end: '2026-03-02T14:30', overnight: false }).total, 14);
@@ -79,4 +80,29 @@ test('Czas i szkic rachunku tylko z zatwierdzonych, VAT konfigurowalny', () => {
   assert.equal(inv.grossCents, 16970 + 3224);
   assert.equal(inv.number, null);
   assert.throws(() => buildInvoiceDraft({ order: { ...order, status: 'submitted' }, timeEntries: [], materials: [], rates: {}, vatPercent: 19 }));
+});
+
+
+test('features.photos: wyłączone domyślnie / jawnie; włączone tylko przy true', () => {
+  assert.equal(photosEnabled({}), false);
+  assert.equal(photosEnabled({ features: { photos: false } }), false);
+  assert.equal(photosEnabled({ features: {} }), false);
+  assert.equal(photosEnabled({ features: { photos: true } }), true);
+});
+
+test('validateSubmission odrzuca pusty/null wynik wymaganego punktu (bramka UI)', () => {
+  const snap = snapshotFor({ templateId: 't', version: 1, name: 'T', source: 'x', items: [
+    { id: 'a', label: 'A', type: 'check', required: true },
+    { id: 'b', label: 'B', type: 'measure', unit: 'bar', min: 1, max: 2, limitSource: 'doc', required: true },
+  ]});
+  assert.ok(validateSubmission(snap, { a: {}, b: { outcome: null } }).length >= 2);
+  assert.ok(validateSubmission(snap, { a: { outcome: 'ok' }, b: { outcome: 'ok', value: null } }).length >= 1);
+  assert.equal(validateSubmission(snap, { a: { outcome: 'ok' }, b: { outcome: 'ok', value: 1.5 } }).length, 0);
+});
+
+test('ratesConfigured: brak milczących stawek – wymaga VAT i obu €/h', () => {
+  const ok = t => typeof t.vatPercent === 'number' && typeof t.workPerHour === 'number' && typeof t.travelPerHour === 'number';
+  assert.equal(ok({ name: 'AZ Service' }), false);
+  assert.equal(ok({ name: 'AZ', vatPercent: 19 }), false);
+  assert.equal(ok({ name: 'AZ', vatPercent: 19, workPerHour: 80, travelPerHour: 50 }), true);
 });

@@ -13,3 +13,4 @@ firebase-export-*/
 .emulator*/
 tests/smoke-fail.png
 .bootstrap-copy.mjs
+_scratch/

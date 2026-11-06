@@ -19,10 +19,13 @@ service cloud.firestore {
 
     match /tenants/{t} {
       allow read: if member(t);
-      allow update: if isAdmin(t) && request.resource.data.keys().hasOnly(['name', 'vatPercent', 'workPerHour', 'travelPerHour', 'updatedAt'])
-        && str(request.resource.data.name, 120) && request.resource.data.vatPercent is number
-        && request.resource.data.vatPercent >= 0 && request.resource.data.vatPercent <= 100;
-      allow create, delete: if false; // tworzy tylko Admin SDK (tools/bootstrap-admin.mjs)
+      // Tylko zmieniane pola – zachowuje createdAt z bootstrapa; stawki muszą być liczbami (brak milczących domyślnych w UI).
+      allow update: if isAdmin(t) && changed().hasOnly(['name', 'vatPercent', 'workPerHour', 'travelPerHour', 'updatedAt'])
+        && str(request.resource.data.name, 120)
+        && request.resource.data.vatPercent is number && request.resource.data.vatPercent >= 0 && request.resource.data.vatPercent <= 100
+        && request.resource.data.workPerHour is number && request.resource.data.workPerHour >= 0
+        && request.resource.data.travelPerHour is number && request.resource.data.travelPerHour >= 0;
+      allow create, delete: if false; // tworzy tylko Admin SDK / konsola właściciela (nie aplikacja)
 
       match /members/{uid} {
         // Własny wpis czytelny także dla nieaktywnego konta (do komunikatu „brak dostępu”) – nie daje dostępu do danych.
@@ -99,6 +102,7 @@ service cloud.firestore {
             (resource.data.status in ['planned', 'rejected'] && request.resource.data.status == 'in_progress')
             || (resource.data.status in ['in_progress', 'rejected'] && request.resource.data.status == 'submitted'
                 && request.resource.data.results.keys().hasAll(resource.data.snapshot.requiredItemIds))); }
+        // LUKA (bez Cloud Functions): hasAll = obecność kluczy, nie treść outcome/note/null. Bramka: UI + akceptacja admina.
       }
 
       match /defects/{id} {

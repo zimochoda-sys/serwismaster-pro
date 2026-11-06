@@ -2,7 +2,7 @@
 
 Statyczna aplikacja (HTML + moduły JS, bez bundlera) do hostowania np. na GitHub Pages, z backendem **Firebase** (Authentication, Firestore, Storage) i regułami bezpieczeństwa egzekwowanymi po stronie serwera.
 
-> **Stan:** pliki wygenerowane i przetestowane lokalnie (emulatory Firebase + headless Chromium). **Nic nie zostało wdrożone**, nie utworzono projektu Firebase, nie zmieniono strony na GitHub Pages.
+> **Stan (2026-11-06):** kod MVP gotowy do publikacji (testy lokalne/emulatory). **Wdrożenie reguł / Pages / merge wykonuje właściciel** – ten katalog nie mutuje produkcji. Plan **Spark**: Auth + Firestore; **zdjęcia wyłączone** (`features.photos=false`, Cloud Storage wymaga Blaze). Stare kolekcje root pozostają niedostępne (deny). Brak certyfikacji produkcyjnej / audytu RODO.
 
 ## Co działa (zaimplementowane)
 | Obszar | Zakres |
@@ -30,20 +30,22 @@ Statyczna aplikacja (HTML + moduły JS, bez bundlera) do hostowania np. na GitHu
 - Brak powiadomień e-mail, brak trybu offline z kolejką zapisów, brak usuwania osieroconych zdjęć.
 - Przykładowa checklista w DEMO **nie zawiera wartości producenta** – granice są oznaczone jako przykład.
 
-## Konfiguracja (wykonuje właściciel – nic z tego nie zostało zrobione)
-1. **Projekt Firebase** w [konsoli](https://console.firebase.google.com) – wybierz lokalizację Firestore w UE (np. `europe-west3` Frankfurt). Uwaga RODO/DSGVO: Firebase to usługa Google; zawrzyj umowę powierzenia (Data Processing Terms), wpisz do rejestru czynności przetwarzania, poinformuj pracowników. Niektóre usługi Firebase (np. Authentication) mogą przetwarzać dane poza UE – sprawdź aktualną dokumentację Google.
+## Konfiguracja (wykonuje właściciel – publikacja)
+1. **Projekt Firebase** – dla AZ Service: `service-21527` (Firestore `europe-west3`). Nowy projekt: lokalizacja UE. Uwaga RODO/DSGVO: Firebase to usługa Google; zawrzyj umowę powierzenia (Data Processing Terms), wpisz do rejestru czynności przetwarzania, poinformuj pracowników. Niektóre usługi Firebase (np. Authentication) mogą przetwarzać dane poza UE – sprawdź aktualną dokumentację Google.
 2. **Authentication** → włącz dostawcę *E-mail/Hasło*. Aplikacja nie oferuje rejestracji; konto bez wpisu w `members` i tak nic nie widzi.
-3. **Firestore** i **Storage** – utwórz w trybie produkcyjnym.
-4. **Reguły**: `npx -y firebase-tools@latest deploy --only firestore:rules,storage --project <id>` z katalogu `firebase/` (lub wklej treść `firestore.rules`/`storage.rules` w konsoli).
+3. **Firestore** – już istnieje. **Storage pomiń na Spark** (zdjęcia wyłączone w `js/config.js`).
+4. **Reguły + indeksy (bez Storage)**: z katalogu `firebase/`:
+   `npx -y firebase-tools@latest deploy --only firestore:rules,firestore:indexes --project service-21527`
+   (opcjonalnie później z Blaze: dodaj `storage`).
 5. **Aplikacja web**: Ustawienia projektu → Dodaj aplikację web → skopiuj konfigurację do `js/config.js` (wzór: `js/config.example.js`) i ustaw `tenantId`. Dodaj domenę `<user>.github.io` w Authentication → Ustawienia → Autoryzowane domeny.
-6. **Pierwszy admin**: utwórz konto e-mail w Authentication, potem na swoim komputerze:
+6. **Pierwszy admin**: dla `serwismaster` / UID `BXFgv0nQmFPBuVpdYsByymsr2Xv1` już przygotowany. Nowy tenant:
    ```
    npm i firebase-admin
    gcloud auth application-default login     # albo GOOGLE_APPLICATION_CREDENTIALS (klucza nie commituj!)
    node tools/bootstrap-admin.mjs --project <id> --tenant firma-gmbh --email admin@twojafirma.de --name "Twoja Firma GmbH"
    ```
    Skrypt odmówi, jeśli firma już istnieje. Kolejnych adminów i techników dodaje admin w zakładce **Zespół** (UID z konsoli).
-7. W aplikacji: Ustawienia (VAT, stawki) → Klienci i maszyny → Szablony checklist (z dokumentacji producenta) → Magazyn → Zlecenia.
+7. W aplikacji: **Ustawienia (VAT + stawki €/h – wymagane jawnie, bez milczących domyślnych)** → Klienci i maszyny → Szablony → Magazyn → Zespół (technicy) → Zlecenia.
 8. GitHub Pages: `js/config.js` jest w `.gitignore`. Dodaj go **świadomie i ręcznie** dopiero po wdrożeniu reguł i utworzeniu admina (np. `git add -f js/config.js`) – trafi do publicznego repo. Zawiera tylko publiczną konfigurację aplikacji web (apiKey web nie jest sekretem; ochronę dają reguły; rozważ App Check i ograniczenie klucza do domeny).
    **Nigdy** nie umieszczaj w repozytorium kluczy konta serwisowego (`service-account*.json`), plików ADC (`application_default_credentials.json`), `.env` ani eksportów emulatora z danymi.
 
