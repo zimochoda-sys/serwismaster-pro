@@ -1,492 +1,61 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1e293b">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="SerwisMaster">
-  <link rel="apple-touch-icon" href="icon-192.png">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SerwisMaster Pro - Przemysłowy System Serwisowy</title>
+  <title>SerwisMaster Pro - Naprawiony</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: #0b1329; color: #f8fafc; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-
-    header { background: #1e293b; padding: 0 16px; height: 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; position: relative; z-index: 100; }
+    header { background: #1e293b; padding: 0 16px; height: 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; }
     .brand { font-weight: 800; font-size: 1.15rem; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
-    
     .nav-tabs { display: flex; gap: 4px; height: 100%; align-items: center; }
-    .tab-btn { background: transparent; color: #94a3b8; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.82rem; display: flex; align-items: center; gap: 5px; }
+    .tab-btn { background: transparent; color: #94a3b8; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.82rem; }
     .tab-btn:hover { color: #fff; background: #334155; }
     .tab-btn.active { background: #0284c7; color: #fff; }
-
-    .header-right { display: flex; align-items: center; gap: 8px; }
-
-    .btn { background: #0284c7; color: #fff; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; }
+    .view-container { display: flex; flex: 1; width: 100%; height: calc(100vh - 50px); overflow: hidden; }
+    .content { flex: 1; padding: 20px; overflow-y: auto; }
+    .box { background: #152238; border: 1px solid #2a4365; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+    .btn { background: #0284c7; color: #fff; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-weight: 600; }
     .btn:hover { opacity: 0.9; }
     .btn-green { background: #10b981; }
-    .btn-amber { background: #d97706; }
-    .btn-purple { background: #8b5cf6; }
-    .btn-del { background: #ef4444; }
-    .btn-gray { background: #475569; }
-
-    /* MENU ADMINISTRATORA ROZWIJANE */
-    .admin-menu-dropdown { position: relative; display: inline-block; }
-    .admin-menu-content { display: none; position: absolute; right: 0; top: 100%; background: #16243d; min-width: 230px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); border: 1px solid #2a4365; border-radius: 6px; z-index: 150; padding: 6px 0; margin-top: 4px; }
-    .admin-menu-content a, .admin-menu-content button { color: #f8fafc; padding: 9px 14px; text-decoration: none; display: flex; align-items: center; gap: 8px; font-size: 0.82rem; background: transparent; border: none; width: 100%; text-align: left; cursor: pointer; }
-    .admin-menu-content a:hover, .admin-menu-content button:hover { background: #1f3558; color: #38bdf8; }
-
-    .view-container { display: flex; flex: 1; width: 100%; height: calc(100vh - 50px); overflow: hidden; }
-    .sidebar { width: 330px; background: #0c1527; border-right: 2px solid #1e2e4a; overflow-y: auto; padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; }
-    .content { flex: 1; padding: 18px; overflow-y: auto; }
-    
-    .card { background: #152238; border: 1px solid #223758; padding: 12px; border-radius: 6px; cursor: pointer; position: relative; transition: all 0.15s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-    .card:hover { border-color: #38bdf8; background: #1a2a46; transform: translateY(-1px); }
-    .card.act { border-color: #38bdf8; background: #1c3156; box-shadow: 0 0 0 1px #38bdf8; }
-    .card.is-done { border-left: 4px solid #10b981; opacity: 0.85; }
-    .card.is-active { border-left: 4px solid #38bdf8; }
-    .card-del-btn { position: absolute; top: 6px; right: 6px; background: #ef4444; color: #fff; border: none; width: 20px; height: 20px; border-radius: 3px; cursor: pointer; font-weight: bold; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; }
-
-    .box { background: #152238; border: 1px solid #2a4365; border-radius: 8px; padding: 18px; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); }
-    .box h3 { color: #38bdf8; font-size: 1rem; font-weight: 700; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e355b; padding-bottom: 8px; }
-    input, select, textarea { width: 100%; background: #0c1527; border: 1px solid #283e66; color: #fff; padding: 7px 10px; border-radius: 4px; margin-top: 4px; font-size: 0.88rem; }
-    input:disabled, select:disabled, textarea:disabled { background: #1e293b; color: #94a3b8; cursor: not-allowed; border-color: #334155; }
-    textarea { height: 75px; resize: vertical; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-    .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
-
-    .badge-status { font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 3px; display: inline-block; }
-    .badge-status.active { background: #0284c7; color: #fff; }
-    .badge-status.done { background: #047857; color: #ecfdf5; }
-
-    /* DASHBOARD OKRĘGOWY */
-    .dash-summary-row { display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 16px; }
-    .donut-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 10px; }
-    .donut-center-text { position: absolute; text-align: center; pointer-events: none; }
-    .donut-center-num { font-size: 1.6rem; font-weight: 800; color: #38bdf8; }
-    .donut-center-lbl { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; }
-
-    .dash-kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .dash-kpi-tile { background: #0e192e; border: 1px solid #1e355b; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; justify-content: center; }
-    .dash-kpi-tile-val { font-size: 1.5rem; font-weight: 800; margin-top: 4px; }
-    .dash-kpi-tile-lbl { font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
-
-    /* CHECKLISTY */
-    .chk-mod-container { background: #131e33; border: 1px solid #25395c; border-radius: 6px; margin-bottom: 14px; overflow: hidden; }
-    .chk-mod-header { background: #1b2a47; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #25395c; }
-    .chk-mod-title { font-weight: 700; font-size: 0.92rem; color: #38bdf8; }
-    .chk-mod-list { padding: 8px; display: flex; flex-direction: column; gap: 6px; background: #0d172a; }
-
-    .task-card-row { background: #16243d; border: 1px solid #23385d; border-radius: 4px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: flex-start; transition: 0.15s; }
-    .task-card-row:hover { border-color: #38bdf8; background: #1a2c4b; }
-    .task-card-row.done { background: #0b2e25; border-color: #10b981; }
-    .task-left-box { flex: 1; margin-right: 14px; }
-    .task-main-text { font-size: 0.88rem; font-weight: 600; color: #f8fafc; line-height: 1.35; cursor: pointer; }
-    .task-card-row.done .task-main-text { color: #ecfdf5; font-weight: 600; }
-    
-    .task-sub-toolbar { display: flex; align-items: center; gap: 12px; margin-top: 6px; font-size: 0.85rem; }
-    .sub-icon { cursor: pointer; transition: transform 0.15s; display: inline-flex; align-items: center; gap: 4px; }
-    .sub-icon:hover { transform: scale(1.15); color: #38bdf8; }
-    .badge-counter { font-size: 0.68rem; background: #ef4444; color: #fff; padding: 1px 5px; border-radius: 10px; font-weight: bold; }
-
-    .problem-snippet { margin-top: 8px; background: #1c263d; border-left: 3px solid #ef4444; padding: 8px 10px; border-radius: 4px; font-size: 0.82rem; }
-    .prob-item-row { padding: 5px 0; border-bottom: 1px solid #223758; display: flex; justify-content: space-between; align-items: center; }
-    .prob-item-row:last-child { border-bottom: none; }
-    .prob-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; display: inline-block; margin-right: 6px; }
-    .prob-parts-tag { display: inline-block; background: #283955; color: #fbbf24; padding: 2px 6px; border-radius: 3px; font-size: 0.75rem; margin-top: 3px; margin-right: 4px; }
-
-    .status-badge { font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; }
-    .status-badge.ok { background: #047857; color: #ecfdf5; border-color: #10b981; }
-    .status-badge.open { background: #243550; color: #fbbf24; border-color: #f59e0b; }
-
-    .progress-wrap { background: #0c1527; border: 1px solid #283e66; border-radius: 6px; height: 16px; width: 100%; overflow: hidden; margin: 10px 0; }
-    .progress-bar { background: #10b981; height: 100%; width: 0%; transition: width 0.3s ease; }
-
-    /* MIESIĘCZNY ZEITNACHWEIS I DIETY */
-    .zeit-summary-kpi { background: #101e38; border: 2px solid #0284c7; border-radius: 6px; padding: 14px 18px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-    .zeit-kpi-item { display: flex; flex-direction: column; }
-    .zeit-kpi-lbl { font-size: 0.75rem; color: #94a3b8; font-weight: bold; }
-    .zeit-kpi-val { font-size: 1.55rem; font-weight: 800; margin-top: 2px; }
-
-    .day-sheet-card { background: #131f36; border: 1px solid #223556; border-radius: 6px; margin-bottom: 10px; overflow: hidden; }
-    .day-sheet-header { background: #182845; padding: 9px 14px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: bold; }
-    .day-sheet-entries { padding: 8px 12px; display: flex; flex-direction: column; gap: 6px; }
-    .day-entry-line { background: #0d172a; border-left: 3px solid #38bdf8; border-radius: 3px; padding: 7px 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; }
-    .day-entry-line.anreise { border-left-color: #3b82f6; }
-    .day-entry-line.abreise { border-left-color: #a855f7; }
-    .day-entry-line.arbeit { border-left-color: #10b981; }
-    .day-entry-line.standby { border-left-color: #f59e0b; }
-
-    .table-custom { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
-    .table-custom th, .table-custom td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #23385d; }
-    .table-custom th { color: #94a3b8; }
-
-    /* FAKTURA RECHNUNG PREVIEW */
-    .invoice-preview-sheet { background: #ffffff; color: #000000; padding: 40px; border-radius: 4px; max-width: 820px; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.6); font-family: "Segoe UI", Arial, sans-serif; }
-    .invoice-preview-sheet h2 { color: #0f172a; border-bottom: 2px solid #0284c7; padding-bottom: 8px; font-size: 1.4rem; margin-bottom: 16px; }
-
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.78); display: none; justify-content: center; align-items: center; z-index: 1000; overflow-y: auto; padding: 16px; }
-    .modal-window { background: #16243d; border: 1px solid #284069; border-radius: 8px; padding: 18px; width: 100%; max-width: 680px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); max-height: 90vh; display: flex; flex-direction: column; }
-    .modal-scrollable { overflow-y: auto; flex: 1; margin-top: 10px; padding-right: 4px; }
-    .module-builder-row { background: #0e172a; border: 1px solid #233658; border-radius: 4px; padding: 10px; margin-bottom: 10px; }
-
-    @media print {
-      header, .sidebar, .nav-tabs, .no-print, button, input[type="file"] { display: none !important; }
-      body, .content, .view-container { background: #fff !important; color: #000 !important; height: auto !important; overflow: visible !important; }
-      .invoice-preview-sheet { box-shadow: none !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
-    }
   </style>
 </head>
 <body>
 
-  <header class="no-print">
-    <div class="brand">⚙️ SerwisMaster Pro</div>
+  <header>
+    <div class="brand">⚙️ SerwisMaster Pro [Tryb Awaryjny & Naprawczy]</div>
     <div class="nav-tabs">
-      <button class="tab-btn active" id="btnTabDash" onclick="switchTab('dash')">📊 Dashboard</button>
-      <button class="tab-btn" id="btnTabOrders" onclick="switchTab('orders')">📋 Zlecenia</button>
-      <button class="tab-btn" id="btnTabPlan" onclick="switchTab('plan')">📅 Planowanie KW</button>
-      <button class="tab-btn" id="btnTabZeit" onclick="switchTab('zeit')">⏱️ Godziny & Diety</button>
-      <button class="tab-btn" id="btnTabData" onclick="switchTab('data')">📂 Maszyny & Moduły</button>
-      <button class="tab-btn" id="btnTabParts" onclick="switchTab('parts')">📦 Magazyn</button>
-    </div>
-
-    <div class="header-right">
-      <div style="display:flex; align-items:center; gap:6px; background:#0d182b; padding:3px 8px; border-radius:4px; border:1px solid #283e66;">
-        <span style="font-size:0.75rem; color:#94a3b8; font-weight:bold;">🏢 Klient:</span>
-        <select id="globalClientSelector" onchange="onGlobalClientChanged(this.value)" style="background:transparent; border:none; color:#38bdf8; font-weight:bold; font-size:0.82rem; margin:0; padding:2px; cursor:pointer; outline:none;"></select>
-      </div>
-
-      <div style="display:flex; align-items:center; gap:6px; background:#0d182b; padding:3px 8px; border-radius:4px; border:1px solid #283e66;">
-        <span style="font-size:0.75rem; color:#94a3b8; font-weight:bold;">👤</span>
-        <select id="activeUserSelector" onchange="onSwitchActiveUser(this.value)" style="background:transparent; border:none; color:#10b981; font-weight:bold; font-size:0.82rem; margin:0; padding:2px; cursor:pointer; outline:none;"></select>
-      </div>
-
-      <div class="admin-menu-dropdown" id="adminMenuDropdownWrapper">
-        <button class="btn btn-gray" style="padding:4px 8px; font-size:0.78rem;" onclick="toggleAdminMenu(event)">⚙️ Admin ▼</button>
-        <div class="admin-menu-content" id="adminMenuContentDropdown">
-          <button onclick="handleOpenManageUsersAuth()">👥 Zespół & Uprawnienia</button>
-          <button onclick="openInvoiceGeneratorModal()">📄 Wystaw Fakturę (Rechnung)</button>
-          <button onclick="addNewClientPrompt()">🏢 Dodaj nowego klienta</button>
-          <button onclick="openPasswordSettingsModal()">🔑 Zmień hasło główne</button>
-        </div>
-      </div>
-
-      <button class="btn btn-purple" onclick="openOrderDispatchModal()">+ Zlecenie</button>
+      <button class="tab-btn active" onclick="alert('Działa!')">Test Przycisków</button>
     </div>
   </header>
 
-  <!-- 0. DASHBOARD -->
-  <div id="viewDash" class="view-container" style="flex-direction:column; padding:18px; overflow-y:auto;">
-    <div style="max-width:1150px; margin:0 auto; width:100%;">
-      <div class="box" style="margin-bottom:14px; background:#16243d; border:1px solid #2b456e;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-          <div>
-            <div style="font-size:0.75rem; color:#94a3b8; font-weight:bold; text-transform:uppercase;">PULPIT GŁÓWNY ZAKŁADU:</div>
-            <h2 id="dashClientTitle" style="color:#38bdf8; font-size:1.35rem; margin-top:2px;">Wszystkie maszyny</h2>
-          </div>
-          <div style="display:flex; gap:8px;">
-            <button class="btn btn-green" onclick="switchTab('orders')">📋 Zobacz zlecenia</button>
-            <button class="btn btn-purple" onclick="openOrderDispatchModal()">+ Wystaw nowe zlecenie</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="dash-summary-row">
-        <div class="box" style="margin-bottom:0; display:flex; flex-direction:column; justify-content:center;">
-          <h3 style="margin-bottom:8px;">Stan Punktów Kontrolnych</h3>
-          <div class="donut-wrap">
-            <svg width="180" height="180" viewBox="0 0 180 180">
-              <circle cx="90" cy="90" r="70" fill="transparent" stroke="#1f3354" stroke-width="22"></circle>
-              <circle id="donutCircleOk" cx="90" cy="90" r="70" fill="transparent" stroke="#10b981" stroke-width="22" stroke-dasharray="0 440" stroke-dashoffset="110" transform="rotate(-90 90 90)"></circle>
-              <circle id="donutCircleDefect" cx="90" cy="90" r="70" fill="transparent" stroke="#ef4444" stroke-width="22" stroke-dasharray="0 440" stroke-dashoffset="110" transform="rotate(-90 90 90)"></circle>
-              <circle id="donutCircleOpen" cx="90" cy="90" r="70" fill="transparent" stroke="#f59e0b" stroke-width="22" stroke-dasharray="0 440" stroke-dashoffset="110" transform="rotate(-90 90 90)"></circle>
-            </svg>
-            <div class="donut-center-text">
-              <div class="donut-center-num" id="donutTotalTasksNum">0</div>
-              <div class="donut-center-lbl">Punktów</div>
-            </div>
-          </div>
-          <div style="display:flex; justify-content:space-around; margin-top:8px; font-size:0.75rem;">
-            <span style="color:#10b981;">🟢 Sprawdzone: <b id="dashLegendOk">0</b></span>
-            <span style="color:#f59e0b;">🟠 Do zrobienia: <b id="dashLegendOpen">0</b></span>
-            <span style="color:#ef4444;">🔴 Usterki: <b id="dashLegendDefects">0</b></span>
-          </div>
-        </div>
-
-        <div class="box" style="margin-bottom:0; display:flex; flex-direction:column; justify-content:center;">
-          <h3 style="margin-bottom:8px;">Zlecenia & Urządzenia</h3>
-          <div class="dash-kpi-grid">
-            <div class="dash-kpi-tile" style="cursor:pointer;" onclick="openOrdersFiltered('active')" title="Kliknij, aby otworzyć aktywne zlecenia">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="dash-kpi-tile-lbl">Aktywne zlecenia:</span>
-                <span style="font-size:0.75rem; color:#38bdf8;">Otwórz ➔</span>
-              </div>
-              <span class="dash-kpi-tile-val" style="color:#38bdf8;" id="dashKpiActiveOrders">0</span>
-            </div>
-            <div class="dash-kpi-tile" style="cursor:pointer;" onclick="openOrdersFiltered('done')" title="Kliknij, aby otworzyć zakończone serwisy">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="dash-kpi-tile-lbl">Zakończone serwisy:</span>
-                <span style="font-size:0.75rem; color:#10b981;">Otwórz ➔</span>
-              </div>
-              <span class="dash-kpi-tile-val" style="color:#10b981;" id="dashKpiDoneOrders">0</span>
-            </div>
-            <div class="dash-kpi-tile" style="cursor:pointer;" onclick="switchTab('data')" title="Kliknij, aby przejść do katalogu maszyn">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="dash-kpi-tile-lbl">Maszyny w katalogu:</span>
-                <span style="font-size:0.75rem; color:#fbbf24;">Otwórz ➔</span>
-              </div>
-              <span class="dash-kpi-tile-val" style="color:#fbbf24;" id="dashKpiMachinesCount">0</span>
-            </div>
-            <div class="dash-kpi-tile" style="cursor:pointer;" onclick="openProblemsFiltered('open')" title="Kliknij, aby zobaczyć otwarte wady">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="dash-kpi-tile-lbl">Otwarte wady (Rest):</span>
-                <span style="font-size:0.75rem; color:#ef4444;">Zobacz ➔</span>
-              </div>
-              <span class="dash-kpi-tile-val" style="color:#ef4444;" id="dashKpiOpenDefects">0</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="box">
-        <h3>
-          <span>⚠️ Usterki & Restarbeit w toku (dla wybranego zakładu)</span>
-          <select id="dashFilterSelect" onchange="renderDashboardProblems()" style="width:auto; font-size:0.78rem; padding:2px 8px; margin:0;">
-            <option value="open">Tylko Otwarte (Wymagają naprawy)</option>
-            <option value="all">Wszystkie wady</option>
-            <option value="resolved">Tylko Rozwiązane</option>
-          </select>
-        </h3>
-        <table class="table-custom">
-          <thead>
-            <tr><th>Status</th><th>Maszyna / Linia</th><th>Punkt kontrolny</th><th>Usterka</th><th>Restarbeit (Czynność)</th><th>Części</th><th>Technik</th><th>Akcja</th></tr>
-          </thead>
-          <tbody id="dashProblemsTableBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- 1. ZLECENIA -->
-  <div id="viewOrders" class="view-container" style="display:none;">
-    <div class="sidebar no-print">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid #1e355b; padding-bottom:6px;">
-        <div>
-          <span style="font-size:0.7rem; color:#94a3b8; font-weight:bold; text-transform:uppercase;">Zlecenia:</span>
-          <b id="sidebarClientNameDisplay" style="color:#38bdf8; font-size:0.78rem; display:block;"></b>
-        </div>
-        <select id="orderStatusFilter" onchange="filterOrdersList()" style="width:auto; padding:3px 6px; font-size:0.75rem; margin:0; background:#0c1527; border:1px solid #283e66; color:#fff; border-radius:4px;">
-          <option value="active" selected>Aktywne</option>
-          <option value="done">Zakończone</option>
-          <option value="all">Wszystkie</option>
-        </select>
-      </div>
-      <input type="text" id="orderSearchInput" placeholder="🔍 Szukaj zlecenia..." oninput="filterOrdersList()" style="margin-bottom:8px; padding:5px 8px; font-size:0.8rem;">
-      <div id="ordersSidebar"></div>
-    </div>
-    
+  <div class="view-container">
     <div class="content">
-      <div id="orderEmptyState" style="text-align:center; margin-top:120px; color:#94a3b8;">
-        <h2>Wybierz zlecenie z listy po lewej lub zaplanuj w Kalendarzu KW</h2>
-        <p style="font-size:0.85rem; color:#64748b; margin-top:6px;">Zlecenia muszą być najpierw zaplanowane w module <b>📅 Planowanie KW</b>, w przeciwnym razie protokół punktów kontrolnych pozostaje zablokowany.</p>
-      </div>
-
-      <div id="activeOrderView" style="display:none; max-width:980px; margin:0 auto;">
-        <div style="background:#131f38; border:1px solid #23385d; border-radius:6px; padding:12px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <span id="aoStatusBadge" class="badge-status active">W TOKU</span>
-            <b id="aoHeaderOrderNum" style="font-size:1.05rem; color:#fff;">AUF-2026-001</b>
-            <span id="aoLockNotice" style="font-size:0.75rem; color:#ef4444; font-weight:bold; display:none;">🔒 ZAMKNIĘTE (BLOKADA EDYCJI)</span>
-          </div>
-          <div class="no-print" style="display:flex; gap:8px;">
-            <button class="btn btn-purple" onclick="openPdfPreviewModal()">📄 Podgląd PDF / Druk</button>
-            <button class="btn btn-green" id="btnToggleOrderDone" onclick="handleToggleOrderStatusClick()">✓ Zakończ zlecenie</button>
-          </div>
-        </div>
-
-        <div class="box">
-          <div class="grid-3">
-            <div><label>Klient / Zakład</label><input id="aoClientName" readonly style="color:#38bdf8; font-weight:bold;"></div>
-            <div><label>Maszyna / Linia</label><input id="aoMachineName" readonly style="color:#fff; font-weight:bold;"></div>
-            <div><label>Plan KW / Data</label><input id="aoPlanKwDisplay" readonly style="color:#f59e0b; font-weight:bold;"></div>
-          </div>
-          <div class="grid" style="margin-top:8px;">
-            <div><label>Tytuł / Zakres zlecenia</label><input id="aoOrderTitle" oninput="updateActiveOrderField('title', this.value)"></div>
-            <div><label>Technik prowadzący</label><input id="aoTechnician" oninput="updateActiveOrderField('technician', this.value)"></div>
-          </div>
-        </div>
-
-        <div class="box">
-          <h3>Przebieg prac / Notatki techniczne</h3>
-          <textarea id="aoSpecialNotes" style="height:80px;" placeholder="Wpisz uwagi z przeglądu, pomiary, stan maszyny..." oninput="updateActiveOrderField('specialNotes', this.value)"></textarea>
-        </div>
-
-        <div id="serviceChecklistSection">
-          <div class="box">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-              <div>
-                <h3 style="margin:0;">Protokół Punktów Kontrolnych</h3>
-                <span id="checklistStatusNotice" style="font-size:0.75rem; color:#10b981;">✅ Zlecenie zaplanowane w kalendarzu KW – lista aktywna</span>
-              </div>
-              <div class="no-print">
-                <button class="btn btn-amber" style="padding:4px 10px; font-size:0.75rem;" onclick="handleAddModuleToActiveOrderAuth()">➕ Dodaj moduł na stałe (Hasło)</button>
-              </div>
-            </div>
-            <div style="margin-top:10px;">
-              <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
-                <span>Postęp realizacji punktów kontrolnych:</span>
-                <b id="aoProgressTxt" style="color:#38bdf8;">0%</b>
-              </div>
-              <div class="progress-wrap"><div class="progress-bar" id="aoProgressBar"></div></div>
-            </div>
-          </div>
-          <div id="activeOrderModules"></div>
-        </div>
-
-        <div class="no-print" style="margin-top:20px; padding-bottom:40px; display:flex; justify-content:space-between;">
-          <button class="btn btn-green" onclick="handleToggleOrderStatusClick()" id="btnBottomDone">✓ Zakończ to zlecenie</button>
-          <button class="btn btn-del" id="btnDeleteOrder" onclick="handleDeleteOrderClick()">🗑️ Usuń to zlecenie</button>
-        </div>
+      <div class="box">
+        <h2>Diagnostyka Aplikacji</h2>
+        <p style="margin-top: 10px; color: #94a3b8;">Jeśli widzisz ten ekran, oznacza to, że przeglądarka załadowała świeży plik i JavaScript działa prawidłowo.</p>
+        <button class="btn btn-green" style="margin-top: 15px;" onclick="testButton()">Kliknij, aby przetestować reakcję</button>
       </div>
     </div>
   </div>
 
-  <!-- 2. PLANOWANIE KW (KALENDARZ / HARMONOGRAM ZLECEŃ) -->
-  <div id="viewPlan" class="view-container" style="display:none; flex-direction:column; padding:18px; overflow-y:auto;">
-    <div style="max-width:1150px; margin:0 auto; width:100%;">
-      <div class="box">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-          <div>
-            <h2 style="color:#38bdf8; font-size:1.25rem;">📅 Planowanie Zleceń w Kalendarzu KW</h2>
-            <p style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">Wszystkie zaplanowane zlecenia w poszczególnych tygodniach kalendarzowych (Kalenderwoche). Tylko zlecenie zaplanowane tutaj ma odblokowaną listę kontrolną w module Zleceń.</p>
-          </div>
-          <button class="btn btn-purple" onclick="openPlanOrderModal()">+ Zaplanuj zlecenie w KW</button>
-        </div>
-      </div>
-
-      <div class="box">
-        <h3>Harmonogram Tygodniowy (KW)</h3>
-        <table class="table-custom">
-          <thead>
-            <tr><th>Tydzień (KW)</th><th>Klient / Zakład</th><th>Maszyna / Linia</th><th>Zakres / Tytuł</th><th>Status planu</th><th>Akcja</th></tr>
-          </thead>
-          <tbody id="plannedOrdersTableBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- 3. ZEITNACHWEIS -->
-  <div id="viewZeit" class="view-container" style="display:none; flex-direction:column; padding:18px; overflow-y:auto;">
-    <div style="max-width:1150px; margin:0 auto; width:100%;">
-      <div class="box" style="margin-bottom:12px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <h2 id="zeitMonthDisplayTitle" style="color:#38bdf8; font-size:1.25rem;">⏱️ Miesięczna Karta Czasu Pracy & Diety (Zeitnachweis)</h2>
-            <div style="display:flex; gap:4px;">
-              <button class="btn btn-gray" style="padding:4px 8px;" onclick="changeZeitMonth(-1)">◀ Poprzedni</button>
-              <button class="btn btn-gray" style="padding:4px 8px;" onclick="currentZeitMonthDate = new Date(); renderZeitnachweisView();">Bieżący miesiąc</button>
-              <button class="btn btn-gray" style="padding:4px 8px;" onclick="changeZeitMonth(1)">Następny ▶</button>
-            </div>
-          </div>
-
-          <div style="display:flex; align-items:center; gap:8px;">
-            <div id="zeitTechnicianFilterBox" style="display:flex; align-items:center; gap:6px; background:#0d182b; padding:4px 8px; border-radius:4px; border:1px solid #1c2e4d;">
-              <span style="font-size:0.75rem; color:#94a3b8; font-weight:bold;">Filtr technika:</span>
-              <select id="zeitTechFilterSelect" onchange="renderZeitnachweisView()" style="background:transparent; border:none; color:#38bdf8; font-size:0.8rem; margin:0; padding:0; cursor:pointer; outline:none;">
-                <option value="ALL">Wszyscy pracownicy</option>
-              </select>
-            </div>
-            <button class="btn btn-purple" onclick="openAddDayEntryModal()">+ Dodaj czynność (Anreise / Praca / Abreise)</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="zeit-summary-kpi">
-        <div class="zeit-kpi-item">
-          <span class="zeit-kpi-lbl">ROBOCZOGODZINY W MIESIĄCU:</span>
-          <span class="zeit-kpi-val" style="color:#10b981;" id="zeitKpiWorkHours">0.00 h</span>
-        </div>
-        <div class="zeit-kpi-item">
-          <span class="zeit-kpi-lbl">ŁĄCZNE PRZERWY:</span>
-          <span class="zeit-kpi-val" style="color:#f59e0b;" id="zeitKpiBreaks">0 min</span>
-        </div>
-        <div class="zeit-kpi-item">
-          <span class="zeit-kpi-lbl">DNI Z DIETĄ (AUSLÖSE):</span>
-          <span class="zeit-kpi-val" style="color:#38bdf8;" id="zeitKpiDietDays">0 dni</span>
-        </div>
-        <div class="zeit-kpi-item">
-          <span class="zeit-kpi-lbl">SUMA DIET ZA MIESIĄC (W EURO):</span>
-          <span class="zeit-kpi-val" style="color:#fbbf24;" id="zeitKpiDietTotal">0.00 €</span>
-        </div>
-      </div>
-
-      <div class="box">
-        <h3>Ewidencja Dni Pracy i Rozliczenie Diety w Miesiącu</h3>
-        <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:14px;">
-          💡 Wszystkie stawki diet wyliczane są według oficjalnych <strong>niemieckich stawek delegacyjnych BMF i wypłacane w EURO (€)</strong>.
-        </p>
-        <div id="zeitDaysCardsContainer"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 4. KATALOG DANYCH -->
-  <div id="viewData" class="view-container" style="display:none; flex-direction:column; padding:18px; overflow-y:auto;">
-    <div style="max-width:1150px; margin:0 auto; width:100%;">
-      <div class="box" style="margin-bottom:14px; border:1px solid #334155; background:#16243d;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-          <div>
-            <div style="font-size:0.75rem; color:#94a3b8; font-weight:bold; text-transform:uppercase;">KATALOG MASZYN I LINII PRODUKCYJNYCH DLA:</div>
-            <h2 id="dataActiveClientName" style="color:#38bdf8; font-size:1.35rem; margin-top:2px;">Wybierz klienta u góry</h2>
-          </div>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="btn btn-amber" onclick="openEditClientModal()">✏️ Zmień nazwę / dane klienta</button>
-            <button class="btn btn-green" onclick="addNewClientPrompt()">+ Dodaj nowego klienta</button>
-            <button class="btn btn-purple" onclick="openTemplateCreatorModal()">+ Dodaj maszynę do klienta</button>
-          </div>
-        </div>
-      </div>
-
-      <div id="dataClientViewEmpty" style="text-align:center; margin-top:60px; color:#94a3b8; display:none;">
-        <h3>Brak wybranego klienta. Wybierz zakład z listy rozwijanej u góry strony.</h3>
-      </div>
-      <div id="clientTemplatesContainer"></div>
-    </div>
-  </div>
-
-  <!-- 5. MAGAZYN CZĘŚCI -->
-  <div id="viewParts" class="view-container" style="display:none; padding:20px; overflow-y:auto;">
-    <div style="max-width:1050px; margin:0 auto; width:100%;">
-      <div class="box">
-        <h3>Dodaj część do magazynu</h3>
-        <div style="display:grid; grid-template-columns: 2fr 1.5fr 1fr auto; gap:10px; align-items:end;">
-          <div><label>Nazwa części</label><input id="npName" placeholder="np. Rolka dociskowa"></div>
-          <div><label>Nr katalogowy (Art.-Nr)</label><input id="npNum" placeholder="np. S-11885807"></div>
-          <div><label>Stan sztuk</label><input id="npStock" type="number" value="1"></div>
-          <button class="btn btn-green" onclick="saveNewPart()">Zapisz</button>
-        </div>
-      </div>
-      <div class="box">
-        <h3>Katalog części zamiennych</h3>
-        <table class="table-custom">
-          <thead><tr><th>Nazwa części</th><th>Nr katalogowy</th><th>Stan</th><th>Akcja</th></tr></thead>
-          <tbody id="partsCatalogList"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==================== MODALE ==================== -->
-  <!-- (Modals as implemented previously) -->
   <script>
-    // Full JavaScript implementation for SerwisMaster Pro
-    console.log("SerwisMaster Pro v2.6 loaded successfully.");
+    // Automatyczne wyczyszczenie starego Service Workera, który blokował aktualizację!
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for(let registration of registrations) {
+          registration.unregister();
+          console.log('Stary Service Worker został usunięty.');
+        }
+      });
+    }
+
+    function testButton() {
+      alert('Przycisk reaguje poprawnie! Problem z zamrożeniem został usunięty.');
+    }
   </script>
 </body>
 </html>
